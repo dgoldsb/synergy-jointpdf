@@ -272,7 +272,7 @@ class JointProbabilityMatrix():
         :type state_transitions: list
         """
 
-        
+        # test
 
     def entropy(self):
         def log2term(p):  # p log_2 p
