@@ -7,6 +7,22 @@ import copy
 from scipy.optimize import minimize
 import warnings
 from compiler.ast import flatten  # note: deprecated in Python 3, in which case: find another flatten
+from collections import Sequence
+
+
+def maximum_depth(seq):
+    """
+    Helper function, e.g. depth([1,2,[2,4,[[4]]]]) == 4.
+    :param seq: sequence, like a list of lists
+    :rtype: int
+    """
+    seq = iter(seq)
+    try:
+        for level in itertools.count():
+            seq = itertools.chain([next(seq)], seq)
+            seq = itertools.chain.from_iterable(s for s in seq if isinstance(s, Sequence))
+    except StopIteration:
+        return level
 
 # helper function,
 # from http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
@@ -167,6 +183,14 @@ class JointProbabilityMatrix():
 
         # if len(variables):
         #     marginalized_joint_probs = np.array([marginalized_joint_probs])
+
+        assert len(variables) > 0, 'makes no sense to marginalize 0 variables'
+        assert np.all(map(np.isscalar, variables)), 'each variable identifier should be int in [0, numvalues)'
+        assert len(variables) <= self.numvariables, 'cannot marginalize more variables than I have'
+        assert len(set(variables)) <= self.numvariables, 'cannot marginalize more variables than I have'
+
+        # not sure yet about doing this:
+        # variables = sorted(list(set(variables)))  # ensure uniqueness?
 
         for values in itertools.product(*lists_of_possible_states_per_variable):
             marginal_values = [values[varid] for varid in variables]
@@ -379,30 +403,44 @@ class JointProbabilityMatrix():
 
         return pdf
 
-    def matrix2params_incremental(self):
+    def matrix2params_incremental(self, return_flattened=True, verbose=False):
         if self.numvariables > 1:
             # get the marginal pdf for the first variable
             pdf1 = self.marginalize_distribution([0])
 
-            parameters = pdf1.matrix2params()  # first sequence of parameters, rest is added below here
+            # first sequence of parameters, rest is added below here
+            parameters = pdf1.matrix2params()
 
             pdf_conds = self.conditional_probability_distributions([0])
 
             # todo: remove this test, I am trying to find a bug now
-            assert pdf1 + pdf_conds == self, 'should still be same distribution taken together'
+            if np.random.randint(5) == 0:
+                assert pdf1 + pdf_conds == self, 'should still be same distribution taken together'
 
             assert len(pdf_conds) == self.numvalues, 'should be one pdf for each value of first variable'
 
             for val in xrange(self.numvalues):
                 pdf_cond = pdf_conds[tuple([val])]
 
-                added_params = pdf_cond.matrix2params_incremental()
+                added_params = pdf_cond.matrix2params_incremental(return_flattened=False, verbose=verbose)
 
-                # instead of returing a flat list of parameters I make it nested, so that the structure (e.g. number of
+                if verbose:
+                    print 'debug: matrix2params_incremental: recursed: for val=' + str(val) + ' I got added_params=' \
+                          + str(added_params) + '.'
+                    print 'debug: matrix2params_incremental: old parameters =', parameters
+
+                # instead of returning a flat list of parameters I make it nested, so that the structure (e.g. number of
                 # variables and number of values) can be inferred, and also hopefully it can be inferred to which
                 # variable which parameters belong.
                 # CHANGE123
                 parameters.append(added_params)
+
+                if verbose:
+                    print 'debug: matrix2params_incremental: new parameters =', parameters
+
+            if return_flattened:
+                # flatten the tree structure to a list of scalars, which is sorted on the variable id
+                parameters = self.scalars_up_to_level(parameters)
 
             return parameters
         elif self.numvariables == 1:
@@ -412,12 +450,30 @@ class JointProbabilityMatrix():
 
     def params2matrix_incremental(self, parameters):
 
-        if self.numvariables > 1:
+        if __debug__:
+            # store the original provided list of scalars
+            original_parameters = list(parameters)
+
+        # I suspect that both a tree-like input and a list of scalars should work... (add to unit test?)
+        if np.all(map(np.isscalar, parameters)):
+            parameters = self.imbalanced_tree_from_scalars(parameters, self.numvalues)
+
+            # verify that the procedure to make the tree out of the list of scalars is reversible and correct
+            # (looking for bug)
             if __debug__:
-                original_parameters = list(parameters)
+                original_parameters2 = self.scalars_up_to_level(parameters)
+
+                np.testing.assert_array_almost_equal(original_parameters, original_parameters2)
+
+        if self.numvariables > 1:
+            # first (numvalues - 1) values in the parameters tree structure should be scalars, as they will be used
+            # to make the first variable's marginal distribution
+            assert np.all(map(np.isscalar, parameters[:(self.numvalues - 1)]))
 
             pdf_1 = JointProbabilityMatrix(1, self.numvalues)
             pdf_1.params2matrix(parameters[:(len(pdf_1.joint_probabilities.flat) - 1)])
+
+            assert len(pdf_1.joint_probabilities.flat) == self.numvalues
 
             assert len(flatten(parameters)) == len(self.joint_probabilities.flat) - 1, \
                 'more or fewer parameters than needed: ' \
@@ -426,6 +482,7 @@ class JointProbabilityMatrix():
 
             # remove the used parameters from the list
             parameters = parameters[(len(pdf_1.joint_probabilities.flat) - 1):]
+            assert len(parameters) == self.numvalues  # one subtree per conditional pdf
 
             pdf_conds = dict()
 
@@ -433,8 +490,18 @@ class JointProbabilityMatrix():
                 # set this conditional pdf recursively as defined by the next sequence of parameters
                 pdf_cond = JointProbabilityMatrix(self.numvariables - 1, self.numvalues)
                 # CHANGE123
+
+                assert not np.isscalar(parameters[0])
+
+                # todo: changing the parameters list is not necessary, maybe faster if not?
+
                 # pdf_cond.params2matrix_incremental(parameters[:(len(pdf_cond.joint_probabilities.flat) - 1)])
                 pdf_cond.params2matrix_incremental(parameters[0])
+
+                # conditional pdf should have the same set of parameters as the ones I used to create it
+                # (todo: remove this expensive check if it seems to work for  while)
+                np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
+                                                     self.scalars_up_to_level(parameters[0]))
 
                 # remove the used parameters from the list
                 # CHANGE123
@@ -450,8 +517,8 @@ class JointProbabilityMatrix():
 
             if __debug__:
                 # remove this (expensive) check after it seems to work a few times?
-                np.testing.assert_array_almost_equal(flatten(pdf_1.matrix2params_incremental()),
-                                                     flatten(original_parameters))
+                np.testing.assert_array_almost_equal(pdf_1.matrix2params_incremental(),
+                                                     self.scalars_up_to_level(original_parameters))
 
             assert pdf_1.numvariables == self.numvariables
             assert pdf_1.numvalues == self.numvalues
@@ -649,7 +716,7 @@ class JointProbabilityMatrix():
 
         if len(variables1) == 0 or len(variables2) == 0:
             mi = 0
-        elif np.equal(variables1, variables2).all():
+        elif np.equal(sorted(variables1), sorted(variables2)).all():
             mi = self.entropy(variables1)
         else:
             mi = self.entropy(variables1) + self.entropy(variables2) \
@@ -663,15 +730,18 @@ class JointProbabilityMatrix():
 
 
     def synergistic_information_naive(self, variables_Y, variables_X):
-        return self.mutual_information(variables_Y, variables_X) \
-               - sum([self.mutual_information(variables_Y, [var_xi]) for var_xi in variables_X])
+        return self.mutual_information(list(variables_Y), list(variables_X)) \
+               - sum([self.mutual_information(list(variables_Y), list([var_xi])) for var_xi in variables_X])
 
 
     # todo: add optional numvalues, so that the synergistic variables can have more possible values than the
     # current variables (then set all probabilities where the original variables exceed their original max to 0)
     # todo: first you should then probably implement a .increase_num_values(num) or so
-    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True):
-        parameter_values_before = self.matrix2params_incremental()
+    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True, verbose=False):
+        parameter_values_before = list(self.matrix2params_incremental())
+
+        if __debug__:
+            debug_params_before = copy.deepcopy(parameter_values_before)
 
         # a pdf with XORs as appended variables (often already MSRV for binary variables), good initial guess?
         pdf_with_srvs = self.copy()
@@ -683,9 +753,15 @@ class JointProbabilityMatrix():
         parameter_values_after = pdf_with_srvs.matrix2params_incremental()
 
         assert len(parameter_values_after) > len(parameter_values_before), 'should be additional free parameters'
+        # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
+        # have to optimize the latter part of parameter_values_after
+        np.testing.assert_array_almost_equal(parameter_values_before,
+                                             parameter_values_after[:len(parameter_values_before)])
 
         # this many parameters (each in [0,1]) must be optimized
         num_free_parameters = len(parameter_values_after) - len(parameter_values_before)
+
+        assert num_synergistic_variables == 0 or num_free_parameters > 0
 
         if initial_guess_summed_modulo:
             # note: this is xor for binary variables
@@ -693,25 +769,38 @@ class JointProbabilityMatrix():
         else:
             initial_guess = np.random.random(num_free_parameters)
 
+        if verbose:
+            debug_pdf_with_srvs = pdf_with_srvs.copy()
+            debug_pdf_with_srvs.params2matrix_incremental(list(parameter_values_before) + list(initial_guess))
+
+            # store the synergistic information before the optimization procedure (after procedure should be higher...)
+            debug_before_syninfo = debug_pdf_with_srvs.synergistic_information_naive(variables_Y=range(self.numvariables,
+                                                                                         pdf_with_srvs.numvariables),
+                                                                               variables_X=range(self.numvariables))
+
         assert len(initial_guess) == num_free_parameters
 
+        pdf_with_srvs_for_optimization = pdf_with_srvs.copy()
         # NOTE: this fitness function does not try to minimize the (extraneous) entropy of the SRVs
-        def fitness_func(free_params):
+        def fitness_func(free_params, parameter_values_before=parameter_values_before):
             assert len(free_params) == num_free_parameters
 
-            pdf_with_srvs.params2matrix(parameter_values_before + list(free_params))
+            pdf_with_srvs_for_optimization.params2matrix_incremental(list(parameter_values_before) + list(free_params))
 
-            fitness = -pdf_with_srvs.synergistic_information_naive(variables_Y=range(self.numvariables,
-                                                                                          pdf_with_srvs.numvariables),
-                                                                           variables_X=range(self.numvariables))
+            assert pdf_with_srvs_for_optimization.numvariables == self.numvariables + num_synergistic_variables
+
+            fitness = -pdf_with_srvs_for_optimization.synergistic_information_naive(variables_Y=range(self.numvariables,
+                                  pdf_with_srvs_for_optimization.numvariables), variables_X=range(self.numvariables))
 
             assert np.isscalar(fitness)
             assert np.isfinite(fitness)
 
             return float(fitness)
 
+        param_vectors_trace = []
+
         optres = minimize(fitness_func, initial_guess, bounds=[(0.0, 1.0)]*num_free_parameters,
-                          options=None)
+                          callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None)
 
         assert len(optres.x) == num_free_parameters
         assert max(optres.x) <= 1.0, 'parameter bound violated'
@@ -721,9 +810,92 @@ class JointProbabilityMatrix():
 
         pdf_with_srvs.params2matrix_incremental(optimal_parameters_joint_pdf)
 
+        assert pdf_with_srvs.numvariables == self.numvariables + num_synergistic_variables
+
+        if verbose:
+            parameter_values_after2 = pdf_with_srvs.matrix2params_incremental()
+
+            assert len(parameter_values_after2) > len(parameter_values_before), 'should be additional free parameters'
+            # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
+            # have to optimize the latter part of parameter_values_after
+            np.testing.assert_array_almost_equal(parameter_values_before,
+                                                 parameter_values_after2[:len(parameter_values_before)])
+            np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
+                                                 optres.x)
+
+            # store the synergistic information before the optimization procedure (after procedure should be higher...)
+            debug_after_syninfo = pdf_with_srvs.synergistic_information_naive(variables_Y=range(self.numvariables,
+                                                                                         pdf_with_srvs.numvariables),
+                                                                              variables_X=range(self.numvariables))
+
+            print 'debug: append_synergistic_variables: I started from synergistic information =', \
+                debug_before_syninfo, 'at initial guess. After optimization it became', debug_after_syninfo, \
+                '(should be higher). Optimal params:', \
+                parameter_values_after2[len(parameter_values_before):]
+
+            # print 'debug: optimization result:', optres
+
+            # print 'debug: fitness of optimum (optres.x):', fitness_func(optres.x)
+            # print 'debug: fitness of optimum (optres.x):', fitness_func(optres.x,
+            #                                                             parameter_values_before=parameter_values_before)
+
+            # print 'debug: parameter vector trace has', len(param_vectors_trace), 'vectors. First 20 and fitness:'
+            # for xv in param_vectors_trace[:min(len(param_vectors_trace), 20)]:
+            #     fitness = fitness_func(xv)
+            #
+            #     print 'debug: fitness =', fitness, '; vector =', xv
+
+            # fitness function should be the negative of the synergistic info right?
+            np.testing.assert_almost_equal(debug_after_syninfo, -fitness_func(optres.x))
+
+        if __debug__:
+            # unchanged, not accidentally changed by passing it as reference? looking for bug
+            np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
+
         self.duplicate(pdf_with_srvs)
 
     def scalars_up_to_level(self, list_of_lists, max_level=None):
+        """
+        Helper function. E.g. scalars_up_to_level([1,[2,3],[[4]]]) == [1], and
+        scalars_up_to_level([1,[2,3],[[4]]], max_level=2) == [1,2,3]. Will be sorted on level, with highest level
+        scalars first.
+
+        Note: this function is not very efficiently implemented I think, but my concern now is that it works at all.
+
+        :type list_of_lists: list
+        :type max_level: int
+        :rtype: list
+        """
+        # scalars = [v for v in list_of_lists if np.isscalar(v)]
+        #
+        # if max_level > 1 or (max_level is None and len(list_of_lists) > 0):
+        #     for sublist in [v for v in list_of_lists if not np.isscalar(v)]:
+        #         scalars.extend(self.scalars_up_to_level(sublist,
+        #                                                 max_level=max_level-1 if not max_level is None else None))
+
+        scalars = []
+
+        if __debug__:
+            debug_max_depth_set = (max_level is None)
+
+        if max_level is None:
+            max_level = maximum_depth(list_of_lists)
+
+        for at_level in xrange(1, max_level + 1):
+            scalars_at_level = self.scalars_at_level(list_of_lists, at_level=at_level)
+
+            scalars.extend(scalars_at_level)
+
+        if __debug__:
+            if debug_max_depth_set:
+                assert len(scalars) == len(flatten(list_of_lists)), 'all scalars should be present, and not duplicate' \
+                                                                    '. len(scalars) = ' + str(len(scalars)) \
+                                                                    + ', len(flatten(list_of_lists)) = ' \
+                                                                    + str(len(flatten(list_of_lists)))
+
+        return scalars
+
+    def scalars_at_level(self, list_of_lists, at_level=1):
         """
         Helper function. E.g. scalars_up_to_level([1,[2,3],[[4]]]) == [1], and
         scalars_up_to_level([1,[2,3],[[4]]], max_level=2) == [1,2,3]. Will be sorted on level, with highest level
@@ -732,13 +904,24 @@ class JointProbabilityMatrix():
         :type max_level: int
         :rtype: list
         """
-        scalars = [v for v in list_of_lists if np.isscalar(v)]
 
-        if max_level > 1 or (max_level is None and len(list_of_lists) > 0):
-            scalars.extend(self.scalars_up_to_level([v for v in list_of_lists if not np.isscalar(v)],
-                                                    max_level=max_level-1))
+        if at_level == 1:
+            scalars = [v for v in list_of_lists if np.isscalar(v)]
 
-        return scalars
+            return scalars
+        elif at_level == 0:
+            warnings.warn('level 0 does not exist, I start counting from at_level=1, will return [].')
+
+            return []
+        else:
+            scalars = []
+
+            for sublist in [v for v in list_of_lists if not np.isscalar(v)]:
+                scalars.extend(self.scalars_at_level(sublist, at_level=at_level-1))
+
+            assert np.ndim(scalars) == 1
+
+            return scalars
 
     def imbalanced_tree_from_scalars(self, list_of_scalars, numvalues):
         """
@@ -770,29 +953,105 @@ class JointProbabilityMatrix():
         :type numvalues: int
         :rtype: list
         """
-        if len(list_of_scalars) > 0:
-            this_level = list_of_scalars[:numvalues]
 
-            list_of_scalars = list_of_scalars[numvalues:]
+        num_levels = int(np.round(np.log2(len(list_of_scalars) + 1) / np.log2(numvalues)))
 
-            if len(list_of_scalars) > 0:
-                assert np.mod(len(list_of_scalars), numvalues) == 0, 'remaining scalars should be ' \
-                                                                     'divisible by numvalues'
+        all_scalars_at_level = dict()
 
-                num_scalars_per_subtree = len(list_of_scalars) / numvalues
+        list_of_scalars_remaining = list(list_of_scalars)
 
-                for val in xrange(numvalues):
-                    subtree = self.imbalanced_tree_from_scalars(list_of_scalars[:num_scalars_per_subtree])
+        for level in xrange(num_levels):
+            num_scalars_at_level = np.power(numvalues, level) * (numvalues - 1)
 
-                    list_of_scalars = list_of_scalars[num_scalars_per_subtree:]
+            scalars_at_level = list_of_scalars_remaining[:num_scalars_at_level]
 
-                    assert not np.isscalar(subtree)
+            all_scalars_at_level[level] = scalars_at_level
 
-                    this_level.append(subtree)
+            list_of_scalars_remaining = list_of_scalars_remaining[num_scalars_at_level:]
 
-            return this_level
-        else:
-            raise ValueError('called with list_of_scalars=[], did you intend this? The recursive step above should not')
+        # todo: further order the scalars in the expected way
+        def tree_from_levels(all_scalars_at_level):
+            if len(all_scalars_at_level) == 0:
+                return []
+            else:
+                assert len(all_scalars_at_level[0]) == numvalues - 1
+
+                if len(all_scalars_at_level) > 1:
+                    assert len(all_scalars_at_level[1]) == numvalues * (numvalues - 1)
+                if len(all_scalars_at_level) > 2:
+                    assert len(all_scalars_at_level[2]) == (numvalues*numvalues) * (numvalues - 1), \
+                        'len(all_scalars_at_level[2]) = ' + str(len(all_scalars_at_level[2])) + ', ' \
+                        '(numvalues*numvalues) * (numvalues - 1) = ' + str((numvalues*numvalues) * (numvalues - 1))
+                if len(all_scalars_at_level) > 3:
+                    assert len(all_scalars_at_level[3]) == (numvalues*numvalues*numvalues) * (numvalues - 1)
+                # etc.
+
+                tree = list(all_scalars_at_level[0][:(numvalues - 1)])
+
+                if len(all_scalars_at_level) > 1:
+                    # add <numvalues> subtrees to this level
+                    for subtree_id in xrange(numvalues):
+                        all_scalars_for_subtree = dict()
+
+                        for level in xrange(len(all_scalars_at_level) - 1):
+                            num_scalars_at_level = len(all_scalars_at_level[level + 1])
+
+                            assert np.mod(num_scalars_at_level, numvalues) == 0, 'should be divisible nu <numvalues>'
+
+                            num_scalars_for_subtree = int(num_scalars_at_level / numvalues)
+
+                            all_scalars_for_subtree[level] = \
+                                all_scalars_at_level[level + 1][subtree_id * num_scalars_for_subtree
+                                                                :(subtree_id + 1) * num_scalars_for_subtree]
+
+                        subtree_i = tree_from_levels(all_scalars_for_subtree)
+
+                        if len(all_scalars_for_subtree) > 1:
+                            # numvalues - 1 scalars and numvalues subtrees
+                            assert len(subtree_i) == (numvalues - 1) + numvalues, 'len(subtree_i) = ' \
+                                                                                  + str(len(subtree_i)) \
+                                                                                  + ', expected = ' \
+                                                                                  + str((numvalues - 1) + numvalues)
+                        elif len(all_scalars_for_subtree) == 1:
+                            assert len(subtree_i) == numvalues - 1
+
+                        tree.append(subtree_i)
+
+                return tree
+
+        tree = tree_from_levels(all_scalars_at_level)
+
+        assert maximum_depth(tree) == len(all_scalars_at_level)  # should be numvariables if the scalars are parameters
+        assert len(flatten(tree)) == len(list_of_scalars), 'all scalars should end up in the tree, and not duplicate'
+
+        return tree
+
+        # if len(list_of_scalars) > 0:
+        #     this_level = list_of_scalars[:(numvalues-1)]
+        #
+        #     list_of_scalars = list_of_scalars[(numvalues-1):]
+        #
+        #     if len(list_of_scalars) > 0:
+        #         assert np.mod(len(list_of_scalars), numvalues) == 0, 'remaining scalars should be divisible by ' \
+        #                                                              'numvalues: len(list_of_scalars) = ' \
+        #                                                              + str(len(list_of_scalars)) + ', numvalues = ' \
+        #                                                              + str(numvalues)
+        #
+        #         num_scalars_per_subtree = len(list_of_scalars) / numvalues
+        #
+        #         for val in xrange(numvalues):
+        #             subtree = self.imbalanced_tree_from_scalars(list_of_scalars[:num_scalars_per_subtree],
+        #                                                         numvalues=numvalues)
+        #
+        #             list_of_scalars = list_of_scalars[num_scalars_per_subtree:]
+        #
+        #             assert not np.isscalar(subtree)
+        #
+        #             this_level.append(subtree)
+        #
+        #     return this_level
+        # else:
+        #     raise ValueError('called with list_of_scalars=[], did you intend this? The recursive step above should not')
 
 
 
@@ -813,7 +1072,7 @@ def run_append_and_marginalize_test():
 
     # old_params = pdf_copy.matrix2params_incremental()
     #
-    # assert np.testing.assert_array_almost_equal(pdf.matrix2params_incremental()[:len(old_params)], old_params)
+    # np.testing.assert_array_almost_equal(pdf.matrix2params_incremental()[:len(old_params)], old_params)
 
 
 def run_params2matrix_test():
@@ -896,9 +1155,10 @@ def run_find_synergy_test():
 
     assert pdf_syn == pdf
 
-    initial_guess_summed_modulo = np.random.choice([True, False])
+    # initial_guess_summed_modulo = np.random.choice([True, False])
+    initial_guess_summed_modulo = False
 
-    pdf_syn.append_synergistic_variables(1, initial_guess_summed_modulo=initial_guess_summed_modulo)
+    pdf_syn.append_synergistic_variables(1, initial_guess_summed_modulo=initial_guess_summed_modulo, verbose=True)
 
     assert pdf_syn.numvariables == pdf.numvariables + 1
 
@@ -911,8 +1171,15 @@ def run_find_synergy_test():
     np.testing.assert_array_almost_equal(pdf.joint_probabilities, pdf_old.joint_probabilities)
     assert pdf == pdf_old, 'adding and then removing variables should result in the same joint pdf'
 
+    parameters_before = pdf.matrix2params_incremental()
+
     pdf_add_random = pdf.copy()
     pdf_add_random.append_variables(1)
+
+    np.testing.assert_array_almost_equal(pdf_add_random.matrix2params_incremental()[:len(parameters_before)],
+                                                parameters_before)
+    np.testing.assert_array_almost_equal(pdf_syn.matrix2params_incremental()[:len(parameters_before)],
+                                                parameters_before)
 
     # note: this assert is in principle probabilistic, because who knows what optimization procedure is used and
     # how much it potentially sucks. So see if you hit this more than once, if you hit it at all.
@@ -925,11 +1192,10 @@ def run_find_synergy_test():
                                                                                    'an appended variable with simply ' \
                                                                                    'random interaction parameters?!'
 
-    parameters_before = pdf.matrix2params()
-
-    assert np.testing.assert_array_almost_equal(pdf_add_random.matrix2params()[:len(parameters_before)],
+    np.testing.assert_array_almost_equal(pdf_add_random.matrix2params_incremental()[:len(parameters_before)],
                                                 parameters_before)
-    assert np.testing.assert_array_almost_equal(pdf_syn.matrix2params()[:len(parameters_before)], parameters_before)
+    np.testing.assert_array_almost_equal(pdf_syn.matrix2params_incremental()[:len(parameters_before)],
+                                                parameters_before)
 
 
 def run_append_conditional_pdf_test():
@@ -944,15 +1210,30 @@ def run_append_conditional_pdf_test():
     assert pdf_merged == pdf_joint
 
 
-def run_params2matrix_incremental_test():
-    pdf1 = JointProbabilityMatrix(4, 3)
-    pdf2 = JointProbabilityMatrix(4, 3)
+def run_params2matrix_incremental_test(numvars=3):
+    pdf1 = JointProbabilityMatrix(numvars, 3)
+    pdf2 = JointProbabilityMatrix(numvars, 3)
 
-    pdf2.params2matrix_incremental(pdf1.matrix2params_incremental())
+    params1 = pdf1.matrix2params_incremental(return_flattened=True)
+    tree1 = pdf1.matrix2params_incremental(return_flattened=False)
+    tree11 = pdf1.imbalanced_tree_from_scalars(params1, pdf1.numvalues)
+    params1_from_tree1 = pdf1.scalars_up_to_level(tree1)
+    params1_from_tree11 = pdf1.scalars_up_to_level(tree11)
+
+    np.testing.assert_array_almost_equal(params1, params1_from_tree11)  # more a test of tree conversion itself
+    np.testing.assert_array_almost_equal(params1, params1_from_tree1)
+
+    pdf2.params2matrix_incremental(params1)
+
+    params2 = pdf2.matrix2params_incremental()
 
     assert pdf1 == pdf2, 'computing parameter values from joint pdf and using those to construct a 2nd joint pdf ' \
-                         'should result in two equal pdfs.'
+                         'should result in two equal pdfs.\nparams1 = ' + str(params1) + '\nparms2 = ' + str(params2)
 
+    pdf2.params2matrix_incremental(pdf2.matrix2params_incremental())
+
+    assert pdf1 == pdf2, 'computing parameter values from joint pdf and using those to reconstruct the joint pdf ' \
+                         'should result in two equal pdfs.'
 
     ### TEST the incrementality of the parameters
 
@@ -962,27 +1243,50 @@ def run_params2matrix_incremental_test():
 
     pdf_marginal = pdf1.marginalize_distribution([0, 1])
     params_marginal = pdf_marginal.matrix2params_incremental()
-    np.testing.assert_array_almost_equal(flatten(params_marginal),
-                                         flatten(pdf1.matrix2params_incremental()[:len(params_marginal)]))
+    try:
+        np.testing.assert_array_almost_equal(flatten(params_marginal),
+                                             flatten(pdf1.matrix2params_incremental()[:len(params_marginal)]))
+    except AssertionError as e:
+        print '---------------------'
+        print 'debug: params_marginal =                 ', np.round(params_marginal, decimals=4)
+        print 'debug: pdf1.matrix2params_incremental() =', np.round(pdf1.matrix2params_incremental(), 4)
+        print '---------------------'
+        print 'debug: params_marginal =                 ', \
+            pdf_marginal.matrix2params_incremental(return_flattened=False)
+        print 'debug: pdf1.matrix2params_incremental() =', \
+            pdf1.matrix2params_incremental(return_flattened=False)
+        print '---------------------'
 
-    pdf_marginal = pdf1.marginalize_distribution([0, 1, 2])
-    params_marginal = pdf_marginal.matrix2params_incremental()
-    np.testing.assert_array_almost_equal(flatten(params_marginal),
-                                         flatten(pdf1.matrix2params_incremental()[:len(params_marginal)]))
+        raise AssertionError(e)
+
+    if numvars >= 3:
+        pdf_marginal = pdf1.marginalize_distribution([0, 1, 2])
+        params_marginal = pdf_marginal.matrix2params_incremental()
+        np.testing.assert_array_almost_equal(flatten(params_marginal),
+                                             flatten(pdf1.matrix2params_incremental()[:len(params_marginal)]))
 
 
 def run_scalars_to_tree_test():
     pdf = JointProbabilityMatrix(4, 3)
 
-    list_of_scalars = pdf.matrix2params()
+    list_of_scalars = pdf.matrix2params()  # does not matter what sequence of numbers, as long as the length is correct
 
     tree = pdf.imbalanced_tree_from_scalars(list_of_scalars, pdf.numvalues)
     np.testing.assert_array_almost_equal(pdf.scalars_up_to_level(tree), list_of_scalars)
+    # np.testing.assert_array_almost_equal(pdf.scalars_up_to_level(tree), pdf.matrix2params_incremental())
 
-    tree = pdf.matrix2params_incremental()
+    # another tree
+    tree = pdf.matrix2params_incremental(return_flattened=False)
 
-    assert not np.isscalar(tree[-1]), 'you changed the matrix2params_incremental to return flat lists, which is good ' \
-                                      'but then you should change this test'
+    # assert not np.isscalar(tree[-1]), 'you changed the matrix2params_incremental to return flat lists, which is good ' \
+    #                                   'but then you should change this test, set an argument like flatten=False?'
+
+    list_of_scalars2 = pdf.scalars_up_to_level(tree)
+
+    tree2 = pdf.imbalanced_tree_from_scalars(list_of_scalars2, pdf.numvalues)
+
+    np.testing.assert_array_almost_equal(flatten(tree), flatten(tree2))
+    np.testing.assert_array_almost_equal(pdf.scalars_up_to_level(tree), pdf.scalars_up_to_level(tree2))
 
 
 def run_all_tests(verbose=True):
@@ -1009,6 +1313,10 @@ def run_all_tests(verbose=True):
     run_append_conditional_pdf_test()
     if verbose:
         print 'note: test run_append_conditional_pdf_test successful.'
+
+    run_scalars_to_tree_test()
+    if verbose:
+        print 'note: test run_scalars_to_tree_test successful.'
 
     run_params2matrix_incremental_test()
     if verbose:
