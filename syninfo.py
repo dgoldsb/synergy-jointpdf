@@ -204,6 +204,7 @@ class JointProbabilityMatrix():
 
         return marginal_joint_pdf
 
+
     # helper function
     def appended_joint_prob_matrix(self, num_added_variables, values_so_far=[], added_joint_probabilities=None):
         if len(values_so_far) == self.numvariables:
@@ -239,6 +240,7 @@ class JointProbabilityMatrix():
         else:
             raise RuntimeError('should not happen?')
 
+
     def append_variables(self, num_added_variables, added_joint_probabilities=None):
         assert num_added_variables > 0
 
@@ -257,6 +259,7 @@ class JointProbabilityMatrix():
         # self.joint_probabilities = new_joint_pdf
         # self.numvariables = self.numvariables + num_added_variables
         self.reset(self.numvariables + num_added_variables, self.numvalues, new_joint_pdf)
+
 
     def append_variables_using_state_transitions_table(self, state_transitions):
         """
@@ -315,6 +318,64 @@ class JointProbabilityMatrix():
         # self.joint_probabilities = extended_joint_probs
         # self.numvariables = len(state_transitions[0])
         self.reset(len(state_transitions[0]), self.numvalues, extended_joint_probs)
+
+
+    def reorder_variables(self, variables):
+        """
+        Reorder the variables, for instance if self.numvariables == 3 then call with variables=[2,1,0] to reverse the
+        order of the variables. The new joint probability matrix will be determined completely by the old matrix.
+        It is also possible to duplicate variables, e.g. variables=[0,1,2,2] to duplicate the last variable.
+        :param variables: sequence of int
+        """
+        assert len(variables) >= self.numvariables, 'I cannot reorder if you do\'nt give me the new ordering completely'
+        # # the code is mostly written to support also duplicating a variable, except that
+        # assert len(variables) == self.numvariables, 'I cannot reorder if you do\'nt give me the new ordering ' \
+        #                                             'completely: variables=' + str(variables) + ', N=' \
+        #                                             + str(self.numvariables)
+
+        num_variables_new = len(variables)
+
+        joint_probs_new = np.zeros([self.numvalues]*num_variables_new) - 1
+
+        lists_of_possible_states_per_variable = [range(self.numvalues) for _ in xrange(num_variables_new)]
+
+        for values_new in itertools.product(*lists_of_possible_states_per_variable):
+            values_old_order = [-1]*self.numvariables
+
+            for new_varix in xrange(len(variables)):
+                assert variables[new_varix] < self.numvariables, 'you specified the order of a variable index' \
+                                                                 ' >= N (non-existent)'
+
+                # can happen if a variable index is mentioned twice or more in 'variables' but in the current 'values_new'
+                # they have different values. This is of course not possible, the two new variables should be equivalent
+                # and completely redundant, so then I will set this joint prob. to zero and continue
+                if values_old_order[variables[new_varix]] >= 0 \
+                        and values_old_order[variables[new_varix]] != values_new[new_varix]:
+                    assert len(variables) > self.numvariables, 'at least one variable index should be mentioned twice'
+
+                    joint_probs_new[tuple(values_new)] = 0.0
+
+                    break
+                else:
+                    # normal case
+                    values_old_order[variables[new_varix]] = values_new[new_varix]
+
+            if joint_probs_new[tuple(values_new)] != 0.0:
+                assert not -1 in values_old_order, 'missing a variable index in variables=' + str(variables) \
+                                                   + ', how should I reorder if you don\'t specify the new order of all' \
+                                                   +  ' variables'
+
+                assert joint_probs_new[tuple(values_new)] == -1, 'should still be unset element of joint prob matrix'
+
+                joint_probs_new[tuple(values_new)] = self(values_old_order)
+            else:
+                pass  # joint prob already set to 0.0 in the above inner loop
+
+        assert not -1 in joint_probs_new, 'not all new joint probs were computed'
+
+        # change myself to the new joint pdf; will also check for being normalized etc.
+        self.reset(num_variables_new, self.numvalues, joint_probs_new)
+
 
     def __eq__(self, other):  # approximate to 7 decimals
         if self.numvariables != other.numvariables or self.numvalues != other.numvalues:
@@ -1096,6 +1157,24 @@ def run_append_and_marginalize_test():
     # np.testing.assert_array_almost_equal(pdf.matrix2params_incremental()[:len(old_params)], old_params)
 
 
+def run_reorder_test():
+    pdf = JointProbabilityMatrix(4, 3)
+
+    pdf_original = pdf.copy()
+
+    pdf.reorder_variables([3,2,1,0])
+    np.testing.assert_almost_equal(pdf.entropy(), pdf_original.entropy())
+    assert pdf != pdf_original
+
+    pdf.reorder_variables([3,2,1,0,0,1,2,3])
+    assert len(pdf) == 2 * len(pdf_original)
+    np.testing.assert_almost_equal(pdf.entropy(), pdf_original.entropy())
+    # the first 4 and second 4 variables should be identical so MI should be maximum
+    np.testing.assert_almost_equal(pdf.mutual_information([0,1,2,3], [4,5,6,7]), pdf_original.entropy())
+
+    assert pdf.marginalize_distribution([0,1,2,3]) == pdf_original
+
+
 def run_params2matrix_test():
     pdf = JointProbabilityMatrix(3, 2)
 
@@ -1373,6 +1452,10 @@ def run_all_tests(verbose=True):
     run_append_conditional_entropy_test()
     if verbose:
         print 'note: test run_append_conditional_entropy_test successful.'
+
+    run_reorder_test()
+    if verbose:
+        print 'note: test run_reorder_test successful.'
 
     if verbose:
         print 'note: finished. all tests successful'
