@@ -330,6 +330,10 @@ class JointProbabilityMatrix():
                 return False
 
 
+    def __len__(self):
+        return self.numvariables
+
+
     def matrix2vector(self):
         return [i for i in self.joint_probabilities.flat]
 
@@ -705,9 +709,39 @@ class JointProbabilityMatrix():
         else:
             assert hasattr(variables, '__iter__')
 
+            if len(variables) == 0:  # hard-coded this because otherwise I have to support empty pdfs (len() = 0)
+                return 0.0
+
             marginal_pdf = self.marginalize_distribution(variables=variables)
 
             return marginal_pdf.entropy()
+
+
+    def conditional_entropy(self, variables, given_variables=None):
+        assert hasattr(variables, '__iter__'), 'variables1 = ' + str(variables)
+        assert hasattr(given_variables, '__iter__') or given_variables is None, 'variables2 = ' + str(given_variables)
+
+        assert max(variables) < self.numvariables, 'variables are 0-based indices, so <= N - 1: variables=' \
+                                                   + str(variables) + ' (N=' + str(self.numvariables) + ')'
+
+        if given_variables is None:
+            # automatically set the given_variables to be the complement of 'variables', so all remaining variables
+
+            given_variables = [varix for varix in xrange(self.numvariables) if not varix in variables]
+
+            assert len(set(variables)) + len(given_variables) == self.numvariables, 'variables=' + str(variables) \
+                                                                                    + ', given_variables=' \
+                                                                                    + str(given_variables)
+
+        # H(Y) + H(X|Y) == H(X,Y)
+        condent = self.entropy(list(set(list(variables) + list(given_variables)))) - self.entropy(given_variables)
+
+        assert np.isscalar(condent)
+        assert np.isfinite(condent)
+
+        assert condent >= 0.0, 'conditional entropy should be non-negative'
+
+        return condent
 
 
     def mutual_information(self, variables1, variables2):
@@ -828,10 +862,11 @@ class JointProbabilityMatrix():
                                                                                          pdf_with_srvs.numvariables),
                                                                               variables_X=range(self.numvariables))
 
-            print 'debug: append_synergistic_variables: I started from synergistic information =', \
-                debug_before_syninfo, 'at initial guess. After optimization it became', debug_after_syninfo, \
-                '(should be higher). Optimal params:', \
-                parameter_values_after2[len(parameter_values_before):]
+            if verbose:
+                print 'debug: append_synergistic_variables: I started from synergistic information =', \
+                    debug_before_syninfo, 'at initial guess. After optimization it became', debug_after_syninfo, \
+                    '(should be higher). Optimal params:', \
+                    parameter_values_after2[len(parameter_values_before):]
 
             # print 'debug: optimization result:', optres
 
@@ -853,6 +888,19 @@ class JointProbabilityMatrix():
             np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
 
         self.duplicate(pdf_with_srvs)
+
+
+    def orthogonalize(self, variables):
+        """
+        Orthogonalize the given set of variables=X relative to the rest. I.e., decompose X into two parts {X1,X2}
+        where I(X1:rest)=0 but I(X1:X)=H(X1) and I(X2:rest)=H(X2).
+        :param variables: sequence of int
+        :rtype: JointProbabilityMatrix
+        """
+
+        assert False  # todo
+
+        # todo: verify that H(X1,X2)  == H(X) (approx.)
 
     def scalars_up_to_level(self, list_of_lists, max_level=None):
         """
@@ -1026,33 +1074,6 @@ class JointProbabilityMatrix():
 
         return tree
 
-        # if len(list_of_scalars) > 0:
-        #     this_level = list_of_scalars[:(numvalues-1)]
-        #
-        #     list_of_scalars = list_of_scalars[(numvalues-1):]
-        #
-        #     if len(list_of_scalars) > 0:
-        #         assert np.mod(len(list_of_scalars), numvalues) == 0, 'remaining scalars should be divisible by ' \
-        #                                                              'numvalues: len(list_of_scalars) = ' \
-        #                                                              + str(len(list_of_scalars)) + ', numvalues = ' \
-        #                                                              + str(numvalues)
-        #
-        #         num_scalars_per_subtree = len(list_of_scalars) / numvalues
-        #
-        #         for val in xrange(numvalues):
-        #             subtree = self.imbalanced_tree_from_scalars(list_of_scalars[:num_scalars_per_subtree],
-        #                                                         numvalues=numvalues)
-        #
-        #             list_of_scalars = list_of_scalars[num_scalars_per_subtree:]
-        #
-        #             assert not np.isscalar(subtree)
-        #
-        #             this_level.append(subtree)
-        #
-        #     return this_level
-        # else:
-        #     raise ValueError('called with list_of_scalars=[], did you intend this? The recursive step above should not')
-
 
 
 ### UNIT TESTING:
@@ -1148,8 +1169,8 @@ def run_append_using_transitions_table_and_marginalize_test():
     assert pdf_copy == pdf, 'should be two equivalent ways of appending a deterministic variable'
 
 
-def run_find_synergy_test():
-    pdf = JointProbabilityMatrix(2, 2)
+def run_find_synergy_test(numvars=2):
+    pdf = JointProbabilityMatrix(numvars, 2)
 
     pdf_syn = pdf.copy()
 
@@ -1158,7 +1179,7 @@ def run_find_synergy_test():
     # initial_guess_summed_modulo = np.random.choice([True, False])
     initial_guess_summed_modulo = False
 
-    pdf_syn.append_synergistic_variables(1, initial_guess_summed_modulo=initial_guess_summed_modulo, verbose=True)
+    pdf_syn.append_synergistic_variables(1, initial_guess_summed_modulo=initial_guess_summed_modulo, verbose=False)
 
     assert pdf_syn.numvariables == pdf.numvariables + 1
 
@@ -1197,6 +1218,13 @@ def run_find_synergy_test():
     np.testing.assert_array_almost_equal(pdf_syn.matrix2params_incremental()[:len(parameters_before)],
                                                 parameters_before)
 
+    syninfo = pdf_syn.synergistic_information_naive(range(pdf.numvariables, pdf_add_random.numvariables),
+                                                    range(pdf.numvariables))
+
+    condents = [pdf.conditional_entropy([varix]) for varix in xrange(len(pdf))]
+
+    assert syninfo <= min(condents), 'this is a derived maximum in Quax 2015, synergy paper, right?'
+
 
 def run_append_conditional_pdf_test():
     pdf_joint = JointProbabilityMatrix(4, 3)
@@ -1208,6 +1236,22 @@ def run_append_conditional_pdf_test():
     pdf_merged.append_variables_using_conditional_distributions(pdf_34_cond_12)
 
     assert pdf_merged == pdf_joint
+
+
+def run_append_conditional_entropy_test():
+    pdf_joint = JointProbabilityMatrix(4, 3)
+
+    assert pdf_joint.conditional_entropy([1,2]) >= pdf_joint.conditional_entropy([1])
+    assert pdf_joint.conditional_entropy([1,0]) >= pdf_joint.conditional_entropy([1])
+
+    assert pdf_joint.conditional_entropy([0,2]) <= pdf_joint.entropy([0,2])
+
+    assert pdf_joint.entropy([]) == 0, 'H(<empty-set>)=0 ... right? Yes think so'
+
+    np.testing.assert_almost_equal(pdf_joint.conditional_entropy([1,2], [1,2]), 0.0)
+    np.testing.assert_almost_equal(pdf_joint.entropy([0]) + pdf_joint.conditional_entropy([1,2,3], [0]),
+                                   pdf_joint.entropy([0,1,2,3]))
+    np.testing.assert_almost_equal(pdf_joint.conditional_entropy([0,1,2,3]), pdf_joint.entropy())
 
 
 def run_params2matrix_incremental_test(numvars=3):
@@ -1326,10 +1370,15 @@ def run_all_tests(verbose=True):
     if verbose:
         print 'note: test run_find_synergy_test successful.'
 
-    print 'note: finished. all tests successful'
+    run_append_conditional_entropy_test()
+    if verbose:
+        print 'note: test run_append_conditional_entropy_test successful.'
+
+    if verbose:
+        print 'note: finished. all tests successful'
 
 
-def sum_modulo(values, modulo):
+def sum_modulo(values, modulo):  # deprecated, can be removed?
     """
     An example function which can be passed as the state_transitions argument to the
     append_variables_using_state_transitions_table function of JointProbabilityMatrix.
