@@ -272,7 +272,7 @@ class JointProbabilityMatrix():
         return [vix for vix in xrange(self.numvariables) if self.labels[vix] in labels]
 
 
-    def marginalize_distribution_of_labels(self, retained_labels):
+    def marginalize_distribution_retaining_only_labels(self, retained_labels):
         """
         Return a pdf of variables which have one of the labels in the retained_labels set; all other variables will
         be summed out.

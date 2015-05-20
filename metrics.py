@@ -8,9 +8,15 @@ a number of (nested) list of numbers, depending on the metric.
 from jointpdf import JointProbabilityMatrix
 
 
+def shannon_entropy_simple(pdf, dict_of_args={}):  # instructive example
+    pdf = pdf.marginalize_distribution_retaining_only_labels(['variable'])
+
+    return pdf.entropy()
+
+
 def shannon_equilibrium_entropy_of_system_state(pdf, dict_of_args={}):
     """
-
+    More advanced example.
     :type pdf: JointProbabilityMatrix
     :type dict_of_args: dict
     :rtype: float
@@ -38,6 +44,6 @@ def shannon_equilibrium_entropy_of_system_state(pdf, dict_of_args={}):
     assert len(pdf.get_labels()) in (1, 2), 'I expect either variable or variable and time as labels, no more or less'
 
     # sum out over time, only keep pdf of variables (states)
-    pdf = pdf.marginalize_distribution_of_labels(['variable'])
+    pdf = pdf.marginalize_distribution_retaining_only_labels(['variable'])
 
     return pdf.entropy()
