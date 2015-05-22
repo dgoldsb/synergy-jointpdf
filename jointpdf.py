@@ -125,6 +125,11 @@ class JointProbabilityMatrix():
     def random_samples(self, n=1):
         # sample_indices = np.random.multinomial(n, [i for i in self.joint_probabilities.flat])
 
+        # todo: I don't think this generalizes well for different numvalues per variable. Just generate 1000 value lists
+        # and pick one according to their relative probabilities? Much more general and above all much more scalable!
+
+        assert np.isscalar(self.numvalues), 'refactor this function, see todo above'
+
         flat_joint_probs = [i for i in self.joint_probabilities.flat]
 
         sample_indices = np.random.choice(len(flat_joint_probs), p=flat_joint_probs, size=n)
@@ -165,12 +170,29 @@ class JointProbabilityMatrix():
         return self.labels
 
 
+    def get_label(self, variable_index):
+        return self.labels[variable_index]
+
+
     def set_label(self, variable_index, label):
         self.labels[variable_index] = label
 
 
     def has_label(self, label):
         return label in self.labels
+
+
+    def retain_only_labels(self, retained_labels, dict_of_unwanted_label_values):
+        unwanted_labels = list(set(self.labels).difference(retained_labels))
+
+        # unwanted_label_values = [dict_of_unwanted_label_values[lbl] for lbl in unwanted_labels]
+
+        unwanted_vars = self.get_variables_with_label_in(unwanted_labels)
+        unwanted_var_labels = map(self.get_label, unwanted_vars)
+        unwanted_var_values = [dict_of_unwanted_label_values[lbl] for lbl in unwanted_var_labels]
+
+        self.duplicate(self.conditional_probability_distribution(unwanted_vars, unwanted_var_values))
+
 
 
     def clip_all_probabilities(self):
@@ -240,6 +262,8 @@ class JointProbabilityMatrix():
         dict_val_to_index = {all_unique_values[valix]: valix for valix in xrange(numvals)}
 
         new_joint_probs = np.zeros([numvals]*numvars)
+
+        # todo: when you generalize self.numvalues to an array then here also set the array instead of int
 
         for values in repeated_measurements:
             value_indices = tuple((dict_val_to_index[val] for val in values))
@@ -632,6 +656,8 @@ class JointProbabilityMatrix():
         else:
             raise ValueError('no parameters for 0 variables')
 
+    _debug_params2matrix = True  # internal variable, used to debug a debug statement, can be removed in a while
+
     def params2matrix_incremental(self, parameters):
 
         if __debug__:
@@ -644,7 +670,7 @@ class JointProbabilityMatrix():
 
             # verify that the procedure to make the tree out of the list of scalars is reversible and correct
             # (looking for bug)
-            if __debug__:
+            if __debug__ and self._debug_params2matrix:
                 original_parameters2 = self.scalars_up_to_level(parameters)
 
                 np.testing.assert_array_almost_equal(original_parameters, original_parameters2)
@@ -654,8 +680,12 @@ class JointProbabilityMatrix():
             # to make the first variable's marginal distribution
             assert np.all(map(np.isscalar, parameters[:(self.numvalues - 1)]))
 
+            ### start already by setting the pdf of the first variable...
+
             pdf_1 = JointProbabilityMatrix(1, self.numvalues)
             pdf_1.params2matrix(parameters[:(len(pdf_1.joint_probabilities.flat) - 1)])
+
+            assert (len(pdf_1.joint_probabilities.flat) - 1) == (self.numvalues - 1), 'assumption directly above'
 
             assert len(pdf_1.joint_probabilities.flat) == self.numvalues
 
@@ -664,16 +694,28 @@ class JointProbabilityMatrix():
                               'need ' + str(len(self.joint_probabilities.flat) - 1) + ', got ' + str(len(parameters)) \
                               + '; #vars, #vals = ' + str(self.numvariables) + ', ' + str(self.numvalues)
 
+            if __debug__ and self._debug_params2matrix:
+                # remove this (expensive) check after it seems to work a few times?
+                np.testing.assert_array_almost_equal(pdf_1.matrix2params(),
+                                                     self.scalars_up_to_level(parameters[:(self.numvalues - 1)]))
+                np.testing.assert_array_almost_equal(pdf_1.matrix2params_incremental(),
+                                                     self.scalars_up_to_level(parameters[:(self.numvalues - 1)]))
+
             # remove the used parameters from the list
             parameters = parameters[(len(pdf_1.joint_probabilities.flat) - 1):]
             assert len(parameters) == self.numvalues  # one subtree per conditional pdf
 
             pdf_conds = dict()
 
+            ### now add other variables...
+
             for val in xrange(self.numvalues):
                 # set this conditional pdf recursively as defined by the next sequence of parameters
                 pdf_cond = JointProbabilityMatrix(self.numvariables - 1, self.numvalues)
                 # CHANGE123
+
+                # nte: parameters[0] is a sublist
+                assert not np.isscalar(parameters[0])
 
                 assert not np.isscalar(parameters[0])
 
@@ -684,8 +726,51 @@ class JointProbabilityMatrix():
 
                 # conditional pdf should have the same set of parameters as the ones I used to create it
                 # (todo: remove this expensive check if it seems to work for  while)
-                np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
-                                                     self.scalars_up_to_level(parameters[0]))
+                try:
+                    # todo: test can be probabilistic, e.g. performed with 10% chance?
+                    np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
+                                                         self.scalars_up_to_level(parameters[0]))
+                except AssertionError as e:
+                    # print 'debug: parameters[0] =', parameters[0]
+                    # print 'debug: len(pdf_cond) =', len(pdf_cond)
+                    # print 'debug: pdf_cond.joint_probabilities =', pdf_cond.joint_probabilities
+
+                    pdf_1_duplicate1 = pdf_cond.copy()
+                    pdf_1_duplicate2 = pdf_cond.copy()
+
+                    pdf_1_duplicate1._debug_params2matrix = False  # prevent endless recursion
+                    pdf_1_duplicate2._debug_params2matrix = False  # prevent endless recursion
+
+                    pdf_1_duplicate1.params2matrix_incremental(self.scalars_up_to_level(parameters[0]))
+                    pdf_1_duplicate2.params2matrix_incremental(pdf_cond.matrix2params_incremental())
+
+                    pdf_1_duplicate1._debug_params2matrix = True
+                    pdf_1_duplicate2._debug_params2matrix = True
+
+                    assert pdf_1_duplicate1 == pdf_cond
+                    assert pdf_1_duplicate2 == pdf_cond
+
+                    del pdf_1_duplicate1, pdf_1_duplicate2
+
+                    # note: the cause seems to be as follows. If you provide the parameters e.g.
+                    # [0.0, [0.37028884415935004], [0.98942830522914993]] then the middle parameter is superfluous,
+                    # because it defines a conditional probability p(b|a) for which its prior p(a)=0. So no matter
+                    # what parameter is here, the joint prob p(a,b) will be zero anyway. In other words, many
+                    # parameter lists map to the same p(a,b). This makes the inverse problem ambiguous:
+                    # going from a p(a,b) to a parameter list. So after building a pdf from the above example of
+                    # parameter values I may very well get a different parameter list from that pdf, even though
+                    # the pdf built is the one intended. I don't see a way around this because even if this class
+                    # makes it uniform, e.g. always making parameter values 0.0 in case their prior is zero,
+                    # but then still a user or optimization procedure can provide any list of parameters, so
+                    # then also the uniformized parameter list will differ from the user-supplied.
+
+                    # raise AssertionError(e)
+
+                    assert 0.0 in self.scalars_up_to_level(parameters[0]) or \
+                           1.0 in self.scalars_up_to_level(parameters[0]), 'see story above'
+
+                # right?
+                np.testing.assert_almost_equal(np.sum(pdf_cond.joint_probabilities), 1.0)
 
                 # remove the used parameters from the list
                 # CHANGE123
@@ -699,10 +784,51 @@ class JointProbabilityMatrix():
 
             pdf_1.append_variables_using_conditional_distributions(pdf_conds)
 
-            if __debug__:
+            if __debug__ and self._debug_params2matrix:
                 # remove this (expensive) check after it seems to work a few times?
-                np.testing.assert_array_almost_equal(pdf_1.matrix2params_incremental(),
-                                                     self.scalars_up_to_level(original_parameters))
+                try:
+                    np.testing.assert_array_almost_equal(pdf_1.matrix2params_incremental(),
+                                                         self.scalars_up_to_level(original_parameters))
+                except AssertionError as e:
+                    ### I have the hunch that the above assertion is hit but that it is only if a parameter is 1 or 0,
+                    ### so that the parameter may be different but that it does not matter. still don't understand
+                    ### why it happens though...
+
+                    pdf_1_duplicate = pdf_1.copy()
+
+                    pdf_1_duplicate._debug_params2matrix = False  # prevent endless recursion
+
+                    pdf_1_duplicate.params2matrix_incremental(self.scalars_up_to_level(original_parameters))
+
+                    pdf_1_duplicate._debug_params2matrix = True
+
+                    if not pdf_1_duplicate == pdf_1:
+                        print 'error: the pdfs from the two different parameter lists are also not equivalent'
+
+                        del pdf_1_duplicate
+
+                        raise AssertionError(e)
+                    else:
+                        # warnings.warn('I found that two PDF objects can have the same joint prob. matrix but a'
+                        #               ' different list of identifying parameters. This seems to be due to a variable'
+                        #               ' having 0.0 probability on a certain value, making the associated conditional'
+                        #               ' PDF of other variables 0 and therefore those associated parameters irrelevant.'
+                        #               ' Find a way to make these parameters still uniform? Seems to happen in'
+                        #               ' "pdf_1.append_variables_using_conditional_distributions(pdf_conds)"...')
+
+                        # note: (duplicated) the cause seems to be as follows. If you provide the parameters e.g.
+                        # [0.0, [0.37028884415935004], [0.98942830522914993]] then the middle parameter is superfluous,
+                        # because it defines a conditional probability p(b|a) for which its prior p(a)=0. So no matter
+                        # what parameter is here, the joint prob p(a,b) will be zero anyway. In other words, many
+                        # parameter lists map to the same p(a,b). This makes the inverse problem ambiguous:
+                        # going from a p(a,b) to a parameter list. So after building a pdf from the above example of
+                        # parameter values I may very well get a different parameter list from that pdf, even though
+                        # the pdf built is the one intended. I don't see a way around this because even if this class
+                        # makes it uniform, e.g. always making parameter values 0.0 in case their prior is zero,
+                        # but then still a user or optimization procedure can provide any list of parameters, so
+                        # then also the uniformized parameter list will differ from the user-supplied.
+
+                        del pdf_1_duplicate
 
             assert pdf_1.numvariables == self.numvariables
             assert pdf_1.numvalues == self.numvalues
@@ -776,12 +902,18 @@ class JointProbabilityMatrix():
         assert num_added_variables > 0, 'makes no sense to append 0 variables?'
         assert self.numvalues == pdf_conds[(0,)*self.numvariables].numvalues, 'added variables should have same #values'
 
-        lists_of_possible_joint_values = [range(self.numvalues)
+        # see if at the end, the new joint pdf has the expected list of identifying parameter values
+        if __debug__ and len(self) == 1:
+            _debug_parameters_before_append = self.matrix2params()
+
+            # note: in the loop below the sublists of parameters will be added
+
+        statespace_per_variable = [range(self.numvalues)
                                           for _ in xrange(self.numvariables + num_added_variables)]
 
         extended_joint_probs = np.zeros([self.numvalues]*(self.numvariables + num_added_variables))
 
-        for values in itertools.product(*lists_of_possible_joint_values):
+        for values in itertools.product(*statespace_per_variable):
             existing_variables_values = values[:self.numvariables]
             added_variables_values = values[self.numvariables:]
 
@@ -799,9 +931,18 @@ class JointProbabilityMatrix():
 
             extended_joint_probs[tuple(values)] = prob_existing * prob_added_cond_existing
 
+            if __debug__ and len(self) == 1:
+                _debug_parameters_before_append.append(pdf_conds[tuple(existing_variables_values)].matrix2params_incremental)
+
         np.testing.assert_almost_equal(np.sum(extended_joint_probs), 1.0)
 
         self.reset(self.numvariables + num_added_variables, self.numvalues, extended_joint_probs)
+
+        if __debug__ and len(self) == 1:
+            # of course this test depends on the implementation of matrix2params_incremental, currently it should
+            # work
+            np.testing.assert_array_almost_equal(self.scalars_up_to_level(_debug_parameters_before_append),
+                                                 self.matrix2params_incremental(return_flattened=True))
 
     def conditional_probability_distribution(self, given_variables, given_values):
         """
@@ -866,7 +1007,8 @@ class JointProbabilityMatrix():
             np.testing.assert_almost_equal(min(conditional_probs), 0.0)
             np.testing.assert_almost_equal(max(conditional_probs), 0.0)
 
-            conditional_probs += 1.0  # create some fake mass, making it almost a uniform distribution
+            conditional_probs *= 0
+            conditional_probs += 1.0  # create some fake mass, making it a uniform distribution
 
             conditional_probs /= np.sum(conditional_probs)
 
@@ -944,6 +1086,13 @@ class JointProbabilityMatrix():
         assert condent >= 0.0, 'conditional entropy should be non-negative'
 
         return condent
+
+
+    def mutual_information_labels(self, labels1, labels2):
+        variables1 = self.get_variables_with_label_in(labels1)
+        variables2 = self.get_variables_with_label_in(labels2)
+
+        return self.mutual_information(variables1, variables2)
 
 
     def mutual_information(self, variables1, variables2):
@@ -1168,8 +1317,8 @@ class JointProbabilityMatrix():
                           args=(parameter_values_before,))
 
         assert len(optres.x) == num_free_parameters
-        assert max(optres.x) <= 1.0, 'parameter bound violated'
-        assert min(optres.x) >= 0.0, 'parameter bound violated'
+        assert max(optres.x) <= 1.0, 'parameter bound violated: ' + str(optres.x)
+        assert min(optres.x) >= 0.0, 'parameter bound violated: ' + str(optres.x)
 
         optimal_parameters_joint_pdf = list(parameter_values_before) + list(optres.x)
 
@@ -1185,8 +1334,11 @@ class JointProbabilityMatrix():
             # have to optimize the latter part of parameter_values_after
             np.testing.assert_array_almost_equal(parameter_values_before,
                                                  parameter_values_after2[:len(parameter_values_before)])
-            np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
-                                                 optres.x)
+            # note: for the if see the story in params2matrix_incremental()
+            if not 0.0 in self.scalars_up_to_level(parameter_values_before) or \
+                            1.0 in self.scalars_up_to_level(parameter_values_before):
+                np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
+                                                     optres.x)
         if __debug__:
             # unchanged, not accidentally changed by passing it as reference? looking for bug
             np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
