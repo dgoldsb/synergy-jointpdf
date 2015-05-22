@@ -1279,12 +1279,15 @@ class JointProbabilityMatrix():
         :rtype: scipy.optimize.OptimizeResult
         """
 
+        # these parameters should be unchanged and the first set of parameters of the resulting pdf_new
         parameter_values_before = list(self.matrix2params_incremental())
 
         if __debug__:
             debug_params_before = copy.deepcopy(parameter_values_before)
 
         # a pdf with XORs as appended variables (often already MSRV for binary variables), good initial guess?
+        # note: does not really matter how I set the pdf of this new pddf, as long as it has the correct number of
+        # paarameters for optimization below
         pdf_new = self.copy()
         pdf_new.append_variables_using_state_transitions_table(
             state_transitions=lambda vals, mv: [int(np.mod(np.sum(vals), mv))]*num_appended_variables)
@@ -1337,8 +1340,16 @@ class JointProbabilityMatrix():
             # note: for the if see the story in params2matrix_incremental()
             if not 0.0 in self.scalars_up_to_level(parameter_values_before) or \
                             1.0 in self.scalars_up_to_level(parameter_values_before):
-                np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
-                                                     optres.x)
+                try:
+                    np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
+                                                         optres.x)
+                except AssertionError as e:
+                    # are they supposed to be equal, but in different order?
+                    print 'debug: sum params after 1 =', np.sum(parameter_values_after2[len(parameter_values_before):])
+                    print 'debug: sum params after 2 =', optres.x
+                    print 'debug: parameter_values_before (which IS equal and correct) =', parameter_values_before
+
+                    raise AssertionError(e)
         if __debug__:
             # unchanged, not accidentally changed by passing it as reference? looking for bug
             np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
