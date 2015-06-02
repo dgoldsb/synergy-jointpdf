@@ -65,6 +65,27 @@ def int2base(x, b, alphabet='0123456789abcdefghijklmnopqrstuvwxyz'):
     return str(rets)
 
 
+def apply_permutation(lst, permutation):
+    """
+    Return a new list where the element at position ix in <lst> will be at a new position permutation[ix].
+    :param lst: list
+    :type lst: array_like
+    :param permutation:
+    :return:
+    """
+    new_list = [-1]*len(lst)
+
+    assert len(permutation) == len(lst)
+
+    for ix in xrange(len(permutation)):
+        new_list[permutation[ix]] = lst[ix]
+
+    if __debug__:
+        if not -1 in lst:
+            assert not -1 in new_list
+
+    return new_list
+
 # each variable in a JointProbabilityMatrix has a label, and if not provided then this label is used
 _default_variable_label = 'variable'
 
@@ -594,11 +615,23 @@ class JointProbabilityMatrix():
             elif remaining_prob_mass == 0:
                 parameters[pix] = 0
             else:
-                raise ValueError()
+                if not remaining_prob_mass > -0.000001:
+                    print 'debug: remaining_prob_mass =', remaining_prob_mass
+                    print 'debug: pix =', pix, 'out of', len(parameters)
+
+                    # todo: if just due to floating operation error, so small, then clip to zero and go on?
+                    raise ValueError('remaining_prob_mass = ' + str(remaining_prob_mass)
+                                     + ' < 0, which should not happen?')
+                else:
+                    # seems that it was intended to reach zero but due to floating operation roundoff it got just
+                    # slightly under. Clip to 0 will do the trick.
+                    remaining_prob_mass = 0.0  # clip to zero, so it will stay that way
+
+            assert -0.000001 <= parameters[pix] <= 1.0000001, 'parameters should be in [0, 1]: ' + str(parameters[pix])
+
+            parameters[pix] = min(max(parameters[pix], 0.0), 1.0)
 
             remaining_prob_mass = remaining_prob_mass * (1.0 - parameters[pix])
-
-            assert 0.0 <= parameters[pix] <= 1.000001, 'parameters should be in [0, 1]: ' + str(parameters[pix])
 
         return parameters
 
@@ -928,13 +961,22 @@ class JointProbabilityMatrix():
         self.append_variables_using_conditional_distributions({(): joint_pdf})
 
 
-    def append_variables_using_conditional_distributions(self, pdf_conds):
+    def append_variables_using_conditional_distributions(self, pdf_conds, given_variables=None):
         """
+
 
         :param pdf_conds: dictionary of JointProbabilityMatrix objects, one for each possible set of values for the
         existing <self.numvariables> variables. If you provide a dict with one empty tuple as key then it is
-        equivalent to just providing the pdf, or calling append_independent_variables with that joint pdf.
+        equivalent to just providing the pdf, or calling append_independent_variables with that joint pdf. If you
+        provide a dict with tuples as keys which have fewer values than self.numvariables then the dict will be
+        duplicated for all possible values for the remaining variables, and this function will call itself recursively
+        with complete tuples.
         :type pdf_conds: dict of tuple | JointProbabilityMatrix
+        :param given_variables: If you provide a dict with tuples as keys which have fewer values than
+        self.numvariables then it is assumed that the tuples specify the values for the consecutive highest indexed
+        variables (so always until variable self.numvariables-1). Unless you specify this list, whose length should
+        be equal to the length of the tuple keys in pdf_conds
+        :type given_variables: list of int
         """
 
         if isinstance(pdf_conds, JointProbabilityMatrix):
@@ -964,9 +1006,22 @@ class JointProbabilityMatrix():
                 statespace_per_independent_variable = [range(self.numvalues)
                                                        for _ in xrange(num_independent_vars)]
 
-                for indep_vals in itertools.product(*statespace_per_independent_variable):
-                    pdf_conds_complete.update({(tuple(indep_vals) + tuple(key)): value
-                                               for key, value in pdf_conds.items()})
+                if given_variables is None:
+                    for indep_vals in itertools.product(*statespace_per_independent_variable):
+                        pdf_conds_complete.update({(tuple(indep_vals) + tuple(key)): value
+                                                   for key, value in pdf_conds.items()})
+                else:
+                    assert len(given_variables) == len(pdf_conds.values()[0])
+
+                    not_given_variables = np.setdiff1d(range(self.numvariables), given_variables)
+
+                    assert len(not_given_variables) + len(given_variables) == self.numvariables
+
+                    for indep_vals in itertools.product(*statespace_per_independent_variable):
+                        pdf_conds_complete.update({tuple(apply_permutation(indep_vals + tuple(key),
+                                                                           list(not_given_variables)
+                                                                           + list(given_variables))): value
+                                                   for key, value in pdf_conds.items()})
 
                 assert len(pdf_conds_complete.keys()[0]) == len(self)
 
@@ -1228,10 +1283,33 @@ class JointProbabilityMatrix():
                - sum([self.mutual_information(list(variables_Y), list([var_xi])) for var_xi in variables_X])
 
 
+    # todo: support specifying which set of variables the <num_synergistic_variables> should be synergistic about;
+    # then I think the remainder variables the <num_synergistic_variables> should be agnostic about. This way I can
+    # support adding many UMSRVs (maybe make a new function for that) which then already are orthogonal among themselves,
+    # meaning I do not have to do a separate orthogonalization for the MSRVs as in the paper's theoretical part.
     # todo: add optional numvalues, so that the synergistic variables can have more possible values than the
     # current variables (then set all probabilities where the original variables exceed their original max to 0)
-    # todo: first you should then probably implement a .increase_num_values(num) or so (or only)
-    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True, verbose=False):
+    # todo: first you should then probably implement a .increase_num_values(num) or so (or only),
+    # or let .numvalues be a list instead of a single value
+    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True, verbose=False,
+                                     subject_variables=None):
+        """
+        Append <num_synergistic_variables> variables in such a way that they are agnostic about any individual
+        existing variable (one of self.numvariables thus) but have maximum MI about the set of self.numvariables
+        variables taken together.
+        :param subject_variables: the list of variables the <num_synergistic_variables> should be synergistic about;
+        then I think the remainder variables the <num_synergistic_variables> should be agnostic about. This way I can
+        support adding many UMSRVs (maybe make a new function for that) which then already are orthogonal among themselves,
+        meaning I do not have to do a separate orthogonalization for the MSRVs as in the paper's theoretical part.
+        :param num_synergistic_variables:
+        :param initial_guess_summed_modulo:
+        :param verbose:
+        :return:
+        """
+
+        # todo: implement
+        assert subject_variables is None, 'todo: implement'
+
         parameter_values_before = list(self.matrix2params_incremental())
 
         if __debug__:
@@ -1285,19 +1363,20 @@ class JointProbabilityMatrix():
             # assert max(free_params) <= 1.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
             #                                 + str(free_params)
 
-            free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]
+            assert min(free_params) >= -0.00001, \
+                'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
+            assert max(free_params) <= 1.00001, \
+                'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
 
-            assert min(free_params) >= 0.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
-                                            + str(free_params)
-            assert max(free_params) <= 1.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
-                                            + str(free_params)
+            free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]
 
             pdf_with_srvs_for_optimization.params2matrix_incremental(list(parameter_values_before) + list(free_params))
 
             assert pdf_with_srvs_for_optimization.numvariables == self.numvariables + num_synergistic_variables
 
-            fitness = -pdf_with_srvs_for_optimization.synergistic_information_naive(variables_Y=range(self.numvariables,
-                                  pdf_with_srvs_for_optimization.numvariables), variables_X=range(self.numvariables))
+            fitness = -pdf_with_srvs_for_optimization.synergistic_information_naive(
+                variables_Y=range(self.numvariables, pdf_with_srvs_for_optimization.numvariables),
+                variables_X=range(self.numvariables))
 
             assert np.isscalar(fitness)
             assert np.isfinite(fitness)
@@ -1689,15 +1768,24 @@ class JointProbabilityMatrix():
             # - wHop * pdf_proposed_Y_X_X1_X2.entropy(orthogonal_variables + parallel_variables) \
 
             cost_terms = dict()
-            cost_terms['Iso'] = wIso * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, orthogonal_variables) - 0.0)
-            cost_terms['Ivo'] = wIvo * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, orthogonal_variables) - ideal_H_X1)
-            cost_terms['Ivp'] = wIvp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, parallel_variables) - ideal_mi_X2_Y)
-            cost_terms['Isp'] = wIsp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, parallel_variables) - ideal_mi_X2_Y)
+            cost_terms['Iso'] = \
+                wIso * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, orthogonal_variables) - 0.0)
+            cost_terms['Ivo'] = \
+                wIvo * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, orthogonal_variables)
+                           - ideal_H_X1)
+            cost_terms['Ivp'] = \
+                wIvp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, parallel_variables)
+                           - ideal_mi_X2_Y)
+            cost_terms['Isp'] = \
+                wIsp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, parallel_variables) - ideal_mi_X2_Y)
             # cost_terms['Hop'] = wHop * abs(pdf_proposed_Y_X_X1_X2.entropy(orthogonal_variables) - ideal_H_X1)
-            cost_terms['Hop'] = wHop * 0.0  # let's see what happens now (trying to improve finding global optimum)
-            cost_terms['Iop'] = wIop * abs(pdf_proposed_Y_X_X1_X2.mutual_information(orthogonal_variables, parallel_variables) - 0.0)
+            cost_terms['Hop'] = \
+                wHop * 0.0  # let's see what happens now (trying to improve finding global optimum)
+            cost_terms['Iop'] = \
+                wIop * abs(pdf_proposed_Y_X_X1_X2.mutual_information(orthogonal_variables, parallel_variables) - 0.0)
 
-            cost = sum(cost_terms.itervalues())
+            # sum of squared errors, or norm of vector in error space
+            cost = float(np.sum(np.power(cost_terms.values(), 2)))
 
             assert np.isfinite(cost)
             assert np.isscalar(cost)
@@ -2661,8 +2749,10 @@ def run_orthogonalization_test_null_hypothesis(num_subject_vars=2, num_ortho_var
 
     assert len(pdf) == num_subject_vars + num_ortho_vars + num_para_vars + num_ortho_vars + num_para_vars
 
-    result_ortho_vars = range(num_subject_vars, num_subject_vars + num_ortho_vars)
-    result_para_vars = range(num_subject_vars + num_ortho_vars, num_subject_vars + num_ortho_vars + num_para_vars)
+    result_ortho_vars = range(num_subject_vars + num_ortho_vars + num_para_vars,
+                              num_subject_vars + num_ortho_vars + num_para_vars + num_ortho_vars)
+    result_para_vars = range(num_subject_vars + num_ortho_vars + num_para_vars + num_ortho_vars,
+                             num_subject_vars + num_ortho_vars + num_para_vars + num_ortho_vars + num_para_vars)
     subject_vars = range(num_subject_vars)
 
     if pdf.entropy(result_ortho_vars) != 0.0:
@@ -2694,12 +2784,33 @@ def run_orthogonalization_test_null_hypothesis(num_subject_vars=2, num_ortho_var
                / pdf.entropy(result_para_vars) <= tol_rel_error
 
     if pdf.entropy(vars_to_orthogonalize) != 0.0:
-        assert pdf.mutual_information(vars_to_orthogonalize, list(result_para_vars) + list(result_ortho_vars)) \
-               / pdf.entropy(vars_to_orthogonalize) <= tol_rel_error, \
-            'not all entropy of X is accounted for in {X1, X2}, which is of course the purpose of decomposition.'
+        try:
+            assert pdf.mutual_information(vars_to_orthogonalize, list(result_para_vars) + list(result_ortho_vars)) \
+                   / pdf.entropy(vars_to_orthogonalize) >= 1.0 - tol_rel_error, \
+                'not all entropy of X is accounted for in {X1, X2}, which is of course the purpose of decomposition.'
+        except AssertionError as e:
+            print 'debug: pdf.mutual_information(vars_to_orthogonalize, ' \
+                  'list(result_para_vars) + list(result_ortho_vars)) =', \
+                pdf.mutual_information(vars_to_orthogonalize, list(result_para_vars) + list(result_ortho_vars))
+            print 'debug: pdf.entropy(vars_to_orthogonalize) =', pdf.entropy(vars_to_orthogonalize)
+            print 'debug: pdf.mutual_information(vars_to_orthogonalize, ' \
+                  'list(result_para_vars) + list(result_ortho_vars))' \
+                   '/ pdf.entropy(vars_to_orthogonalize) =', \
+                pdf.mutual_information(vars_to_orthogonalize, list(result_para_vars) + list(result_ortho_vars)) \
+                   / pdf.entropy(vars_to_orthogonalize)
+            print 'debug: tol_rel_error =', tol_rel_error
 
 
-def run_orthogonalization_test(num_subject_vars=2, num_orthogonalized_vars=1, numvals=2, verbose=True, num_repeats=1):
+def run_orthogonalization_test(num_subject_vars=2, num_orthogonalized_vars=1, numvals=3, verbose=True, num_repeats=1):
+    """
+
+    :param num_subject_vars:
+    :param num_orthogonalized_vars:
+    :param numvals:
+    :param verbose:
+    :param num_repeats:
+    :raise AssertionError:
+    """
 
     # note: in the code I assume that the number of added orthogonal variables equals num_orthogonalized_vars
     # note: in the code I assume that the number of added parallel variables equals num_orthogonalized_vars
@@ -2875,6 +2986,22 @@ def run_append_conditional_pdf_test():
     pdf_merged.append_variables_using_conditional_distributions(pdf_34_cond_12)
 
     assert pdf_merged == pdf_joint
+
+    ### add a single variable conditioned on only the second existing variable
+
+    rand_partial_cond_pdf = {(val,): JointProbabilityMatrix(1, pdf_joint.numvalues)
+                             for val in xrange(pdf_joint.numvalues)}
+
+    pdf_orig = pdf_joint.copy()
+
+    pdf_joint.append_variables_using_conditional_distributions(rand_partial_cond_pdf, [1])
+
+    assert pdf_orig == pdf_joint.marginalize_distribution(range(len(pdf_orig)))
+
+    assert pdf_joint.mutual_information([0], [len(pdf_joint) - 1]) < 0.01, 'should be close to 0, not conditioned on'
+    assert pdf_joint.mutual_information([1], [len(pdf_joint) - 1]) > 0.0, 'should not be 0, it is conditioned on'
+    assert pdf_joint.mutual_information([2], [len(pdf_joint) - 1]) < 0.01, 'should be close to 0, not conditioned on'
+    assert pdf_joint.mutual_information([3], [len(pdf_joint) - 1]) < 0.01, 'should be close to 0, not conditioned on'
 
 
 def run_append_conditional_entropy_test():
