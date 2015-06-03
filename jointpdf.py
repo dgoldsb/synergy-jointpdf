@@ -336,9 +336,12 @@ class JointProbabilityMatrix():
         """
         Return a pdf of only the given variable indices, summing out all others
         :param retained_variables: variables to retain, all others will be summed out and will not be a variable anymore
+        :type: array_like
         :rtype : JointProbabilityMatrix
         """
         lists_of_possible_states_per_variable = [range(self.numvalues) for variable in xrange(self.numvariables)]
+
+        assert hasattr(retained_variables, '__len__'), 'should be list or so, not int or other scalar'
 
         marginalized_joint_probs = np.zeros([self.numvalues]*len(retained_variables))
 
@@ -1011,7 +1014,9 @@ class JointProbabilityMatrix():
                         pdf_conds_complete.update({(tuple(indep_vals) + tuple(key)): value
                                                    for key, value in pdf_conds.items()})
                 else:
-                    assert len(given_variables) == len(pdf_conds.values()[0])
+                    assert len(given_variables) == len(pdf_conds.keys()[0]), \
+                        'if conditioned on ' + str(len(given_variables)) + 'then I also expect a conditional pdf ' \
+                        + 'which conditions on ' + str(len(given_variables)) + ' variables.'
 
                     not_given_variables = np.setdiff1d(range(self.numvariables), given_variables)
 
@@ -1283,16 +1288,12 @@ class JointProbabilityMatrix():
                - sum([self.mutual_information(list(variables_Y), list([var_xi])) for var_xi in variables_X])
 
 
-    # todo: support specifying which set of variables the <num_synergistic_variables> should be synergistic about;
-    # then I think the remainder variables the <num_synergistic_variables> should be agnostic about. This way I can
-    # support adding many UMSRVs (maybe make a new function for that) which then already are orthogonal among themselves,
-    # meaning I do not have to do a separate orthogonalization for the MSRVs as in the paper's theoretical part.
     # todo: add optional numvalues, so that the synergistic variables can have more possible values than the
     # current variables (then set all probabilities where the original variables exceed their original max to 0)
     # todo: first you should then probably implement a .increase_num_values(num) or so (or only),
     # or let .numvalues be a list instead of a single value
     def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True, verbose=False,
-                                     subject_variables=None):
+                                     subject_variables=None, agnostic_about=None):
         """
         Append <num_synergistic_variables> variables in such a way that they are agnostic about any individual
         existing variable (one of self.numvariables thus) but have maximum MI about the set of self.numvariables
@@ -1307,8 +1308,11 @@ class JointProbabilityMatrix():
         :return:
         """
 
-        # todo: implement
-        assert subject_variables is None, 'todo: implement'
+        # todo: support adding many UMSRVs (syn. var's which are agnostic about each other)
+        #  which then already are orthogonal
+        # among themselves,meaning I do not have to do a separate orthogonalization for the MSRVs as in the
+        # paper's theoretical part.
+        assert agnostic_about is None, 'todo: implement'
 
         parameter_values_before = list(self.matrix2params_incremental())
 
@@ -1353,30 +1357,97 @@ class JointProbabilityMatrix():
         assert len(initial_guess) == num_free_parameters
 
         pdf_with_srvs_for_optimization = pdf_with_srvs.copy()
-        # todo: this fitness function does not (support to) try to minimize the (extraneous) entropy of the SRVs
-        def fitness_func(free_params, parameter_values_before=parameter_values_before):
-            assert len(free_params) == num_free_parameters
 
-            # yes scipy violates the bounds (by small amounts)! pricks!
-            # assert min(free_params) >= 0.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
-            #                                 + str(free_params)
-            # assert max(free_params) <= 1.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
-            #                                 + str(free_params)
+        if not subject_variables is None:
+            pdf_subjects_syns_only = pdf_with_srvs_for_optimization.marginalize_distribution(
+                list(subject_variables) + range(len(pdf_with_srvs) - num_synergistic_variables, len(pdf_with_srvs)))
+
+            pdf_subjects_only = pdf_subjects_syns_only.marginalize_distribution(range(len(subject_variables)))
+
+            if __debug__:
+                debug_pdf_subjects_only = pdf_with_srvs.marginalize_distribution(subject_variables)
+
+                assert debug_pdf_subjects_only == pdf_subjects_only
+
+            num_free_parameters_synonly = len(pdf_subjects_syns_only.matrix2params_incremental()) \
+                                          - len(pdf_subjects_only.matrix2params_incremental())
+
+            parameter_values_static = pdf_subjects_only.matrix2params_incremental()
+
+            initial_guess = np.random.random(num_free_parameters_synonly)
+
+            # pdf_subjects_syns_only should be the new object that fitness_func operates on, instead of
+            # pdf_with_srvs_for_optimization
+        else:
+            # already like this, so simple renaming
+            pdf_subjects_syns_only = pdf_with_srvs_for_optimization
+
+            parameter_values_static = parameter_values_before
+
+            num_free_parameters_synonly = num_free_parameters
+
+        # note: to be removed: was part of old code
+        # def fitness_func(free_params, parameter_values_before=parameter_values_before):
+        #     assert len(free_params) == num_free_parameters
+        #
+        #     # yes scipy violates the bounds (by small amounts)! pricks!
+        #     # assert min(free_params) >= 0.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
+        #     #                                 + str(free_params)
+        #     # assert max(free_params) <= 1.0, 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' \
+        #     #                                 + str(free_params)
+        #
+        #     assert min(free_params) >= -0.00001, \
+        #         'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
+        #     assert max(free_params) <= 1.00001, \
+        #         'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
+        #
+        #     free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]
+        #
+        #     pdf_with_srvs_for_optimization.params2matrix_incremental(list(parameter_values_before) + list(free_params))
+        #
+        #     assert pdf_with_srvs_for_optimization.numvariables == self.numvariables + num_synergistic_variables
+        #
+        #     fitness = -pdf_with_srvs_for_optimization.synergistic_information_naive(
+        #         variables_Y=range(self.numvariables, pdf_with_srvs_for_optimization.numvariables),
+        #         variables_X=range(self.numvariables))
+        #
+        #     assert np.isscalar(fitness)
+        #     assert np.isfinite(fitness)
+        #
+        #     return float(fitness)
+
+        # todo: this fitness func should replace the above one
+        def fitness_func_subjects_only(free_params, parameter_values_before):
+            """
+            This fitness function searches for a Pr(S,Y,X) such that X is synergistic about S (subject_variables) only.
+            This fitness function does not tax the relation between X and Y.
+            :param free_params:
+            :param parameter_values_before:
+            :return:
+            """
+            assert len(free_params) == num_free_parameters_synonly
 
             assert min(free_params) >= -0.00001, \
                 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
             assert max(free_params) <= 1.00001, \
                 'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
 
-            free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]
+            free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]  # clip small roundoff errors
 
-            pdf_with_srvs_for_optimization.params2matrix_incremental(list(parameter_values_before) + list(free_params))
+            pdf_subjects_syns_only.params2matrix_incremental(list(parameter_values_before) + list(free_params))
 
-            assert pdf_with_srvs_for_optimization.numvariables == self.numvariables + num_synergistic_variables
+            if not subject_variables is None:
+                assert pdf_subjects_syns_only.numvariables == len(subject_variables) + num_synergistic_variables
 
-            fitness = -pdf_with_srvs_for_optimization.synergistic_information_naive(
-                variables_Y=range(self.numvariables, pdf_with_srvs_for_optimization.numvariables),
-                variables_X=range(self.numvariables))
+                fitness = -pdf_subjects_syns_only.synergistic_information_naive(
+                    variables_Y=range(len(subject_variables), len(pdf_subjects_syns_only)),
+                    variables_X=range(len(subject_variables)))
+            else:
+                assert pdf_subjects_syns_only.numvariables == len(self) + num_synergistic_variables
+
+                fitness = -pdf_subjects_syns_only.synergistic_information_naive(
+                    variables_Y=range(len(self), len(pdf_subjects_syns_only)),
+                    variables_X=range(len(self)))
 
             assert np.isscalar(fitness)
             assert np.isfinite(fitness)
@@ -1385,11 +1456,14 @@ class JointProbabilityMatrix():
 
         param_vectors_trace = []
 
-        optres = minimize(fitness_func, initial_guess, bounds=[(0.0, 1.0)]*num_free_parameters,
+        optres = minimize(fitness_func_subjects_only, initial_guess, bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
                           callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
-                          args=(parameter_values_before,))
+                          args=(parameter_values_static,))
 
-        assert len(optres.x) == num_free_parameters
+        if subject_variables is None:
+            assert len(optres.x) == num_free_parameters
+        else:
+            assert len(optres.x) == num_free_parameters_synonly
         assert max(optres.x) <= 1.0001, 'parameter bound significantly violated'
         assert min(optres.x) >= -0.0001, 'parameter bound significantly violated'
 
@@ -1399,9 +1473,29 @@ class JointProbabilityMatrix():
         # clip to valid range
         optres.x = [min(max(xi, 0.0), 1.0) for xi in optres.x]
 
-        optimal_parameters_joint_pdf = list(parameter_values_before) + list(optres.x)
+        # optimal_parameters_joint_pdf = list(parameter_values_before) + list(optres.x)
+        # pdf_with_srvs.params2matrix_incremental(optimal_parameters_joint_pdf)
 
-        pdf_with_srvs.params2matrix_incremental(optimal_parameters_joint_pdf)
+        assert len(pdf_subjects_syns_only.matrix2params_incremental()) == len(parameter_values_static) + len(optres.x)
+
+        pdf_subjects_syns_only.params2matrix_incremental(list(parameter_values_static) + list(optres.x))
+
+        if not subject_variables is None:
+            cond_pdf_syns_on_subjects = pdf_subjects_syns_only.conditional_probability_distributions(
+                range(len(subject_variables))
+            )
+
+            assert type(cond_pdf_syns_on_subjects) == dict
+            assert len(cond_pdf_syns_on_subjects) > 0, 'conditioned on 0 values?'
+
+            # if this hits then something is unintuitive with conditioning on variables...
+            assert len(cond_pdf_syns_on_subjects.keys()[0]) == len(subject_variables)
+
+            pdf_with_srvs = self.copy()
+            pdf_with_srvs.append_variables_using_conditional_distributions(cond_pdf_syns_on_subjects,
+                                                                           given_variables=subject_variables)
+        else:
+            pdf_with_srvs = pdf_subjects_syns_only  # all variables are subject
 
         assert pdf_with_srvs.numvariables == self.numvariables + num_synergistic_variables
 
@@ -1594,7 +1688,7 @@ class JointProbabilityMatrix():
 
     def append_orthogonalized_variables(self, variables_to_orthogonalize, num_added_variables_orthogonal,
                                         num_added_variables_parallel, verbose=True,
-                                        num_repeats=1, randomization_per_repeat=0.03):
+                                        num_repeats=1, randomization_per_repeat=0.01):
 
         """
         Let X=<variables_to_orthogonalize> and Y=complement[<variables_to_orthogonalize>]. Add two sets of variables
@@ -2648,6 +2742,28 @@ def run_append_using_transitions_table_and_marginalize_test():
     assert pdf_copy == pdf, 'should be two equivalent ways of appending a deterministic variable'
 
 
+def run_synergistic_variables_test_with_subjects(num_subject_vars=2):
+    num_other_vars = 1
+
+    pdf = JointProbabilityMatrix(num_subject_vars + num_other_vars, 2)
+
+    pdf_orig = pdf.copy()
+
+    assert num_subject_vars > 0
+
+    subject_variables = np.random.choice(range(len(pdf)), num_subject_vars, replace=False)
+
+    pdf.append_synergistic_variables(1, subject_variables=subject_variables)
+
+    assert pdf.marginalize_distribution(range(len(pdf_orig))) == pdf_orig, \
+        'appending synergistic variables changed the pdf'
+
+    # ideally, the former is max and the latter is zero
+    assert pdf.mutual_information(subject_variables, range(len(pdf_orig), len(pdf))) \
+           > sum([pdf.mutual_information([sv], range(len(pdf_orig), len(pdf))) for sv in subject_variables])
+
+
+# todo: make another such function but now use the subject_variables option of append_synerg*
 def run_synergistic_variables_test(numvars=2):
     pdf = JointProbabilityMatrix(numvars, 2)
 
@@ -2706,8 +2822,7 @@ def run_synergistic_variables_test(numvars=2):
 
 
 def run_orthogonalization_test_null_hypothesis(num_subject_vars=2, num_ortho_vars=1, num_para_vars=1, numvals=2,
-                                               verbose=True, num_repeats=1, tol_rel_error=0.05):
-
+                                               verbose=True, num_repeats=5, tol_rel_error=0.05):
     """
     This is similar in spirit to run_orthogonalization_test, except now the variables to orthogonalize (X) is already
     known to be completely decomposable into two parts (X1, X2) which are orthogonal and parallel, resp. (See also
@@ -3099,7 +3214,7 @@ def run_scalars_to_tree_test():
     np.testing.assert_array_almost_equal(pdf.scalars_up_to_level(tree), pdf.scalars_up_to_level(tree2))
 
 
-def run_all_tests(verbose=True):
+def run_all_tests(verbose=True, all_inclusive=False):
     run_append_and_marginalize_test()
     if verbose:
         print 'note: test run_append_and_marginalize_test successful.'
@@ -3144,12 +3259,17 @@ def run_all_tests(verbose=True):
     if verbose:
         print 'note: test run_reorder_test successful.'
 
-    run_orthogonalization_test()
+    if all_inclusive:
+        run_orthogonalization_test()
+        if verbose:
+            print 'note: test run_orthogonalization_test successful.'
+
+    run_orthogonalization_test_null_hypothesis()
     if verbose:
-        print 'note: test run_orthogonalization_test successful.'
+        print 'note: test run_orthogonalization_test_null_hypothesis successful.'
 
     if verbose:
-        print 'note: finished. all tests successful'
+        print 'note: finished. all tests successful.'
 
 
 # def sum_modulo(values, modulo):  # deprecated, can be removed?
