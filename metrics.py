@@ -7,6 +7,10 @@ a number of (nested) list of numbers, depending on the metric.
 
 from jointpdf import JointProbabilityMatrix
 
+from scipy.interpolate import InterpolatedUnivariateSpline
+import numpy as np
+import numbers
+from scipy.optimize import brentq
 
 # standard labels for standard concepts
 class standard_labels:
@@ -116,11 +120,13 @@ def system_idt(pdf, dict_of_args={}):
 
     pdf_per_timestep = pdf.conditional_probability_distributions(time_variables)
 
-    time_steps = pdf_per_timestep.keys()
+    time_steps = sorted(pdf_per_timestep.keys())
     mutual_info_over_time = []
 
     assert len(time_steps) > 0, 'there are no time steps in the joint pdf?'
     assert len(time_steps) > 1, 'there are too few time steps in the joint pdf'
+
+    assert isinstance(time_steps[0], numbers.Number), 'time step values should be numeric (not wrong per se, but weird)'
 
     for time_step in time_steps:
         mutual_info = pdf_per_timestep[time_step].mutual_information_labels(standard_labels.variable,
@@ -128,7 +134,35 @@ def system_idt(pdf, dict_of_args={}):
 
         mutual_info_over_time.append(mutual_info)
 
+    e_const = 2.718281828459045
 
+    max_mi = max(mutual_info_over_time)
+    t_max = mutual_info_over_time.index(max_mi)
+
+    # clip the mutual information curve to after the peak, because it can be a unimodal curve and then there will be
+    # more than one root below for brentq, and it does not like that
+    mutual_info_over_time = mutual_info_over_time[t_max:]
+
+    # value of the mutual information curve at the IDT point. We here use the definition of a decay to 1/e of the
+    # maximum value
+    mi_at_idt = (max_mi - min(mutual_info_over_time)) * (1.0 / e_const) + min(mutual_info_over_time)
+
+    # curve of mutual information over time (after peak), but shifted along y-axis so that MI=0 is the IDT point
+    func_mi_curve_around_zero = InterpolatedUnivariateSpline(time_steps, np.subtract(mutual_info_over_time, mi_at_idt),
+                                                             k=1)
+
+    t_left = min(time_steps)
+    t_right = max(time_steps)
+
+    max_iter_root_finding = 3000
+    idt = brentq(func_mi_curve_around_zero, t_left, t_right, rtol=1e-6, maxiter=max_iter_root_finding)
+
+    idt = float(idt)  # make sure it is a float
+
+    assert t_left <= idt <= t_right, 'found invalid IDT=' + str(idt) + ', not in ' + str(t_left) + ' ... ' \
+                                     + str(t_right)
+
+    return idt
 
 '''
 Unit testing.
