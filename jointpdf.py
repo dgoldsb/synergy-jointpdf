@@ -1,6 +1,17 @@
 __author__ = 'rquax'
 
 
+'''
+Owner of this project:
+
+    Rick Quax
+    https://staff.fnwi.uva.nl/r.quax/index.html
+    University of Amsterdam
+
+You are free to use this package for your own non-profit, academic work. All I ask is to be suitably credited.
+'''
+
+
 import csv
 import numpy as np
 import itertools

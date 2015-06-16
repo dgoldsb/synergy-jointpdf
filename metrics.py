@@ -62,7 +62,7 @@ def shannon_equilibrium_entropy_of_system_state(pdf, dict_of_args={}):
                              + ' computing Shannon entropy. If it is a parameter like \'temperature\' then you '
                                'should provide a specific value for me to compute entropy for')
 
-        # note: I suppose it can also be possible for the user of CE to first have the option to select specific
+        # note: I suppose it can also be possible for the user to first have the option to select specific
         # values for parameters (such as a temperature value) before he/she decides to pass the joint pdf
         # to a metric... but I can also imagine that a well-implemented metric tries its best to handle
         # unexpected additional dimensions, which I try here. A default behavior of iterating over all possible
@@ -88,9 +88,13 @@ def shannon_equilibrium_entropy_of_system_state(pdf, dict_of_args={}):
     return pdf.entropy()
 
 
-def idt(pdf, dict_of_args={}):
+def system_idt(pdf, dict_of_args={}):
     """
+    This is the IDT at the level of the entire system state, so the characteristic decay of I(S[0], S[t]) as function
+     of t, where S[i] are considered stochastic variables of the joint state of all variables in the <pdf> with label
+     <standard_labels.variable>.
 
+     Note: to compute the IDT per individual variable (like each spin in an Ising network) use individual_idt() instead.
     :type pdf: JointProbabilityMatrix
     :param dict_of_args: dict of arbitrary arguments you want to pass, depending on the metric.
     Like a specific value for unsupported dimensions such as 'temperature', if any.
@@ -100,12 +104,30 @@ def idt(pdf, dict_of_args={}):
 
     pdf.retain_only_labels([standard_labels.time, standard_labels.variable, standard_labels.initial_condition])
 
-    # these three are needed for idt
+    # these three types of variables are needed for computing idt
     assert standard_labels.time in pdf.get_labels()
     assert standard_labels.variable in pdf.get_labels()
     assert standard_labels.initial_condition in pdf.get_labels()
 
     # todo: implement a mutual_information which takes labels as arguments
+
+    time_variables = pdf.marginalize_distribution_retaining_only_labels([standard_labels.time])
+    assert len(time_variables) == 1, 'should have exactly one time parameter'
+
+    pdf_per_timestep = pdf.conditional_probability_distributions(time_variables)
+
+    time_steps = pdf_per_timestep.keys()
+    mutual_info_over_time = []
+
+    assert len(time_steps) > 0, 'there are no time steps in the joint pdf?'
+    assert len(time_steps) > 1, 'there are too few time steps in the joint pdf'
+
+    for time_step in time_steps:
+        mutual_info = pdf_per_timestep[time_step].mutual_information_labels(standard_labels.variable,
+                                                                            standard_labels.initial_condition)
+
+        mutual_info_over_time.append(mutual_info)
+
 
 
 '''
