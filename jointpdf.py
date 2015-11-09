@@ -25,7 +25,7 @@ import time
 
 def maximum_depth(seq):
     """
-    Helper function, e.g. depth([1,2,[2,4,[[4]]]]) == 4.
+    Helper function, e.g. maximum_depth([1,2,[2,4,[[4]]]]) == 4.
     :param seq: sequence, like a list of lists
     :rtype: int
     """
@@ -125,6 +125,8 @@ class JointProbabilityMatrix():
 
         if joint_probs is None:
             self.generate_random_joint_probabilities()
+        elif joint_probs in ('random', 'independent', 'iid'):
+            self.generate_independent_joint_probabilities()
         else:
             self.joint_probabilities = joint_probs
 
@@ -144,6 +146,7 @@ class JointProbabilityMatrix():
         else:
             raise ValueError('numvariables == 0 not supported (yet?)')
 
+
     def copy(self):
         """
         Deep copy.
@@ -151,9 +154,74 @@ class JointProbabilityMatrix():
         """
         return copy.deepcopy(self)
 
+
+    def generate_sample(self):
+        rand_real = np.random.random()
+
+        for input_states in self.statespace(self.numvariables):
+            rand_real -= self.joint_probability(input_states)
+
+            if rand_real < 0.0:
+                return input_states
+
+        assert False, 'should not happen? or maybe foating point roundoff errors built up.. or so'
+
+        return self.statespace(len(self.numvariables))[-1]
+
+
+    def generate_samples(self, n):
+        return [self.generate_sample() for _ in xrange(n)]
+
+
+    def transition_table_deterministic(self, variables_input, variables_output):
+        """
+        Create a transition table for the given variables, where for each possible sequence of values for the input
+        variables I find the values for the output variables which have maximum conditional probability. I marginalize
+        first over all other variables not named in either input or output.
+        :type variables_input: list of int
+        :type variables_output: list of int
+        :return: a list of lists, where each sublist is [input_states, max_output_states, max_output_prob], where the
+        first two are lists and the latter is a float in [0,1]
+        """
+        variables = list(variables_input) + list(variables_output)
+
+        pdf_temp = self.marginalize_distribution(variables)
+
+        assert len(pdf_temp) == len(variables)
+
+        trans_table = []
+
+        # for each possible sequence of input states, find the output states which have maximum probability
+        for input_states in self.statespace(len(variables_input)):
+            max_output_states = []
+            max_output_prob = -1.0
+
+            for output_states in self.statespace(len(variables_output)):
+                prob = pdf_temp(list(input_states) + list(output_states))
+
+                if prob > max_output_prob:
+                    max_output_prob = prob
+                    max_output_states = output_states
+
+            # assert max_output_prob >= 1.0 / np.power(self.numvalues, len(variables_output)), \
+            #     'how can this be max prob?: ' + str(max_output_prob) + '. I expected at least: ' \
+            #     + str(1.0 / np.power(self.numvalues, len(variables_output)))
+
+            trans_table.append([input_states, max_output_states, max_output_prob])
+
+        return trans_table
+
+
+    def generate_independent_joint_probabilities(self):
+        self.joint_probabilities = np.zeros([self.numvalues]*self.numvariables)
+        self.joint_probabilities = self.joint_probabilities + 1.0 / np.power(self.numvalues, self.numvariables)
+        np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+
+
     def generate_random_joint_probabilities(self):
         self.joint_probabilities = np.random.random([self.numvalues]*self.numvariables)
         self.joint_probabilities /= np.sum(self.joint_probabilities)
+
 
     def random_samples(self, n=1):
         # sample_indices = np.random.multinomial(n, [i for i in self.joint_probabilities.flat])
@@ -709,6 +777,7 @@ class JointProbabilityMatrix():
 
     _debug_params2matrix = True  # internal variable, used to debug a debug statement, can be removed in a while
 
+
     def params2matrix_incremental(self, parameters):
 
         if __debug__:
@@ -954,8 +1023,13 @@ class JointProbabilityMatrix():
         self.clip_all_probabilities()
 
 
-    def statespace(self):
-        lists_of_possible_joint_values = [range(self.numvalues) for _ in xrange(self.numvariables)]
+    def statespace(self, numvars='all'):
+        if numvars == 'all':
+            lists_of_possible_joint_values = [range(self.numvalues) for _ in xrange(self.numvariables)]
+        elif type(numvars) in (int,):
+            lists_of_possible_joint_values = [range(self.numvalues) for _ in xrange(numvars)]
+        else:
+            raise NotImplementedError('numvars=' + str(numvars))
 
         return itertools.product(*lists_of_possible_joint_values)
 
@@ -1158,8 +1232,8 @@ class JointProbabilityMatrix():
             # what I substitute for the probability mass here. I will add some probability mass so that I can
             # normalize it.
 
-            # I think this warning can be removed at some point...
-            warnings.warn('conditional_probability_distribution: summed_prob_mass == 0.0 (can be ignored)')
+            # # I think this warning can be removed at some point...
+            # warnings.warn('conditional_probability_distribution: summed_prob_mass == 0.0 (can be ignored)')
 
             # are all values zero?
             try:
@@ -1204,19 +1278,26 @@ class JointProbabilityMatrix():
     # function in all information-theoretic quantities and especially it is a crucial bottleneck for optimization
     # procedures such as in append_orthogonal* which call information-theoretic quantities a LOT.
     def entropy(self, variables=None):
-        def log2term(p):  # p log_2 p
-            if 0.0 < p < 1.0:
-                return -p * np.log2(p)
-            else:
-                return 0.0  # 0 log 0 == 0 is assumed
+        # def log2term(p):  # p log_2 p
+        #     if 0.0 < p < 1.0:
+        #         return -p * np.log2(p)
+        #     else:
+        #         return 0.0  # 0 log 0 == 0 is assumed
 
         if variables is None:
-            np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+            if np.random.random() < 0.1:
+                np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
 
-            joint_entropy = np.sum(map(log2term, self.joint_probabilities.flat))
+            # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flat))
+            log_terms = self.joint_probabilities.flat * np.log2(self.joint_probabilities.flat)
+            log_terms = np.select([np.isfinite(log_terms)], [log_terms])
+            joint_entropy = -np.sum(log_terms)
 
             assert joint_entropy >= 0.0
-            assert joint_entropy <= np.log2(self.numvalues) * self.numvariables
+            # note: the extra 0.001 is for roundoff errors
+            assert joint_entropy <= np.log2(self.numvalues) * self.numvariables + 0.001, \
+                'joint_entropy=' + str(joint_entropy) + ', np.log2(self.numvalues) * self.numvariables = ' \
+                + str(np.log2(self.numvalues) * self.numvariables)
 
             return joint_entropy
         else:
@@ -1294,16 +1375,174 @@ class JointProbabilityMatrix():
         return mi
 
 
-    def synergistic_information_naive(self, variables_Y, variables_X):
-        return self.mutual_information(list(variables_Y), list(variables_X)) \
-               - sum([self.mutual_information(list(variables_Y), list([var_xi])) for var_xi in variables_X])
+    def synergistic_information_naive(self, variables_SRV, variables_X):
+        return self.mutual_information(list(variables_SRV), list(variables_X)) \
+               - sum([self.mutual_information(list(variables_SRV), list([var_xi])) for var_xi in variables_X])
 
 
-    def synergistic_entropy(self):
-        # this function should iteratively try to append (mutually agnostic)
-        # synergistic variables until no more synergy is found, and
-        # then the entropy of these appended variables should be returned.
-        assert False, 'todo: implement'
+    def synergistic_information(self, variables_Y, variables_X, tolerance_nonsyn_mi=0.05, verbose=True):
+
+        pdf_with_srvs = self.copy()
+
+        syn_entropy = self.synergistic_entropy_upper_bound(variables_X)
+        max_ent_per_var = np.log2(self.numvalues)
+        max_num_srv_add_trials = int(round(syn_entropy / max_ent_per_var * 2))
+
+        # note: currently I constrain to add SRVs which consist each of only 1 variable each. I guess in most cases
+        # this will work fine, but I do not know for sure that this will always be sufficient (i.e., does there
+        # ever an MSRV exist with bigger entropy, and if so, is this MSRV not decomposable into parts such that
+        # this approach here still works?)
+
+        for i in xrange(max_num_srv_add_trials):
+            pdf_with_srvs.append_synergistic_variables(1, initial_guess_summed_modulo=False,
+                                                       subject_variables=variables_X, num_repeats=3,
+                                                       agnostic_about=range(len(self),
+                                                                            len(pdf_with_srvs)))
+
+            # todo: can save one MI calculation here
+            new_syn_info = pdf_with_srvs.synergistic_information_naive([-1], variables_X)
+            total_mi = pdf_with_srvs.mutual_information([-1], variables_X)
+            indiv_mi_list =  [pdf_with_srvs.mutual_information([-1], [xid]) for xid in variables_X]
+            new_syn_info = total_mi - sum(indiv_mi_list)
+
+            if new_syn_info < syn_entropy * 0.01:
+                if (total_mi - new_syn_info) / total_mi > tolerance_nonsyn_mi:  # too much non-synergistic information?
+                    pdf_with_srvs.marginalize_distribution(range(len(pdf_with_srvs) - 1))  # remove last srv
+
+                    if verbose:
+                        print 'debug: synergistic_information: a last SRV was found but with too much non-syn. info.'
+                else:
+                    if verbose:
+                        print 'debug: synergistic_information: a last (small) ' \
+                              'SRV was found, a good one, and now I will stop.'
+
+                break  # assume that no more better SRVs can be found from now on, so stop (save time)
+            else:
+                if i == max_num_srv_add_trials - 1:
+                    warnings.warn('synergistic_information: never converged to adding SRV with zero synergy')
+
+                if (total_mi - new_syn_info) / total_mi > tolerance_nonsyn_mi:  # too much non-synergistic information?
+                    pdf_with_srvs.marginalize_distribution(range(len(pdf_with_srvs) - 1))  # remove last srv
+
+                    if verbose:
+                        print('debug: synergistic_information: an SRV with new_syn_info/total_mi = '
+                                  + str(new_syn_info) + ' / ' + str(total_mi) + ' = '
+                                  + str((new_syn_info) / total_mi) + ' was found, which will be removed again because'
+                                                                     ' it does not meet the tolerance of '
+                                  + str(tolerance_nonsyn_mi))
+                else:
+                    if verbose:
+                        print 'debug: synergistic_information: an SRV with new_syn_info/total_mi = ' \
+                              + str(new_syn_info) + ' / ' + str(total_mi) + ' = ' \
+                                  + str((new_syn_info) / total_mi) + ' was found, which satisfies the tolerance of ' \
+                                  + str(tolerance_nonsyn_mi)
+
+        if verbose:
+            print 'debug: synergistic_information: number of SRVs:', len(xrange(len(self), len(pdf_with_srvs)))
+            print 'debug: synergistic_information: entropy of SRVs:', \
+                pdf_with_srvs.entropy(range(len(self), len(pdf_with_srvs)))
+            print 'debug: synergistic_information: H(SRV_i) =', \
+                [pdf_with_srvs.entropy([srv_id]) for srv_id in xrange(len(self), len(pdf_with_srvs))]
+            print 'debug: synergistic_information: I(Y, SRV_i) =', \
+                [pdf_with_srvs.mutual_information(variables_Y, [srv_id])
+                        for srv_id in xrange(len(self), len(pdf_with_srvs))]
+
+        syn_info = sum([pdf_with_srvs.mutual_information(variables_Y, [srv_id])
+                        for srv_id in xrange(len(self), len(pdf_with_srvs))])
+
+        return syn_info
+
+
+    def synergistic_entropy(self, variables_X, tolerance_nonsyn_mi=0.05, verbose=True):
+
+        assert False, 'todo: change from information to entropy here, just return different value and do not ask for Y'
+
+        pdf_with_srvs = self.copy()
+
+        syn_entropy = self.synergistic_entropy_upper_bound(variables_X)
+        max_ent_per_var = np.log2(self.numvalues)
+        max_num_srv_add_trials = int(round(syn_entropy / max_ent_per_var * 2))
+
+        # note: currently I constrain to add SRVs which consist each of only 1 variable each. I guess in most cases
+        # this will work fine, but I do not know for sure that this will always be sufficient (i.e., does there
+        # ever an MSRV exist with bigger entropy, and if so, is this MSRV not decomposable into parts such that
+        # this approach here still works?)
+
+        for i in xrange(max_num_srv_add_trials):
+            pdf_with_srvs.append_synergistic_variables(1, initial_guess_summed_modulo=False,
+                                                       subject_variables=variables_X, num_repeats=3,
+                                                       agnostic_about=range(len(variables_Y) + len(variables_X),
+                                                                            len(pdf_with_srvs)))
+
+            # todo: can save one MI calculation here
+            new_syn_info = self.synergistic_information_naive([-1], variables_X)
+            total_mi = self.mutual_information([-1], variables_X)
+
+            if new_syn_info < syn_entropy * 0.01:
+                if (total_mi - new_syn_info) / total_mi > tolerance_nonsyn_mi:  # too much non-synergistic information?
+                    pdf_with_srvs.marginalize_distribution(range(len(pdf_with_srvs) - 1))  # remove last srv
+
+                    if verbose:
+                        print 'debug: synergistic_information: a last SRV was found but with too much non-syn. info.'
+                else:
+                    if verbose:
+                        print 'debug: synergistic_information: a last (small) ' \
+                              'SRV was found, a good one, and now I will stop.'
+
+                break  # assume that no more better SRVs can be found from now on, so stop (save time)
+            else:
+                if i == max_num_srv_add_trials - 1:
+                    warnings.warn('synergistic_information: never converged to adding SRV with zero synergy')
+
+                if (total_mi - new_syn_info) / total_mi > tolerance_nonsyn_mi:  # too much non-synergistic information?
+                    pdf_with_srvs.marginalize_distribution(range(len(pdf_with_srvs) - 1))  # remove last srv
+
+                    if verbose:
+                        print('debug: synergistic_information: an SRV with new_syn_info/total_mi = '
+                                  + str(new_syn_info) + ' / ' + str(total_mi) + ' = '
+                                  + str((new_syn_info) / total_mi) + ' was found, which will be removed again because'
+                                                                     ' it does not meet the tolerance of '
+                                  + str(tolerance_nonsyn_mi))
+                else:
+                    if verbose:
+                        print 'debug: synergistic_information: an SRV with new_syn_info/total_mi = ' \
+                              + str(new_syn_info) + ' / ' + str(total_mi) + ' = ' \
+                                  + str((new_syn_info) / total_mi) + ' was found, which satisfies the tolerance of ' \
+                                  + str(tolerance_nonsyn_mi)
+
+        # if verbose:
+        #     print 'debug: synergistic_information: number of SRVs:', len(xrange(len(self), len(pdf_with_srvs)))
+        #     print 'debug: synergistic_information: entropy of SRVs:', \
+        #         pdf_with_srvs.entropy(range(len(self), len(pdf_with_srvs)))
+        #     print 'debug: synergistic_information: H(SRV_i) =', \
+        #         [pdf_with_srvs.entropy([srv_id]) for srv_id in xrange(len(self), len(pdf_with_srvs))]
+        #     print 'debug: synergistic_information: I(Y, SRV_i) =', \
+        #         [pdf_with_srvs.mutual_information(variables_Y, [srv_id])
+        #                 for srv_id in xrange(len(self), len(pdf_with_srvs))]
+
+        syn_info = sum([pdf_with_srvs.mutual_information(variables_Y, [srv_id])
+                        for srv_id in xrange(len(self), len(pdf_with_srvs))])
+
+        return syn_info
+
+
+    def synergistic_entropy_upper_bound(self, variables=None):
+        """
+        For a derivation, see Quax et al. (2015). No other stochastic variable can have more than this amount of
+        synergistic information about the stochastic variables defined by this pdf object, or the given subset of
+        variables in <variables>.
+        :type variables: list of int
+        :rtype: float
+        """
+        if variables is None:
+            variables = range(len(self))
+
+        indiv_entropies = [self.entropy([var]) for var in variables]
+
+        return float(self.entropy() - max(indiv_entropies))
+
+
+    # X marks the spot
 
 
     # todo: add optional numvalues? so that the synergistic variables can have more possible values than the
@@ -1316,6 +1555,13 @@ class JointProbabilityMatrix():
         Append <num_synergistic_variables> variables in such a way that they are agnostic about any individual
         existing variable (one of self.numvariables thus) but have maximum MI about the set of self.numvariables
         variables taken together.
+        :param agnostic_about: a list of variable indices to which the new synergistic variable set should be
+        agnostic (zero mutual information). This can be used to find a 'different', second SRV after having found
+        already a first one. If already multiple SRVs have been found then you can choose between either being agnostic
+        about these previous SRVs jointly (so also possibly any synergy among them), or being 'pairwise' agnostic
+        to each individual one, in which case you can pass a list of lists, then I will compute the added cost for
+        each sublist and sum it up.
+        :param num_repeats:
         :param subject_variables: the list of variables the <num_synergistic_variables> should be synergistic about;
         then I think the remainder variables the <num_synergistic_variables> should be agnostic about. This way I can
         support adding many UMSRVs (maybe make a new function for that) which then already are orthogonal among themselves,
@@ -1325,6 +1571,11 @@ class JointProbabilityMatrix():
         :param verbose:
         :return:
         """
+
+        if not agnostic_about is None:
+            if len(agnostic_about) == 0:
+                agnostic_about = None  # treat as if not supplied
+
 
         parameter_values_before = list(self.matrix2params_incremental())
 
@@ -1362,9 +1613,9 @@ class JointProbabilityMatrix():
             debug_pdf_with_srvs.params2matrix_incremental(list(parameter_values_before) + list(initial_guess))
 
             # store the synergistic information before the optimization procedure (after procedure should be higher...)
-            debug_before_syninfo = debug_pdf_with_srvs.synergistic_information_naive(variables_Y=range(self.numvariables,
-                                                                                         pdf_with_srvs.numvariables),
-                                                                               variables_X=range(self.numvariables))
+            debug_before_syninfo = debug_pdf_with_srvs.synergistic_information_naive(
+                variables_SRV=range(self.numvariables, pdf_with_srvs.numvariables),
+                variables_X=range(self.numvariables))
 
         assert len(initial_guess) == num_free_parameters
 
@@ -1398,10 +1649,28 @@ class JointProbabilityMatrix():
 
             num_free_parameters_synonly = num_free_parameters
 
+            # subject_variables = range(len(self))
+
+        upper_bound_synergistic_information = self.synergistic_entropy_upper_bound(subject_variables)
+        if not agnostic_about is None:
+            # upper_bound_agnostic_information is only used to normalize the cost term for non-zero MI with
+            # the agnostic_variables (evidently a SRV is sought that has zero MI with these)
+            if np.ndim(agnostic_about) == 1:
+                upper_bound_agnostic_information = self.entropy(agnostic_about)
+            elif np.ndim(agnostic_about) == 2:
+                # in this case the cost term is the sum of MIs of the SRV with the sublists, so max cost term is this..
+                upper_bound_agnostic_information = sum([self.entropy(ai) for ai in agnostic_about])
+        else:
+            upper_bound_agnostic_information = 0  # should not even be used...
+
+        # todo: should lower the upper bounds if the max possible entropy of the SRVs is less...
+
+        assert upper_bound_synergistic_information != 0.0, 'can never find any SRV!'
+
         # in the new self, these indices will identify the synergistic variables that will be added
         synergistic_variables = range(len(self), len(self) + num_synergistic_variables)
 
-        def cost_func_subjects_only(free_params, parameter_values_before):
+        def cost_func_subjects_only(free_params, parameter_values_before, extra_cost_rel_error=True):
             """
             This cost function searches for a Pr(S,Y,A,X) such that X is synergistic about S (subject_variables) only.
             This fitness function also taxes any correlation between X and A (agnostic_variables), but does not care
@@ -1421,23 +1690,70 @@ class JointProbabilityMatrix():
 
             pdf_subjects_syns_only.params2matrix_incremental(list(parameter_values_before) + list(free_params))
 
+            # this if-block will add cost for the estimated amount of synergy induced by the proposed parameters,
+            # and possible also a cost term for the ratio of synergistic versus non-synergistic info as extra
             if not subject_variables is None:
                 assert pdf_subjects_syns_only.numvariables == len(subject_variables) + num_synergistic_variables
 
-                cost = -pdf_subjects_syns_only.synergistic_information_naive(
-                    variables_Y=range(len(subject_variables), len(pdf_subjects_syns_only)),
-                    variables_X=range(len(subject_variables)))
+                # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                if not extra_cost_rel_error:
+                    cost = (upper_bound_synergistic_information - pdf_subjects_syns_only.synergistic_information_naive(
+                        variables_SRV=range(len(subject_variables), len(pdf_subjects_syns_only)),
+                        variables_X=range(len(subject_variables)))) / upper_bound_synergistic_information
+                else:
+                    tot_mi = pdf_subjects_syns_only.mutual_information(
+                        range(len(subject_variables), len(pdf_subjects_syns_only)),
+                        range(len(subject_variables)))
+
+                    indiv_mis = [pdf_subjects_syns_only.mutual_information([var],
+                                                                           range(len(subject_variables),
+                                                                                 len(pdf_subjects_syns_only)))
+                                 for var in range(len(subject_variables))]
+
+                    syninfo_naive = tot_mi - sum(indiv_mis)
+
+                    # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                    cost = (upper_bound_synergistic_information - syninfo_naive) / upper_bound_synergistic_information
+
+                    # add an extra cost term for the fraction of 'individual' information versus the total information
+                    # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                    cost += sum(indiv_mis) / tot_mi
             else:
                 assert pdf_subjects_syns_only.numvariables == len(self) + num_synergistic_variables
 
-                cost = -pdf_subjects_syns_only.synergistic_information_naive(
-                    variables_Y=range(len(self), len(pdf_subjects_syns_only)),
-                    variables_X=range(len(self)))
+                if not extra_cost_rel_error:
+                    # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                    cost = (upper_bound_synergistic_information - pdf_subjects_syns_only.synergistic_information_naive(
+                        variables_SRV=range(len(self), len(pdf_subjects_syns_only)),
+                        variables_X=range(len(self)))) / upper_bound_synergistic_information
+                else:
+                    tot_mi = pdf_subjects_syns_only.mutual_information(
+                        range(len(self), len(pdf_subjects_syns_only)),
+                        range(len(self)))
 
+                    indiv_mis = [pdf_subjects_syns_only.mutual_information([var],
+                                                                           range(len(self),
+                                                                                 len(pdf_subjects_syns_only)))
+                                 for var in range(len(self))]
+
+                    syninfo_naive = tot_mi - sum(indiv_mis)
+
+                    # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                    cost = (upper_bound_synergistic_information - syninfo_naive) / upper_bound_synergistic_information
+
+                    # add an extra cost term for the fraction of 'individual' information versus the total information
+                    # this can be considered to be in range [0,1] although particularly bad solutions can go >1
+                    cost += sum(indiv_mis) / tot_mi
+
+            # this if-block will add a cost term for not being agnostic to given variables, usually (a) previous SRV(s)
             if not agnostic_about is None:
                 assert not subject_variables is None, 'how can all variables be subject_variables and you still want' \
-                                                      ' to be agnostic about certain variables?'
+                                                      ' to be agnostic about certain (other) variables? (if you did' \
+                                                      ' not specify subject_variables, do so.)'
 
+                # make a conditional distribution of the synergistic variables conditioned on the subject variables
+                # so that I can easily make a new joint pdf object with them and quantify this extra cost for the
+                # agnostic constraint
                 cond_pdf_syns_on_subjects = pdf_subjects_syns_only.conditional_probability_distributions(
                     range(len(subject_variables))
                 )
@@ -1452,7 +1768,18 @@ class JointProbabilityMatrix():
                 pdf_with_srvs_for_agnostic.append_variables_using_conditional_distributions(cond_pdf_syns_on_subjects,
                                                                                             subject_variables)
 
-                cost += pdf_with_srvs_for_agnostic.mutual_information(synergistic_variables, agnostic_about)
+                if np.ndim(agnostic_about) == 1:
+                    # note: cost term for agnostic is in [0,1]
+                    cost += (pdf_with_srvs_for_agnostic.mutual_information(synergistic_variables, agnostic_about)) \
+                            / upper_bound_agnostic_information
+                else:
+                    assert np.ndim(agnostic_about) == 2, 'expected list of lists, not more... made a mistake?'
+
+                    for agn_i in agnostic_about:
+                        # note: total cost term for agnostic is in [0,1]
+                        cost += (1.0 / float(len(agnostic_about))) * \
+                                pdf_with_srvs_for_agnostic.mutual_information(synergistic_variables, agn_i) \
+                                / upper_bound_agnostic_information
 
             assert np.isscalar(cost)
             assert np.isfinite(cost)
@@ -1466,10 +1793,24 @@ class JointProbabilityMatrix():
                               callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
                               args=(parameter_values_static,))
         else:
-            optres_list = [minimize(cost_func_subjects_only, np.random.random(num_free_parameters_synonly),
-                                   bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
-                                   callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
-                                   args=(parameter_values_static,)) for _ in xrange(num_repeats)]
+            # optres_list = [minimize(cost_func_subjects_only, np.random.random(num_free_parameters_synonly),
+            #                        bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
+            #                        callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
+            #                        args=(parameter_values_static,)) for _ in xrange(num_repeats)]
+
+            optres_list = []
+
+            for _ in xrange(num_repeats):
+                optres_ix = minimize(cost_func_subjects_only, np.random.random(num_free_parameters_synonly),
+                                     bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
+                                     callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
+                                     args=(parameter_values_static,))
+
+                if verbose:
+                    print 'note: finished a repeat. success=' + str(optres_ix.success) + ', cost=' \
+                          + str(optres_ix.fun)
+
+                optres_list.append(optres_ix)
 
             if verbose and __debug__:
                 print 'debug: num_repeats=' + str(num_repeats) + ', all cost values were: ' \
@@ -1531,15 +1872,23 @@ class JointProbabilityMatrix():
             parameter_values_after2 = pdf_with_srvs.matrix2params_incremental()
 
             assert len(parameter_values_after2) > len(parameter_values_before), 'should be additional free parameters'
-            # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
-            # have to optimize the latter part of parameter_values_after
-            np.testing.assert_array_almost_equal(parameter_values_before,
-                                                 parameter_values_after2[:len(parameter_values_before)])
-            np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
-                                                 optres.x)
+
+            if not 1.0 in parameter_values_after2 and not 0.0 in parameter_values_after2:
+                # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
+                # have to optimize the latter part of parameter_values_after
+                np.testing.assert_array_almost_equal(parameter_values_before,
+                                                     parameter_values_after2[:len(parameter_values_before)])
+                np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
+                                                     optres.x)
+            else:
+                # it can happen that some parameters are 'useless' in the sense that they defined conditional
+                # probabilities in the case where the prior (that is conditioned upon) has zero probability. The
+                # resulting pdf is then always the same, no matter this parameter value. This can only happen if
+                # there is a 0 or 1 in the parameter list, (sufficient but not necessary) so skip the test then...
+                pass
 
             # store the synergistic information before the optimization procedure (after procedure should be higher...)
-            debug_after_syninfo = pdf_with_srvs.synergistic_information_naive(variables_Y=range(self.numvariables,
+            debug_after_syninfo = pdf_with_srvs.synergistic_information_naive(variables_SRV=range(self.numvariables,
                                                                                          pdf_with_srvs.numvariables),
                                                                               variables_X=range(self.numvariables))
 
@@ -1561,14 +1910,92 @@ class JointProbabilityMatrix():
             #
             #     print 'debug: fitness =', fitness, '; vector =', xv
 
-            # fitness function should be the negative of the synergistic info right?
-            np.testing.assert_almost_equal(debug_after_syninfo, -fitness_func(optres.x))
+            # # fitness function should be the negative of the synergistic info right?
+            # np.testing.assert_almost_equal(debug_after_syninfo, -fitness_func(optres.x))
 
         if __debug__:
             # unchanged, not accidentally changed by passing it as reference? looking for bug
             np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
 
         self.duplicate(pdf_with_srvs)
+
+
+    def susceptibility_global(self, num_output_variables, perturbation_size=0.1, ntrials=25):
+        """
+        Perturb the current pdf Pr(X,Y) by changing Pr(X) slightly to Pr(X'), but keeping Pr(Y|X) fixed. Then
+        measure the relative change in mutual information I(X:Y). Do this by Monte Carlo using <ntrials> repeats.
+        :param num_output_variables: the number of variables at the end of the list of variables which are considered
+        to be Y. The first variables are taken to be X. If your Y is mixed with the X, first do reordering.
+        :param perturbation_size:
+        :param ntrials:
+        :return: expected relative change of mutual information I(X:Y) after perturbation
+        :rtype: float
+        """
+        num_input_variables = len(self) - num_output_variables
+
+        assert num_input_variables > 0, 'makes no sense to compute resilience with an empty set'
+
+        original_mi = self.mutual_information(range(num_input_variables),
+                                              range(num_input_variables, num_input_variables + num_output_variables))
+
+        pdf_input_only = self.marginalize_distribution(range(num_input_variables))
+
+        affected_params = pdf_input_only.matrix2params_incremental()  # perturb Pr(X) to Pr(X')
+        static_params = self.matrix2params_incremental()[len(affected_params):]  # keep Pr(Y|X) fixed
+
+        pdf_perturbed = self.copy()  # will be used to store the perturbed Pr(X)Pr(Y'|X)
+
+        def clip_to_unit_line(num):  # helper function, make sure all probabilities remain valid
+            return max(min(num, 1), 0)
+
+        susceptibilities = []
+
+        for i in xrange(ntrials):
+            perturbation = np.random.random(len(affected_params))
+            perturbation = perturbation / np.linalg.norm(perturbation) * perturbation_size  # normalize vector norm
+
+            pdf_perturbed.params2matrix_incremental(map(clip_to_unit_line, np.add(affected_params, perturbation))
+                                                    + static_params)
+
+            susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
+                                                              range(num_input_variables,
+                                                                    num_input_variables + num_output_variables)) \
+                             - original_mi
+            susceptibilities.append(abs(susceptibility))
+
+        return np.mean(susceptibilities) / original_mi
+
+
+
+    def append_resilient_variables(self, num_appended_variables, target_mi):
+
+        # input_variables = [d for d in xrange(self.numvariables) if not d in output_variables]
+
+        parameter_values_before = list(self.matrix2params_incremental())
+
+        pdf_new = self.copy()
+        pdf_new.append_variables(num_appended_variables)
+
+        assert pdf_new.numvariables == self.numvariables + num_appended_variables
+
+        parameter_values_after = pdf_new.matrix2params_incremental()
+
+        # this many parameters (each in [0,1]) must be optimized
+        num_free_parameters = len(parameter_values_after) - len(parameter_values_before)
+
+        def cost_func_resilience_and_mi(free_params, parameter_values_before):
+            pdf_new.params2matrix_incremental(list(parameter_values_before) + list(free_params))
+
+            mi = pdf_new.mutual_information(range(len(self)), range(len(self), len(pdf_new)))
+
+            susceptibility = pdf_new.susceptibility_global(num_appended_variables)
+
+            return abs(target_mi - mi) / target_mi + susceptibility
+
+        self.append_optimized_variables(num_appended_variables, cost_func=cost_func_resilience_and_mi,
+                                        initial_guess=np.random.random(num_free_parameters))
+
+        return
 
 
     def append_optimized_variables(self, num_appended_variables, cost_func, initial_guess=None, verbose=True):
@@ -1889,24 +2316,32 @@ class JointProbabilityMatrix():
 
             # - wHop * pdf_proposed_Y_X_X1_X2.entropy(orthogonal_variables + parallel_variables) \
 
+            # note: each term is intended to be normalized to [0, 1], where 0 is best and 1 is worst. Violation of this
+            # is possible though, but they are really bad solutions.
+
             cost_terms = dict()
             cost_terms['Iso'] = \
-                wIso * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, orthogonal_variables) - 0.0)
+                wIso * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, orthogonal_variables) - 0.0) \
+                / ideal_mi_X2_Y
             cost_terms['Ivo'] = \
                 wIvo * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, orthogonal_variables)
-                           - ideal_H_X1)
-            cost_terms['Ivp'] = \
-                wIvp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, parallel_variables)
-                           - ideal_mi_X2_Y)
+                           - ideal_H_X1) / ideal_H_X1
+            # question: is the following one necessary?
+            # cost_terms['Ivp'] = \
+            #     wIvp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(variables_to_orthogonalize, parallel_variables)
+            #                - ideal_mi_X2_Y) / ideal_mi_X2_Y
+            cost_terms['Ivp'] = 0.0
             cost_terms['Isp'] = \
-                wIsp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, parallel_variables) - ideal_mi_X2_Y)
+                wIsp * abs(pdf_proposed_Y_X_X1_X2.mutual_information(subject_variables, parallel_variables)
+                           - ideal_mi_X2_Y) / ideal_mi_X2_Y
             # cost_terms['Hop'] = wHop * abs(pdf_proposed_Y_X_X1_X2.entropy(orthogonal_variables) - ideal_H_X1)
             cost_terms['Hop'] = \
                 wHop * 0.0  # let's see what happens now (trying to improve finding global optimum)
             cost_terms['Iop'] = \
-                wIop * abs(pdf_proposed_Y_X_X1_X2.mutual_information(orthogonal_variables, parallel_variables) - 0.0)
+                wIop * abs(pdf_proposed_Y_X_X1_X2.mutual_information(orthogonal_variables, parallel_variables) - 0.0) \
+                / ideal_H_X1
 
-            # sum of squared errors, or norm of vector in error space
+            # sum of squared errors, or norm of vector in error space, to make a faster convergence hopefully
             cost = float(np.sum(np.power(cost_terms.values(), 2)))
 
             assert np.isfinite(cost)
@@ -2556,6 +2991,7 @@ class JointProbabilityMatrix():
 
     def imbalanced_tree_from_scalars(self, list_of_scalars, numvalues):
         """
+        Helper function.
         Consider e.g. tree =
                         [0.36227870614214747,
                          0.48474422004766832,
@@ -3374,11 +3810,11 @@ class TestUpperBoundSingleSRVEntropyResult():
 
 
 def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic_variables=2, num_values=2,
-                                        num_samples=10, tol_rel_err=0.05, verbose=True, num_repeats=5):
+                                        num_samples=10, tol_rel_err=0.05, verbose=True, num_repeats_per_sample=5):
     """
 
 
-    Note: instead of the entropy o the SRV I use the MI of the SRV with the subject variables, because
+    Note: instead of the entropy of the SRV I use the MI of the SRV with the subject variables, because
     the optimization procedure in append_synergistic_variables does not (yet) try to simultaneously minimize
     the extraneous entropy in an SRV, which is entropy in an SRV which does not correlate with any other
     (subject) variable.
@@ -3387,6 +3823,9 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
     :param num_synergistic_variables:
     :param num_values:
     :param tol_rel_err:
+    :param num_samples: number of entropy values will be returned, one for each randomly generated pdf.
+    :param verbose:
+    :param num_repeats_per_sample: number of optimizations to perform for each sample, trying to get the best result.
     :return: object with a list of estimated SRV entropies and a list of theoretical upper bounds of this same entropy,
     each one for a different, randomly generated PDF.
     :rtype: TestUpperBoundSingleSRVEntropyResult
@@ -3411,7 +3850,7 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
 
         theoretical_upper_bound = pdf.entropy() - max([pdf.entropy([si]) for si in subject_variables])
 
-        pdf.append_synergistic_variables(num_synergistic_variables, num_repeats=num_repeats, verbose=verbose)
+        pdf.append_synergistic_variables(num_synergistic_variables, num_repeats=num_repeats_per_sample, verbose=verbose)
 
         # prevent double computations:
         sum_indiv_mis = sum([pdf.mutual_information(synergistic_variables, [si]) for si in subject_variables])
@@ -3467,7 +3906,7 @@ class TestAccuracyOrthogonalizationResult():
     # list of JointProbabilityMatrix objects
     joint_pdfs = []
     # list of floats, each i'th number is the relative error of the orthogonalization, in range 0..1
-    rel_errors_srv = []
+    rel_errors = []
 
 
 def test_accuracy_orthogonalization(num_subject_variables=2, num_orthogonalized_variables=2, num_values=2,
@@ -3531,24 +3970,43 @@ def test_accuracy_orthogonalization(num_subject_variables=2, num_orthogonalized_
         result.actual_entropies_orthogonal_variables.append(pdf.entropy(orthogonal_variables))
         result.actual_entropies_parallel_variables.append(pdf.entropy(parallel_variables))
 
-        rel_error = (pdf.mutual_information(orthogonalized_variables, subject_variables) - 0) \
-                    / result.actual_entropies_subject_variables[-1]
-        # rel_error += (pdf.mutual_information(orthogonalized_variables, parallel_variables) - 0) \
-        #             / result.actual_entropies_orthogonal_variables[-1]
-        rel_error += (pdf.mutual_information(orthogonalized_variables, subject_variables)
+        rel_error_1 = (pdf.mutual_information(orthogonalized_variables, subject_variables) - 0) \
+                      / result.actual_entropies_subject_variables[-1]
+        rel_error_2 = (pdf.mutual_information(orthogonalized_variables, subject_variables)
                       - pdf.mutual_information(parallel_variables, subject_variables)) \
-                     / pdf.mutual_information(orthogonalized_variables, subject_variables)
-        rel_error += (pdf.entropy(orthogonalized_variables)
-                     - pdf.mutual_information(orthogonal_variables + parallel_variables, orthogonalized_variables)) \
-                     / result.actual_entropies_orthogonalized_variables[-1]
+                      / pdf.mutual_information(orthogonalized_variables, subject_variables)
+        rel_error_3 = (result.actual_entropies_orthogonalized_variables[-1]
+                      - pdf.mutual_information(orthogonal_variables + parallel_variables, orthogonalized_variables)) \
+                      / result.actual_entropies_orthogonalized_variables[-1]
 
-        max_rel_error = result.actual_entropies_subject_variables[-1] \
-                        + pdf.mutual_information(orthogonalized_variables, subject_variables) \
-                        + result.actual_entropies_orthogonalized_variables[-1]
+        # note: each relative error term is intended to be in range [0, 1]
 
-        result.rel_errors_srv.append(rel_error / max_rel_error)
+        rel_error = rel_error_1 + rel_error_2 + rel_error_3
+
+        # max_rel_error = result.actual_entropies_subject_variables[-1] \
+        #                 + pdf.mutual_information(orthogonalized_variables, subject_variables) \
+        #                 + result.actual_entropies_orthogonalized_variables[-1]
+        max_rel_error = 3.0
+
+        rel_error /= max_rel_error
+
+        result.rel_errors.append(rel_error)
 
         print 'note: finished trial #' + str(trial) + ' after', time.time() - time_before, 'seconds. rel_error=', \
-            rel_error
+            rel_error, '(' + str((rel_error_1, rel_error_2, rel_error_3)) + ')'
 
     return result
+
+
+# todo: make a test function which iteratively appends a set of SRVs until no more can be found (some cut-off MI),
+# then I am interested in the statistics of the number of SRVs that are found, as well as the statistics of whether
+# the SRVs are statistically independent or not, and whether they have synergy about each other (if agnostic_about
+# passed to append_syn* is a list of lists) and whether indeed every two SRVs necessarily will have info about an
+# individual Y_i. In the end, if the assumption of perfect orthogonal decomposition of any RVs too strict, or is
+# is often not needed at all? Because it would only be needed in case there are at least two SRVs, the combination of
+# which (combined RV) has more synergy about Y than the two individually summed, but also the combined RV has
+# info about individual Y_i so it is not an SRV by itself, so the synergy contains both synergistic and individual info.
+
+def test_num_srvs(num_subject_variables=2, num_synergistic_variables=2, num_values=2, num_samples=10,
+                  verbose=True, num_repeats=5):
+    assert False
