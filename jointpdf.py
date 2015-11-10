@@ -1273,7 +1273,7 @@ class JointProbabilityMatrix():
                 for given_values in itertools.product(*lists_of_possible_given_values)}
 
 
-    # todo: try to make this entropy() function efficient, or compiled (weave?), or C++ binding or something,
+    # todo: try to make this entropy() function VERY efficient, or compiled (weave?), or C++ binding or something,
     # it is a central
     # function in all information-theoretic quantities and especially it is a crucial bottleneck for optimization
     # procedures such as in append_orthogonal* which call information-theoretic quantities a LOT.
@@ -1288,9 +1288,12 @@ class JointProbabilityMatrix():
             if np.random.random() < 0.1:
                 np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
 
+            probs = self.joint_probabilities.flatten()
+            probs = np.select([probs != 0], [probs], default=1)
+
             # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flat))
-            log_terms = self.joint_probabilities.flat * np.log2(self.joint_probabilities.flat)
-            log_terms = np.select([np.isfinite(log_terms)], [log_terms])
+            log_terms = probs * np.log2(probs)
+            # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
             joint_entropy = -np.sum(log_terms)
 
             assert joint_entropy >= 0.0
@@ -1579,8 +1582,8 @@ class JointProbabilityMatrix():
 
         parameter_values_before = list(self.matrix2params_incremental())
 
-        if __debug__:
-            debug_params_before = copy.deepcopy(parameter_values_before)
+        # if __debug__:
+        #     debug_params_before = copy.deepcopy(parameter_values_before)
 
         # a pdf with XORs as appended variables (often already MSRV for binary variables), good initial guess?
         pdf_with_srvs = self.copy()
@@ -1592,10 +1595,11 @@ class JointProbabilityMatrix():
         parameter_values_after = pdf_with_srvs.matrix2params_incremental()
 
         assert len(parameter_values_after) > len(parameter_values_before), 'should be additional free parameters'
-        # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
-        # have to optimize the latter part of parameter_values_after
-        np.testing.assert_array_almost_equal(parameter_values_before,
-                                             parameter_values_after[:len(parameter_values_before)])
+        if np.random.random < 0.1:  # reduce slowdown from this
+            # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
+            # have to optimize the latter part of parameter_values_after
+            np.testing.assert_array_almost_equal(parameter_values_before,
+                                                 parameter_values_after[:len(parameter_values_before)])
 
         # this many parameters (each in [0,1]) must be optimized
         num_free_parameters = len(parameter_values_after) - len(parameter_values_before)
@@ -1913,9 +1917,9 @@ class JointProbabilityMatrix():
             # # fitness function should be the negative of the synergistic info right?
             # np.testing.assert_almost_equal(debug_after_syninfo, -fitness_func(optres.x))
 
-        if __debug__:
-            # unchanged, not accidentally changed by passing it as reference? looking for bug
-            np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
+        # if __debug__:
+        #     # unchanged, not accidentally changed by passing it as reference? looking for bug
+        #     np.testing.assert_array_almost_equal(debug_params_before, parameter_values_before)
 
         self.duplicate(pdf_with_srvs)
 
@@ -3804,22 +3808,36 @@ class TestUpperBoundSingleSRVEntropyResult():
     theoretical_upper_bounds = []
 
     # list of floats, each i'th number is the estimated maximum entropy of a single SRV
-    entropies_srv = []
+    entropies_srv = []  # actually lower bounds (same as entropies_lowerbound_srv), namely I(X:SRV) - sum_i I(X_i:SRV)
     pdfs_with_srv = []
-    rel_errors_srv = []
+    rel_errors_srv = []  # sum_indiv_mis / total_mi
+
+    entropies_lowerbound_srv = []  # I(X:SRV) - sum_i I(X_i:SRV)
+    entropies_upperbound_srv = []  # I(X:SRV) - max_i I(X_i:SRV)
+
+    def __str__(self):
+        if len(self.entropies_srv) > 0:
+            return '[H(S(x))=' + str(np.mean(self.entropies_srv)) \
+                   + '=' + str(np.mean(self.entropies_srv)/np.mean(self.theoretical_upper_bounds)) + 'H_syn(X), +/- ' \
+                   + str(np.mean(self.rel_errors_srv)*100.0) + '%]'
+        else:
+            return '[H(S(x))=nan' \
+                   + '=(nan)H_syn(X), +/- ' \
+                   + 'nan' + '%]'
 
 
 def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic_variables=2, num_values=2,
                                         num_samples=10, tol_rel_err=0.05, verbose=True, num_repeats_per_sample=5):
     """
-
+    Measure the entropy a single SRV and compare it to the theoretical upper bound derived in the synergy paper, along
+    with the relative error of the synergy estimation.
 
     Note: instead of the entropy of the SRV I use the MI of the SRV with the subject variables, because
     the optimization procedure in append_synergistic_variables does not (yet) try to simultaneously minimize
     the extraneous entropy in an SRV, which is entropy in an SRV which does not correlate with any other
     (subject) variable.
 
-    :param num_subject_variables:
+    :param num_subject_variables: number of X_i variables to compute an SRV for
     :param num_synergistic_variables:
     :param num_values:
     :param tol_rel_err:
@@ -3853,7 +3871,8 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
         pdf.append_synergistic_variables(num_synergistic_variables, num_repeats=num_repeats_per_sample, verbose=verbose)
 
         # prevent double computations:
-        sum_indiv_mis = sum([pdf.mutual_information(synergistic_variables, [si]) for si in subject_variables])
+        indiv_mis = [pdf.mutual_information(synergistic_variables, [si]) for si in subject_variables]
+        sum_indiv_mis = sum(indiv_mis)
         total_mi = pdf.mutual_information(synergistic_variables, subject_variables)
 
         # an error measure of the optimization procedure of finding synergistic variables, potentially it can be quite
@@ -3877,6 +3896,8 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
             result.entropies_srv.append(entropy_srv)
             result.pdfs_with_srv.append(pdf)
             result.rel_errors_srv.append(rel_error_srv)
+            result.entropies_upperbound_srv = total_mi - sum_indiv_mis
+            result.entropies_lowerbound_srv = total_mi - max(indiv_mis)
 
             if verbose:
                 print 'note: added a new sample, entropy_srv =', entropy_srv, ' and theoretical_upper_bound =', \
@@ -3886,6 +3907,95 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
                 print 'note: trial #' + str(trial) + ' will be discarded because the relative error of the SRV found' \
                       + ' is ' + str(rel_error_srv) + ' which exceeds ' + str(tol_rel_err) \
                       + ' (' + str(time.time() - time_before) + 's elapsed)'
+
+    return result
+
+
+def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,3]),
+                                             num_synergistic_variables_list=list([1,2]),
+                                             num_values_list=list([2,3]),
+                                             num_samples=10, tol_rel_err=0.05, verbose=True, num_repeats_per_sample=5):
+
+    results_dict = dict()
+
+    time_before = time.time()
+
+    total_num_its = len(num_subject_variables_list) * len(num_synergistic_variables_list) * len(num_values_list)
+    num_finished_its = 0
+
+    for num_subject_variables in num_subject_variables_list:
+        results_dict[num_subject_variables] = dict()
+
+        for num_synergistic_variables in num_synergistic_variables_list:
+            results_dict[num_subject_variables][num_synergistic_variables] = dict()
+
+            for num_values in num_values_list:
+                resobj = test_upper_bound_single_srv_entropy(num_subject_variables=num_subject_variables,
+                                                             num_synergistic_variables=num_synergistic_variables,
+                                                             num_values=num_values,
+                                                             num_samples=num_samples,
+                                                             tol_rel_err=tol_rel_err,
+                                                             verbose=int(verbose)-1,
+                                                             num_repeats_per_sample=num_repeats_per_sample)
+
+                results_dict[num_subject_variables][num_synergistic_variables][num_values] = resobj
+
+                num_finished_its += 1
+
+                if verbose:
+                    print 'note: finished', num_finished_its, '/', total_num_its, 'iterations after', \
+                        time.time() - time_before, 'seconds. Result for (nx,ns,nv)=' \
+                        + str((num_subject_variables, num_synergistic_variables, num_values)) + ': ', resobj
+
+    return results_dict
+
+
+class TestSynergyInRandomPdfs():
+    syn_info_list = []
+    total_mi_list = []
+    indiv_mi_list_list = []
+    susceptibility_list = []
+
+
+def test_synergy_in_random_pdfs(num_variables_X, num_variables_Y, num_values,
+                                num_samples=10, tolerance_nonsyn_mi=0.05, verbose=True):
+
+    """
+
+    :param num_variables_X:
+    :param num_variables_Y:
+    :param num_values:
+    :param num_samples:
+    :param tolerance_nonsyn_mi:
+    :param verbose:
+    :rtype: TestSynergyInRandomPdfs
+    """
+
+    result = TestSynergyInRandomPdfs()
+
+    time_before = time.time()
+
+    for i in xrange(num_samples):
+        pdf = JointProbabilityMatrix(num_variables_X + num_variables_Y, num_values)
+
+        result.syn_info_list.append(pdf.synergistic_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                      range(num_variables_X),
+                                                      tolerance_nonsyn_mi=tolerance_nonsyn_mi,
+                                                      verbose=bool(int(verbose)-1)))
+
+        result.total_mi_list.append(pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                      range(num_variables_X)))
+
+        indiv_mi_list = [pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                      [xid]) for xid in xrange(num_variables_X)]
+
+        result.indiv_mi_list_list.append(indiv_mi_list)
+
+        result.susceptibility_list.append(pdf.susceptibility_global(num_variables_Y, ntrials=50))
+
+        if verbose:
+            print 'note: finished sample', i, 'of', num_samples, ', syn. info. =', result.syn_info_list[-1], 'after', \
+                time.time() - time_before, 'seconds'
 
     return result
 
