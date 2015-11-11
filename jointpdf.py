@@ -632,8 +632,33 @@ class JointProbabilityMatrix():
                 return False
 
 
+    # todo: implement __sub__, but for this it seems necessary to give each variable a unique ID at creation (__init__)
+    # and keep track of them as you do operations such as marginalizing. Otherwise, subtraction is ambiguous,
+    # i.e., subtracting a 2-variable pdf from a 5-variable pdf should result in a 3-variable conditional pdf, but
+    # it is not clear which 3 variables should be chosen. Can choose this to always be the first 3 and let the
+    # user be responsible to reorder them before subtraction, but seems prone to error if user does not know this or
+    # forgets? Well can test equality by marginalizing the 5-variable pdf...
+
+
     def __len__(self):
         return self.numvariables
+
+
+    def __getitem__(self, item):
+        if not hasattr(item, '__iter__'):
+            return self.marginalize_distribution([item])
+        else:
+            return self.marginalize_distribution(item)
+
+
+    def __add__(self, other):
+        """
+
+        :param other: can be JointProbabilityMatrix or a conditional distribution (dict of JointProbabilityMatrix)
+        :type other: JointProbabilityMatrix or dict
+        """
+
+        self.append_variables_using_conditional_distributions(other)
 
 
     def matrix2vector(self):
@@ -1992,7 +2017,7 @@ class JointProbabilityMatrix():
 
         # test if the procedure in the loop below is correct, namely that the new pdf gluued back together from pieces
         # is indeed the original <self>
-        if __debug__:
+        if __debug__ and np.random.random() < 0.01:  # make very infrequent, has worked for a while now
             # this test can be removed after it works for a while
 
             pdf_var_only = pdf_var_only_orig.copy()
