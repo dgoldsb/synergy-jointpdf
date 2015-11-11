@@ -303,17 +303,18 @@ class JointProbabilityMatrix():
         """
         self.joint_probabilities = np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
 
-        try:
-            np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
-        except AssertionError as e:
-            print 'error message: ' + str(e)
+        if np.random.random() < 0.1:
+            try:
+                np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+            except AssertionError as e:
+                print 'error message: ' + str(e)
 
-            print 'error: len(self.joint_probabilities) =', len(self.joint_probabilities)
-            print 'error: shape(self.joint_probabilities) =', np.shape(self.joint_probabilities)
-            if len(self.joint_probabilities) < 30:
-                print 'error: self.joint_probabilities =', self.joint_probabilities
+                print 'error: len(self.joint_probabilities) =', len(self.joint_probabilities)
+                print 'error: shape(self.joint_probabilities) =', np.shape(self.joint_probabilities)
+                if len(self.joint_probabilities) < 30:
+                    print 'error: self.joint_probabilities =', self.joint_probabilities
 
-            raise AssertionError(e)
+                raise AssertionError(e)
 
 
     def estimate_from_data_from_file(self, filename, discrete=True, method='empirical'):
@@ -636,7 +637,7 @@ class JointProbabilityMatrix():
 
 
     def matrix2vector(self):
-        return [i for i in self.joint_probabilities.flat]
+        return self.joint_probabilities.flatten()
 
 
     def vector2matrix(self, list_probs):
@@ -691,9 +692,18 @@ class JointProbabilityMatrix():
 
         parameters = [-1.0]*(len(vector_probs) - 1)
 
+        np.testing.assert_almost_equal(np.sum(vector_probs), 1.0)
+
         for pix in xrange(len(parameters)):
             if remaining_prob_mass > 0:
+                assert remaining_prob_mass <= 1.0, 'remaining prob mass: ' + str(remaining_prob_mass)
+                assert vector_probs[pix] <= remaining_prob_mass + 0.00001, \
+                    'vector_probs[pix]=' + str(vector_probs[pix]) + ', remaining_prob_mass=' + str(remaining_prob_mass)
+
                 parameters[pix] = vector_probs[pix] / remaining_prob_mass
+
+                assert -0.000001 <= parameters[pix] <= 1.0000001, \
+                    'parameters should be in [0, 1]: ' + str(parameters[pix])
             elif remaining_prob_mass == 0:
                 parameters[pix] = 0
             else:
@@ -709,11 +719,13 @@ class JointProbabilityMatrix():
                     # slightly under. Clip to 0 will do the trick.
                     remaining_prob_mass = 0.0  # clip to zero, so it will stay that way
 
+                parameters[pix] = 0  # does not matter
+
             assert -0.000001 <= parameters[pix] <= 1.0000001, 'parameters should be in [0, 1]: ' + str(parameters[pix])
 
             parameters[pix] = min(max(parameters[pix], 0.0), 1.0)
 
-            remaining_prob_mass = remaining_prob_mass * (1.0 - parameters[pix])
+            remaining_prob_mass -= remaining_prob_mass * parameters[pix]
 
         return parameters
 
@@ -775,7 +787,7 @@ class JointProbabilityMatrix():
         else:
             raise ValueError('no parameters for 0 variables')
 
-    _debug_params2matrix = True  # internal variable, used to debug a debug statement, can be removed in a while
+    _debug_params2matrix = False  # internal variable, used to debug a debug statement, can be removed in a while
 
 
     def params2matrix_incremental(self, parameters):
@@ -856,63 +868,64 @@ class JointProbabilityMatrix():
 
                 # conditional pdf should have the same set of parameters as the ones I used to create it
                 # (todo: remove this expensive check if it seems to work for  while)
-                try:
-                    # todo: test can be probabilistic, e.g. performed with 10% chance?
-                    np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
-                                                         self.scalars_up_to_level(parameters[0]))
-                except AssertionError as e:
-                    # print 'debug: parameters[0] =', parameters[0]
-                    # print 'debug: len(pdf_cond) =', len(pdf_cond)
-                    # print 'debug: pdf_cond.joint_probabilities =', pdf_cond.joint_probabilities
+                if self._debug_params2matrix:  # seemed to work for a long time...
+                    try:
+                        # todo: test can be probabilistic, e.g. performed with 10% chance?
+                        np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
+                                                             self.scalars_up_to_level(parameters[0]))
+                    except AssertionError as e:
+                        # print 'debug: parameters[0] =', parameters[0]
+                        # print 'debug: len(pdf_cond) =', len(pdf_cond)
+                        # print 'debug: pdf_cond.joint_probabilities =', pdf_cond.joint_probabilities
 
-                    pdf_1_duplicate1 = pdf_cond.copy()
-                    pdf_1_duplicate2 = pdf_cond.copy()
+                        pdf_1_duplicate1 = pdf_cond.copy()
+                        pdf_1_duplicate2 = pdf_cond.copy()
 
-                    pdf_1_duplicate1._debug_params2matrix = False  # prevent endless recursion
-                    pdf_1_duplicate2._debug_params2matrix = False  # prevent endless recursion
+                        pdf_1_duplicate1._debug_params2matrix = False  # prevent endless recursion
+                        pdf_1_duplicate2._debug_params2matrix = False  # prevent endless recursion
 
-                    pdf_1_duplicate1.params2matrix_incremental(self.scalars_up_to_level(parameters[0]))
-                    pdf_1_duplicate2.params2matrix_incremental(pdf_cond.matrix2params_incremental())
+                        pdf_1_duplicate1.params2matrix_incremental(self.scalars_up_to_level(parameters[0]))
+                        pdf_1_duplicate2.params2matrix_incremental(pdf_cond.matrix2params_incremental())
 
-                    pdf_1_duplicate1._debug_params2matrix = True
-                    pdf_1_duplicate2._debug_params2matrix = True
+                        pdf_1_duplicate1._debug_params2matrix = True
+                        pdf_1_duplicate2._debug_params2matrix = True
 
-                    assert pdf_1_duplicate1 == pdf_cond
-                    assert pdf_1_duplicate2 == pdf_cond
+                        assert pdf_1_duplicate1 == pdf_cond
+                        assert pdf_1_duplicate2 == pdf_cond
 
-                    del pdf_1_duplicate1, pdf_1_duplicate2
+                        del pdf_1_duplicate1, pdf_1_duplicate2
 
-                    # note: the cause seems to be as follows. If you provide the parameters e.g.
-                    # [0.0, [0.37028884415935004], [0.98942830522914993]] then the middle parameter is superfluous,
-                    # because it defines a conditional probability p(b|a) for which its prior p(a)=0. So no matter
-                    # what parameter is here, the joint prob p(a,b) will be zero anyway. In other words, many
-                    # parameter lists map to the same p(a,b). This makes the inverse problem ambiguous:
-                    # going from a p(a,b) to a parameter list. So after building a pdf from the above example of
-                    # parameter values I may very well get a different parameter list from that pdf, even though
-                    # the pdf built is the one intended. I don't see a way around this because even if this class
-                    # makes it uniform, e.g. always making parameter values 0.0 in case their prior is zero,
-                    # but then still a user or optimization procedure can provide any list of parameters, so
-                    # then also the uniformized parameter list will differ from the user-supplied.
+                        # note: the cause seems to be as follows. If you provide the parameters e.g.
+                        # [0.0, [0.37028884415935004], [0.98942830522914993]] then the middle parameter is superfluous,
+                        # because it defines a conditional probability p(b|a) for which its prior p(a)=0. So no matter
+                        # what parameter is here, the joint prob p(a,b) will be zero anyway. In other words, many
+                        # parameter lists map to the same p(a,b). This makes the inverse problem ambiguous:
+                        # going from a p(a,b) to a parameter list. So after building a pdf from the above example of
+                        # parameter values I may very well get a different parameter list from that pdf, even though
+                        # the pdf built is the one intended. I don't see a way around this because even if this class
+                        # makes it uniform, e.g. always making parameter values 0.0 in case their prior is zero,
+                        # but then still a user or optimization procedure can provide any list of parameters, so
+                        # then also the uniformized parameter list will differ from the user-supplied.
 
-                    # raise AssertionError(e)
+                        # raise AssertionError(e)
 
-                    # later add check. If this check fails then for sure there is something wrong. See also the
-                    # original check below.
-                    assert 0.0 in self.scalars_up_to_level(parameters) or \
-                           1.0 in self.scalars_up_to_level(parameters), 'see story above. ' \
-                                                                           'self.scalars_up_to_level(parameters) = ' \
-                                                                           + str(self.scalars_up_to_level(parameters))
+                        # later add check. If this check fails then for sure there is something wrong. See also the
+                        # original check below.
+                        assert 0.0 in self.scalars_up_to_level(parameters) or \
+                               1.0 in self.scalars_up_to_level(parameters), 'see story above. ' \
+                                                                               'self.scalars_up_to_level(parameters) = ' \
+                                                                               + str(self.scalars_up_to_level(parameters))
 
-                    # original check. This check failed once, but the idea was to see if there are 0s or 1s in the
-                    # prior probability distribution, which precedes the conditional probability distribution for which
-                    # apparently the identifying parameter values have changed. But maybe I am wrong in that
-                    # parameters[0] is not the prior only, and some prior prob. information is in all of parameters,
-                    # I am not sure anymore so I added the above check to see whether that one is hit instead
-                    # of this one (so above check is of course more stringent than this one....)
-                    assert 0.0 in self.scalars_up_to_level(parameters[0]) or \
-                           1.0 in self.scalars_up_to_level(parameters[0]), 'see story above. ' \
-                                                                           'self.scalars_up_to_level(parameters[0]) = ' \
-                                                                           + str(self.scalars_up_to_level(parameters[0]))
+                        # original check. This check failed once, but the idea was to see if there are 0s or 1s in the
+                        # prior probability distribution, which precedes the conditional probability distribution for which
+                        # apparently the identifying parameter values have changed. But maybe I am wrong in that
+                        # parameters[0] is not the prior only, and some prior prob. information is in all of parameters,
+                        # I am not sure anymore so I added the above check to see whether that one is hit instead
+                        # of this one (so above check is of course more stringent than this one....)
+                        # assert 0.0 in self.scalars_up_to_level(parameters[0]) or \
+                        #        1.0 in self.scalars_up_to_level(parameters[0]), 'see story above. ' \
+                        #                                                        'self.scalars_up_to_level(parameters[0]) = ' \
+                        #                                                        + str(self.scalars_up_to_level(parameters[0]))
 
                 # right?
                 np.testing.assert_almost_equal(np.sum(pdf_cond.joint_probabilities), 1.0)
@@ -1016,9 +1029,10 @@ class JointProbabilityMatrix():
                                                                 'joint matrix = ' + str(joint_prob_matrix)
         assert list(set(np.shape(self.joint_probabilities)))[0] == self.numvalues
 
-        # maybe this check should be removed, it is also checked in clip_all_* below, but after clipping, which
-        # may be needed to get this condition valid again?
-        np.testing.assert_array_almost_equal(np.sum(joint_prob_matrix), 1.0)
+        # # maybe this check should be removed, it is also checked in clip_all_* below, but after clipping, which
+        # # may be needed to get this condition valid again?
+        # if np.random.random() < 0.01:  # make less frequent
+        #     np.testing.assert_array_almost_equal(np.sum(joint_prob_matrix), 1.0)
 
         self.clip_all_probabilities()
 
@@ -1383,7 +1397,10 @@ class JointProbabilityMatrix():
                - sum([self.mutual_information(list(variables_SRV), list([var_xi])) for var_xi in variables_X])
 
 
-    def synergistic_information(self, variables_Y, variables_X, tolerance_nonsyn_mi=0.05, verbose=True):
+    # todo: return not just a number but an object with more result information, which maybe if evaluated as
+    # float then it will return the current return value
+    def synergistic_information(self, variables_Y, variables_X, tolerance_nonsyn_mi=0.05, verbose=True,
+                                minimize_method=None, num_repeats_per_srv_append=3):
 
         pdf_with_srvs = self.copy()
 
@@ -1397,10 +1414,19 @@ class JointProbabilityMatrix():
         # this approach here still works?)
 
         for i in xrange(max_num_srv_add_trials):
-            pdf_with_srvs.append_synergistic_variables(1, initial_guess_summed_modulo=False,
-                                                       subject_variables=variables_X, num_repeats=3,
-                                                       agnostic_about=range(len(self),
-                                                                            len(pdf_with_srvs)))
+            try:
+                pdf_with_srvs.append_synergistic_variables(1, initial_guess_summed_modulo=False,
+                                                           subject_variables=variables_X,
+                                                           num_repeats=num_repeats_per_srv_append,
+                                                           agnostic_about=range(len(self),
+                                                                                len(pdf_with_srvs)),
+                                                           minimize_method=minimize_method)
+            except UserWarning as e:
+                assert 'minimize() failed' in str(e), 'only known reason for this error'
+
+                warnings.warn(str(e) + '. Will now skip this sample in synergistic_information.')
+
+                continue
 
             # todo: can save one MI calculation here
             new_syn_info = pdf_with_srvs.synergistic_information_naive([-1], variables_X)
@@ -1552,8 +1578,8 @@ class JointProbabilityMatrix():
     # current variables (then set all probabilities where the original variables exceed their original max to 0)
     # todo: first you should then probably implement a .increase_num_values(num) or so (or only),
     # or let .numvalues be a list instead of a single value
-    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=True, verbose=False,
-                                     subject_variables=None, agnostic_about=None, num_repeats=1):
+    def append_synergistic_variables(self, num_synergistic_variables, initial_guess_summed_modulo=False, verbose=False,
+                                     subject_variables=None, agnostic_about=None, num_repeats=1, minimize_method=None):
         """
         Append <num_synergistic_variables> variables in such a way that they are agnostic about any individual
         existing variable (one of self.numvariables thus) but have maximum MI about the set of self.numvariables
@@ -1579,6 +1605,11 @@ class JointProbabilityMatrix():
             if len(agnostic_about) == 0:
                 agnostic_about = None  # treat as if not supplied
 
+        if __debug__:  # looking for bug
+            assert max(self.matrix2params_incremental()) < 1.0000001, 'param is out of bound: ' \
+                                                                      + str(max(self.matrix2params_incremental()))
+            assert min(self.matrix2params_incremental()) > -0.0000001, 'param is out of bound: ' \
+                                                                      + str(min(self.matrix2params_incremental()))
 
         parameter_values_before = list(self.matrix2params_incremental())
 
@@ -1631,7 +1662,7 @@ class JointProbabilityMatrix():
 
             pdf_subjects_only = pdf_subjects_syns_only.marginalize_distribution(range(len(subject_variables)))
 
-            if __debug__:
+            if __debug__ and np.random.random() < 0.01:
                 debug_pdf_subjects_only = pdf_with_srvs.marginalize_distribution(subject_variables)
 
                 assert debug_pdf_subjects_only == pdf_subjects_only
@@ -1685,10 +1716,17 @@ class JointProbabilityMatrix():
             """
             assert len(free_params) == num_free_parameters_synonly
 
-            assert min(free_params) >= -0.00001, \
-                'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
-            assert max(free_params) <= 1.00001, \
-                'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
+            if min(free_params) < -0.00001 or max(free_params) > 1.00001:
+                warnings.warn('scipy\'s minimize() is violating the parameter bounds 0...1 I give it: '
+                              + str(free_params))
+
+                # high cost for invalid parameter values
+                # note: maximum cost normally from this function is about 2.0
+                return 10.0 + 100.0 * np.sum([p - 1.0 for p in free_params if p > 1.0]
+                                             + [np.abs(p) for p in free_params if p < 0.0])
+
+            # assert max(free_params) <= 1.00001, \
+            #     'scipy\'s minimize() is violating the parameter bounds 0...1 I give it: ' + str(free_params)
 
             free_params = [min(max(fp, 0.0), 1.0) for fp in free_params]  # clip small roundoff errors
 
@@ -1721,7 +1759,10 @@ class JointProbabilityMatrix():
 
                     # add an extra cost term for the fraction of 'individual' information versus the total information
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
-                    cost += sum(indiv_mis) / tot_mi
+                    if tot_mi != 0:
+                        cost += sum(indiv_mis) / tot_mi
+                    else:
+                        cost += sum(indiv_mis)
             else:
                 assert pdf_subjects_syns_only.numvariables == len(self) + num_synergistic_variables
 
@@ -1747,7 +1788,10 @@ class JointProbabilityMatrix():
 
                     # add an extra cost term for the fraction of 'individual' information versus the total information
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
-                    cost += sum(indiv_mis) / tot_mi
+                    if tot_mi != 0:
+                        cost += sum(indiv_mis) / tot_mi
+                    else:
+                        cost += sum(indiv_mis)
 
             # this if-block will add a cost term for not being agnostic to given variables, usually (a) previous SRV(s)
             if not agnostic_about is None:
@@ -1792,10 +1836,13 @@ class JointProbabilityMatrix():
 
         param_vectors_trace = []
 
+        # these options are altered mainly to try to lower the computation time, which is considerable.
+        minimize_options = {'ftol': 1e-5}
+
         if num_repeats == 1:
             optres = minimize(cost_func_subjects_only, initial_guess, bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
                               callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
-                              args=(parameter_values_static,))
+                              args=(parameter_values_static,), method=minimize_method, options=minimize_options)
         else:
             # optres_list = [minimize(cost_func_subjects_only, np.random.random(num_free_parameters_synonly),
             #                        bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
@@ -1808,7 +1855,7 @@ class JointProbabilityMatrix():
                 optres_ix = minimize(cost_func_subjects_only, np.random.random(num_free_parameters_synonly),
                                      bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
                                      callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
-                                     args=(parameter_values_static,))
+                                     args=(parameter_values_static,), method=minimize_method, options=minimize_options)
 
                 if verbose:
                     print 'note: finished a repeat. success=' + str(optres_ix.success) + ', cost=' \
@@ -1823,7 +1870,8 @@ class JointProbabilityMatrix():
 
             optres_list = [resi for resi in optres_list if resi.success]  # filter out the unsuccessful optimizations
 
-            assert len(optres_list) > 0, 'all ' + str(num_repeats) + ' optimizations using minimize() failed...?!'
+            if len(optres_list) == 0:
+                raise UserWarning('all ' + str(num_repeats) + ' optimizations using minimize() failed...?!')
 
             costvals = [res.fun for res in optres_list]
             min_cost = min(costvals)
@@ -1837,8 +1885,9 @@ class JointProbabilityMatrix():
             assert len(optres.x) == num_free_parameters
         else:
             assert len(optres.x) == num_free_parameters_synonly
-        assert max(optres.x) <= 1.0001, 'parameter bound significantly violated'
-        assert min(optres.x) >= -0.0001, 'parameter bound significantly violated'
+
+        assert max(optres.x) <= 1.0000001, 'parameter bound significantly violated, ' + str(max(optres.x))
+        assert min(optres.x) >= -0.0000001, 'parameter bound significantly violated, ' + str(min(optres.x))
 
         # todo: reuse the .append_optimized_variables (or so) instead, passing the cost function only? would also
         # validate that function.
@@ -1924,6 +1973,82 @@ class JointProbabilityMatrix():
         self.duplicate(pdf_with_srvs)
 
 
+    def susceptibility_local_single(self, var_id, num_output_variables, perturbation_size=0.1, ntrials=25):
+
+        if var_id >= len(self) - num_output_variables:
+            raise ValueError('variable ' + str(var_id) + ' to perturb lies in output range, not input (first '
+                             + str(len(self) - num_output_variables) + ' variables)')
+
+        original_mi = self.mutual_information(range(len(self) - num_output_variables),
+                                               range(len(self) - num_output_variables, len(self)))
+
+        cond_pdf_rest = self.conditional_probability_distributions([var_id])
+
+        pdf_var_only_orig = self.marginalize_distribution([var_id])
+        params_orig = pdf_var_only_orig.matrix2params_incremental()
+
+        def clip_to_unit_line(num):  # helper function, make sure all probabilities remain valid
+            return max(min(num, 1), 0)
+
+        # test if the procedure in the loop below is correct, namely that the new pdf gluued back together from pieces
+        # is indeed the original <self>
+        if __debug__:
+            # this test can be removed after it works for a while
+
+            pdf_var_only = pdf_var_only_orig.copy()
+
+            perturbation = np.array([0]*len(params_orig))  # zero perturbation
+
+            new_params = map(clip_to_unit_line, params_orig + perturbation)
+
+            np.testing.assert_array_almost_equal(new_params, params_orig)
+
+            pdf_var_only.params2matrix_incremental(new_params)
+
+            # note: if var_id > 0 then the ordering of the variables will have changed, putting the var_id to index 0
+            pdf_var_only.append_variables_using_conditional_distributions(cond_pdf_rest)
+
+            np.testing.assert_almost_equal(pdf_var_only.entropy(), self.entropy())
+
+            new_mi = pdf_var_only.mutual_information(range(len(pdf_var_only) - num_output_variables),
+                                                     range(len(pdf_var_only) - num_output_variables, len(pdf_var_only)))
+
+            np.testing.assert_almost_equal(new_mi, original_mi)
+
+        susceptibilities = []
+
+        for i in xrange(ntrials):
+            pdf_var_only = pdf_var_only_orig.copy()
+
+            perturbation = np.random.random(len(params_orig))
+            perturbation = perturbation / np.linalg.norm(perturbation) * perturbation_size  # normalize vector norm
+
+            new_params = map(clip_to_unit_line, params_orig + perturbation)
+
+            pdf_var_only.params2matrix_incremental(new_params)
+
+            pdf_var_only.append_variables_using_conditional_distributions(cond_pdf_rest)
+
+            new_mi = pdf_var_only.mutual_information(range(len(pdf_var_only) - num_output_variables),
+                                                     range(len(pdf_var_only) - num_output_variables, len(pdf_var_only)))
+
+            susceptibilities.append(abs(new_mi - original_mi))
+
+        return np.mean(susceptibilities) / original_mi
+
+
+    def susceptibilities_local(self, num_output_variables, perturbation_size=0.1, ntrials=25):
+        return [self.susceptibility_local_single(varid, num_output_variables, perturbation_size=perturbation_size,
+                                                 ntrials=ntrials) for varid in xrange(len(self) - num_output_variables)]
+
+
+    def susceptibility_local(self, num_output_variables, perturbation_size=0.1, ntrials=25):
+        return np.mean([self.susceptibility_local_single(varid, num_output_variables,
+                                                         perturbation_size=perturbation_size,
+                                                         ntrials=ntrials)
+                        for varid in xrange(len(self) - num_output_variables)])
+
+
     def susceptibility_global(self, num_output_variables, perturbation_size=0.1, ntrials=25):
         """
         Perturb the current pdf Pr(X,Y) by changing Pr(X) slightly to Pr(X'), but keeping Pr(Y|X) fixed. Then
@@ -1971,7 +2096,7 @@ class JointProbabilityMatrix():
 
 
 
-    def append_resilient_variables(self, num_appended_variables, target_mi):
+    def append_globally_resilient_variables(self, num_appended_variables, target_mi):
 
         # input_variables = [d for d in xrange(self.numvariables) if not d in output_variables]
 
@@ -1994,9 +2119,38 @@ class JointProbabilityMatrix():
 
             susceptibility = pdf_new.susceptibility_global(num_appended_variables)
 
-            return abs(target_mi - mi) / target_mi + susceptibility
+            return np.power(abs(target_mi - mi) / target_mi + susceptibility, 2)
 
         self.append_optimized_variables(num_appended_variables, cost_func=cost_func_resilience_and_mi,
+                                        initial_guess=np.random.random(num_free_parameters))
+
+        return
+
+
+    def append_variables_with_target_mi(self, num_appended_variables, target_mi):
+
+        # input_variables = [d for d in xrange(self.numvariables) if not d in output_variables]
+
+        parameter_values_before = list(self.matrix2params_incremental())
+
+        pdf_new = self.copy()
+        pdf_new.append_variables(num_appended_variables)
+
+        assert pdf_new.numvariables == self.numvariables + num_appended_variables
+
+        parameter_values_after = pdf_new.matrix2params_incremental()
+
+        # this many parameters (each in [0,1]) must be optimized
+        num_free_parameters = len(parameter_values_after) - len(parameter_values_before)
+
+        def cost_func_target_mi(free_params, parameter_values_before):
+            pdf_new.params2matrix_incremental(list(parameter_values_before) + list(free_params))
+
+            mi = pdf_new.mutual_information(range(len(self)), range(len(self), len(pdf_new)))
+
+            return np.power(abs(target_mi - mi) / target_mi, 2)
+
+        self.append_optimized_variables(num_appended_variables, cost_func=cost_func_target_mi,
                                         initial_guess=np.random.random(num_free_parameters))
 
         return
@@ -3953,15 +4107,21 @@ def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,
 class TestSynergyInRandomPdfs():
     syn_info_list = []
     total_mi_list = []
-    indiv_mi_list_list = []
-    susceptibility_list = []
+    indiv_mi_list_list = []  # list of list
+    susceptibility_global_list = []
+    susceptibilities_local_list = []  # list of list
+    pdf_XY_list = []
 
 
 def test_synergy_in_random_pdfs(num_variables_X, num_variables_Y, num_values,
-                                num_samples=10, tolerance_nonsyn_mi=0.05, verbose=True):
+                                num_samples=10, tolerance_nonsyn_mi=0.05, verbose=True, minimize_method=None,
+                                perturbation_size=0.1, num_repeats_per_srv_append=3):
 
     """
 
+
+    :param minimize_method: the default is chosen if None, which is good, but not necessarily fast. One other, faster
+    option I found was "SLSQP", but I have not quantified rigorously how much better/worse in terms of accuracy it is.
     :param num_variables_X:
     :param num_variables_Y:
     :param num_values:
@@ -3975,27 +4135,47 @@ def test_synergy_in_random_pdfs(num_variables_X, num_variables_Y, num_values,
 
     time_before = time.time()
 
-    for i in xrange(num_samples):
-        pdf = JointProbabilityMatrix(num_variables_X + num_variables_Y, num_values)
+    try:
+        for i in xrange(num_samples):
+            pdf = JointProbabilityMatrix(num_variables_X + num_variables_Y, num_values)
 
-        result.syn_info_list.append(pdf.synergistic_information(range(num_variables_X, num_variables_X + num_variables_Y),
-                                                      range(num_variables_X),
-                                                      tolerance_nonsyn_mi=tolerance_nonsyn_mi,
-                                                      verbose=bool(int(verbose)-1)))
+            result.pdf_XY_list.append(pdf)
 
-        result.total_mi_list.append(pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
-                                                      range(num_variables_X)))
+            result.syn_info_list.append(pdf.synergistic_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          range(num_variables_X),
+                                                          tolerance_nonsyn_mi=tolerance_nonsyn_mi,
+                                                          verbose=bool(int(verbose)-1),
+                                                          minimize_method=minimize_method,
+                                                          num_repeats_per_srv_append=num_repeats_per_srv_append))
 
-        indiv_mi_list = [pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
-                                                      [xid]) for xid in xrange(num_variables_X)]
+            result.total_mi_list.append(pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          range(num_variables_X)))
 
-        result.indiv_mi_list_list.append(indiv_mi_list)
+            indiv_mi_list = [pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          [xid]) for xid in xrange(num_variables_X)]
 
-        result.susceptibility_list.append(pdf.susceptibility_global(num_variables_Y, ntrials=50))
+            result.indiv_mi_list_list.append(indiv_mi_list)
+
+            result.susceptibility_global_list.append(pdf.susceptibility_global(num_variables_Y, ntrials=50,
+                                                                               perturbation_size=perturbation_size))
+
+            result.susceptibilities_local_list.append(pdf.susceptibilities_local(num_variables_Y, ntrials=50,
+                                                                                 perturbation_size=perturbation_size))
+
+            if verbose:
+                print 'note: finished sample', i, 'of', num_samples, ', syn. info. =', result.syn_info_list[-1], 'after', \
+                    time.time() - time_before, 'seconds'
+    except KeyboardInterrupt as e:
+        min_len = len(result.susceptibilities_local_list)  # last thing to append to in above loop, so min. length
+
+        result.syn_info_list = result.syn_info_list[:min_len]
+        result.total_mi_list = result.total_mi_list[:min_len]
+        result.indiv_mi_list_list = result.indiv_mi_list_list[:min_len]
+        result.susceptibility_global_list = result.susceptibility_global_list[:min_len]
 
         if verbose:
-            print 'note: finished sample', i, 'of', num_samples, ', syn. info. =', result.syn_info_list[-1], 'after', \
-                time.time() - time_before, 'seconds'
+            print 'note: keyboard interrupt. Will stop the loop and return the', min_len, 'result I have so far.', \
+                'Took me', time.time() - time_before, 'seconds.'
 
     return result
 
