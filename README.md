@@ -1,6 +1,6 @@
 # README #
 
-Firstly, this module implements the notion of a "joint probability distribution" among stochastic variables, as well as many common operations for them. Secondly, it implements many information-theoretical quantities such as Shannon entropy, mutual information, information synergy, and information-based optimization procedures and robustness tests.
+Firstly, this module implements the notion of a "joint probability distribution" among discrete stochastic variables, as well as many common operations for them. Secondly, it implements many information-theoretical quantities such as Shannon entropy, mutual information, information synergy, information-based optimization procedures, and robustness tests.
 
 ### QUICK START ###
 
@@ -12,6 +12,10 @@ from jointpdf import JointProbabilityMatrix
 # randomly generated joint probability mass function p(A,B) 
 # of 2 discrete stochastic variables, each having 3 possible values
 p_AB = JointProbabilityMatrix(2,3)
+
+# all possible value assignments to the stochastic variable
+# sum to probability 1
+assert sum([p_AB(states) for states in p_AB.statespace()]) == 1
 
 # obtain the marginal distribution p(A) by marginalization
 p_A = p_AB[0]
