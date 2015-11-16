@@ -9,7 +9,8 @@ Firstly, this module implements the notion of a "joint probability distribution"
 ```python
 from jointpdf import JointProbabilityMatrix
 
-# randomly generated joint probability mass function p(A,B) of 2 discrete stochastic variables, each having 3 possible values
+# randomly generated joint probability mass function p(A,B) 
+# of 2 discrete stochastic variables, each having 3 possible values
 p_AB = JointProbabilityMatrix(2,3)
 
 # obtain the marginal distribution p(A) by marginalization
