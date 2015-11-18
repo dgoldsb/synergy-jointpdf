@@ -125,8 +125,11 @@ class JointProbabilityMatrix():
 
         if joint_probs is None:
             self.generate_random_joint_probabilities()
-        elif joint_probs in ('random', 'independent', 'iid'):
-            self.generate_independent_joint_probabilities()
+        elif isinstance(joint_probs, basestring):
+            if joint_probs == 'random' or joint_probs == 'independent' or joint_probs == 'iid':
+                self.generate_independent_joint_probabilities()
+            else:
+                raise ValueError('don\'t know what to do with joint_probs=' + str(joint_probs))
         else:
             self.joint_probabilities = joint_probs
 
@@ -638,6 +641,25 @@ class JointProbabilityMatrix():
     # it is not clear which 3 variables should be chosen. Can choose this to always be the first 3 and let the
     # user be responsible to reorder them before subtraction, but seems prone to error if user does not know this or
     # forgets? Well can test equality by marginalizing the 5-variable pdf...
+    def __sub__(self, other):
+        assert len(self) >= len(other), 'cannot compute a conditional pdf consisting of a negative number of variables'
+
+        if len(self) == len(other):
+            assert self[range(len(other))] == other, 'my first ' + str(len(other)) + ' variables are not the same as ' \
+                                                                                     'that of \'other\''
+
+            return JointProbabilityMatrix(0, self.numvalues)  # return empty pdf...
+        elif len(self) > len(other):
+            assert self[range(len(other))] == other, 'my first ' + str(len(other)) + ' variables are not the same as ' \
+                                                                                     'that of \'other\''
+
+            return self.conditional_probability_distributions(range(len(other)))
+        else:
+            raise ValueError('len(self) < len(other), '
+                             'cannot compute a conditional pdf consisting of a negative number of variables')
+
+
+    # todo: implement __setitem__ for either pdf or cond. pdfs
 
 
     def __len__(self):
@@ -2152,7 +2174,7 @@ class JointProbabilityMatrix():
         return
 
 
-    def append_variables_with_target_mi(self, num_appended_variables, target_mi):
+    def append_variables_with_target_mi(self, num_appended_variables, target_mi, verbose=False):
 
         # input_variables = [d for d in xrange(self.numvariables) if not d in output_variables]
 
@@ -2176,7 +2198,8 @@ class JointProbabilityMatrix():
             return np.power(abs(target_mi - mi) / target_mi, 2)
 
         self.append_optimized_variables(num_appended_variables, cost_func=cost_func_target_mi,
-                                        initial_guess=np.random.random(num_free_parameters))
+                                        initial_guess=np.random.random(num_free_parameters),
+                                        verbose=verbose)
 
         return
 
@@ -3976,6 +3999,19 @@ def run_all_tests(verbose=True, all_inclusive=False):
 
 # returned by test_upper_bound_single_srv_entropy()
 class TestUpperBoundSingleSRVEntropyResult():
+
+    def __init__(self):
+        self.num_subject_variables = None
+        self.num_synergistic_variables = None
+        self.num_values = None
+        self.theoretical_upper_bounds = []
+        self.entropies_srv = []  # actually lower bounds (same as entropies_lowerbound_srv), namely I(X:SRV) - sum_i I(X_i:SRV)
+        self.pdfs_with_srv = []
+        self.rel_errors_srv = []  # sum_indiv_mis / total_mi
+        self.entropies_lowerbound_srv = []  # I(X:SRV) - sum_i I(X_i:SRV)
+        self.entropies_upperbound_srv = []  # I(X:SRV) - max_i I(X_i:SRV)
+
+
     # parameters used to produce the results
     num_subject_variables = None
     num_synergistic_variables = None
@@ -4117,7 +4153,7 @@ def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,
                                                              verbose=int(verbose)-1,
                                                              num_repeats_per_sample=num_repeats_per_sample)
 
-                results_dict[num_subject_variables][num_synergistic_variables][num_values] = resobj
+                results_dict[num_subject_variables][num_synergistic_variables][num_values] = copy.deepcopy(resobj)
 
                 num_finished_its += 1
 
@@ -4125,6 +4161,8 @@ def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,
                     print 'note: finished', num_finished_its, '/', total_num_its, 'iterations after', \
                         time.time() - time_before, 'seconds. Result for (nx,ns,nv)=' \
                         + str((num_subject_variables, num_synergistic_variables, num_values)) + ': ', resobj
+
+                del resobj  # looking for some inadvertent use of pointer
 
     return results_dict
 
