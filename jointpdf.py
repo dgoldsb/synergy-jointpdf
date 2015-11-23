@@ -37,6 +37,7 @@ def maximum_depth(seq):
     except StopIteration:
         return level
 
+
 # helper function,
 # from http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
 def int2base(x, b, alphabet='0123456789abcdefghijklmnopqrstuvwxyz'):
@@ -96,6 +97,7 @@ def apply_permutation(lst, permutation):
             assert not -1 in new_list
 
     return new_list
+
 
 # each variable in a JointProbabilityMatrix has a label, and if not provided then this label is used
 _default_variable_label = 'variable'
@@ -1802,7 +1804,8 @@ class JointProbabilityMatrix():
                     syninfo_naive = tot_mi - sum(indiv_mis)
 
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
-                    cost = (upper_bound_synergistic_information - syninfo_naive) / upper_bound_synergistic_information
+                    cost = (upper_bound_synergistic_information - syninfo_naive) \
+                           / upper_bound_synergistic_information
 
                     # add an extra cost term for the fraction of 'individual' information versus the total information
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
@@ -1831,7 +1834,8 @@ class JointProbabilityMatrix():
                     syninfo_naive = tot_mi - sum(indiv_mis)
 
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
-                    cost = (upper_bound_synergistic_information - syninfo_naive) / upper_bound_synergistic_information
+                    cost = (upper_bound_synergistic_information - syninfo_naive) \
+                           / upper_bound_synergistic_information
 
                     # add an extra cost term for the fraction of 'individual' information versus the total information
                     # this can be considered to be in range [0,1] although particularly bad solutions can go >1
@@ -1884,7 +1888,7 @@ class JointProbabilityMatrix():
         param_vectors_trace = []
 
         # these options are altered mainly to try to lower the computation time, which is considerable.
-        minimize_options = {'ftol': 1e-5}
+        minimize_options = {'ftol': 1e-6}
 
         if num_repeats == 1:
             optres = minimize(cost_func_subjects_only, initial_guess, bounds=[(0.0, 1.0)]*num_free_parameters_synonly,
@@ -2141,6 +2145,85 @@ class JointProbabilityMatrix():
 
         return np.mean(susceptibilities) / original_mi
 
+
+    class PerturbNonLocalResponse():
+        pdf = None  # JointProbabilityMatrix object
+        cost_same_output_marginal = None  # float, should be as close to zero as possible.
+        cost_different_relation = None  # float, should be around e.g. 0.1 (perturbation size)
+
+
+    def perturb_non_local(self, num_output_variables, perturbation_size=0.1):
+        """
+        Perturb the pdf P(X,Y) by changing P(Y|X) without actually changing P(X) or P(Y), by numerical optimization.
+        Y is assumed to be formed by stochastic variables collected at the end of the pdf.
+        :param num_output_variables: |Y|.
+        :param perturbation_size: the higher, the more different P(Y|X) will be from <self>
+        :rtype: PerturbNonLocalResponse
+        """
+        num_input_variables = len(self) - num_output_variables
+
+        assert num_input_variables > 0, 'makes no sense to perturb a relation with an empty set'
+
+        original_params = self.matrix2params_incremental()
+
+        static_params = list(self[:num_input_variables].matrix2params_incremental())
+
+        num_free_params = len(original_params) - len(static_params)
+
+        marginal_output_pdf = self[num_input_variables:]
+        assert len(marginal_output_pdf) == num_output_variables, 'programming error'
+        marginal_output_pdf_params = marginal_output_pdf.matrix2params_incremental()
+
+        pdf_new = self.copy()  # just to create an object which I can replace everytime in cost function
+
+        def clip_to_unit_line(num):  # helper function, make sure all probabilities remain valid
+            return max(min(num, 1), 0)
+
+        def cost_perturb_non_local(free_params, return_cost_list=False):
+            new_params = static_params + list(map(clip_to_unit_line, free_params))
+
+            pdf_new.params2matrix_incremental(new_params)
+
+            marginal_output_pdf_new = pdf_new[num_input_variables:]
+            marginal_output_pdf_new_params = marginal_output_pdf_new.matrix2params_incremental()
+
+            cost_same_output_marginal = np.linalg.norm(np.subtract(marginal_output_pdf_new_params,
+                                                                   marginal_output_pdf_params))
+            cost_different_relation = np.linalg.norm(np.subtract(free_params, original_params[len(static_params):]))
+
+            if not return_cost_list:
+                cost = np.power(cost_same_output_marginal - 0.0, 2) \
+                       + np.power(cost_different_relation - perturbation_size, 2)
+            else:
+                cost = [np.power(cost_same_output_marginal - 0.0, 2),
+                        np.power(cost_different_relation - perturbation_size, 2)]
+
+            return cost
+
+        initial_guess_perturb_vec = np.random.random(num_free_params)
+        initial_guess_perturb_vec /= np.linalg.norm(initial_guess_perturb_vec)
+        initial_guess_perturb_vec *= perturbation_size
+
+        initial_guess = np.add(original_params[len(static_params):], initial_guess_perturb_vec)
+        initial_guess = map(clip_to_unit_line, initial_guess)  # make sure stays in hypercube's unit volume
+
+        optres = minimize(cost_perturb_non_local, initial_guess, bounds=[(0.0, 1.0)]*num_free_params)
+
+        assert optres.success, 'scipy\'s minimize() failed'
+
+        assert optres.fun >= -0.0001, 'cost function as constructed cannot be negative, what happened?'
+
+        pdf_new.params2matrix_incremental(list(static_params) + list(optres.x))
+
+        # get list of individual cost terms, for better diagnostics by caller
+        cost = cost_perturb_non_local(optres.x, return_cost_list=True)
+
+        resp = self.PerturbNonLocalResponse()
+        resp.pdf = pdf_new  # final resulting pdf P'(X,Y), which is slightly different, perturbed version of <self>
+        resp.cost_same_output_marginal = float(cost[0])  # cost of how different marginal P(Y) became (bad)
+        resp.cost_different_relation = float(cost[1])  # cost of how different P(Y|X) is (should be ~ perturbation size)
+
+        return resp
 
 
     def append_globally_resilient_variables(self, num_appended_variables, target_mi):
@@ -4083,7 +4166,8 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
 
         theoretical_upper_bound = pdf.entropy() - max([pdf.entropy([si]) for si in subject_variables])
 
-        pdf.append_synergistic_variables(num_synergistic_variables, num_repeats=num_repeats_per_sample, verbose=verbose)
+        pdf.append_synergistic_variables(num_synergistic_variables, num_repeats=num_repeats_per_sample,
+                                         verbose=verbose)
 
         # prevent double computations:
         indiv_mis = [pdf.mutual_information(synergistic_variables, [si]) for si in subject_variables]
@@ -4092,7 +4176,7 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
 
         # an error measure of the optimization procedure of finding synergistic variables, potentially it can be quite
         # bad, this one is normalized in [0,1]
-        rel_error_srv = sum_indiv_mis / total_mi
+        rel_error_srv = (sum_indiv_mis - max(indiv_mis)) / total_mi
 
         if rel_error_srv <= tol_rel_err:
             # note: instead of the entropy o the SRV I use the MI of the SRV with the subject variables, because
@@ -4104,15 +4188,16 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
             # in case the non-synergistic MIs I_indiv(syns : subs) indeed factorizes into the sum, occurring e.g.
             # if the individual subject variables are independent, or if the MI with each subject variable is
             # non-redundant with the MIs with other subject variables.
-            entropy_srv = total_mi - sum_indiv_mis
             # entropy_srv = pdf.entropy(synergistic_variables)
 
+            result.entropies_lowerbound_srv.append(total_mi - sum_indiv_mis)
+            result.entropies_upperbound_srv.append(total_mi - max(indiv_mis))
+            # take the best estimate for synergistic entropy to be the middle-way between lb and ub
+            entropy_srv = (result.entropies_upperbound_srv[-1] + result.entropies_lowerbound_srv[-1]) / 2.0
             result.theoretical_upper_bounds.append(theoretical_upper_bound)
             result.entropies_srv.append(entropy_srv)
             result.pdfs_with_srv.append(pdf)
             result.rel_errors_srv.append(rel_error_srv)
-            result.entropies_upperbound_srv = total_mi - sum_indiv_mis
-            result.entropies_lowerbound_srv = total_mi - max(indiv_mis)
 
             if verbose:
                 print 'note: added a new sample, entropy_srv =', entropy_srv, ' and theoretical_upper_bound =', \
