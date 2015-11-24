@@ -2146,10 +2146,43 @@ class JointProbabilityMatrix():
         return np.mean(susceptibilities) / original_mi
 
 
+    def susceptibility_non_local(self, num_output_variables, perturbation_size=0.1, ntrials=25):
+        """
+        Perturb the current pdf Pr(X,Y) by changing Pr(Y|X) slightly, but keeping Pr(Y) and Pr(X) fixed. Then
+        measure the relative change in mutual information I(X:Y). Do this by Monte Carlo using <ntrials> repeats.
+        :param num_output_variables: the number of variables at the end of the list of variables which are considered
+        to be Y. The first variables are taken to be X. If your Y is mixed with the X, first do reordering.
+        :param perturbation_size:
+        :param ntrials:
+        :return: expected relative change of mutual information I(X:Y) after perturbation
+        :rtype: float
+        """
+        num_input_variables = len(self) - num_output_variables
+
+        assert num_input_variables > 0, 'makes no sense to compute resilience with an empty set'
+
+        original_mi = self.mutual_information(range(num_input_variables),
+                                              range(num_input_variables, num_input_variables + num_output_variables))
+
+        susceptibilities = []
+
+        for i in xrange(ntrials):
+            resp = self.perturb_non_local(num_output_variables, perturbation_size)
+            pdf_perturbed = resp.pdf
+
+            susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
+                                                              range(num_input_variables,
+                                                                    num_input_variables + num_output_variables)) \
+                             - original_mi
+            susceptibilities.append(abs(susceptibility))
+
+        return np.mean(susceptibilities) / original_mi
+
+
     class PerturbNonLocalResponse():
         pdf = None  # JointProbabilityMatrix object
         cost_same_output_marginal = None  # float, should be as close to zero as possible.
-        cost_different_relation = None  # float, should be around e.g. 0.1 (perturbation size)
+        cost_different_relation = None  # float, should be as close to zero as possible
 
 
     def perturb_non_local(self, num_output_variables, perturbation_size=0.1):
@@ -2166,11 +2199,11 @@ class JointProbabilityMatrix():
 
         original_params = self.matrix2params_incremental()
 
-        static_params = list(self[:num_input_variables].matrix2params_incremental())
+        static_params = list(self[range(num_input_variables)].matrix2params_incremental())
 
         num_free_params = len(original_params) - len(static_params)
 
-        marginal_output_pdf = self[num_input_variables:]
+        marginal_output_pdf = self[range(num_input_variables, len(self))]
         assert len(marginal_output_pdf) == num_output_variables, 'programming error'
         marginal_output_pdf_params = marginal_output_pdf.matrix2params_incremental()
 
@@ -2184,7 +2217,7 @@ class JointProbabilityMatrix():
 
             pdf_new.params2matrix_incremental(new_params)
 
-            marginal_output_pdf_new = pdf_new[num_input_variables:]
+            marginal_output_pdf_new = pdf_new[range(num_input_variables, len(self))]
             marginal_output_pdf_new_params = marginal_output_pdf_new.matrix2params_incremental()
 
             cost_same_output_marginal = np.linalg.norm(np.subtract(marginal_output_pdf_new_params,
@@ -2204,7 +2237,8 @@ class JointProbabilityMatrix():
         initial_guess_perturb_vec /= np.linalg.norm(initial_guess_perturb_vec)
         initial_guess_perturb_vec *= perturbation_size
 
-        initial_guess = np.add(original_params[len(static_params):], initial_guess_perturb_vec)
+        initial_guess = np.add(original_params[len(static_params):],
+                               initial_guess_perturb_vec)
         initial_guess = map(clip_to_unit_line, initial_guess)  # make sure stays in hypercube's unit volume
 
         optres = minimize(cost_perturb_non_local, initial_guess, bounds=[(0.0, 1.0)]*num_free_params)
@@ -2221,7 +2255,7 @@ class JointProbabilityMatrix():
         resp = self.PerturbNonLocalResponse()
         resp.pdf = pdf_new  # final resulting pdf P'(X,Y), which is slightly different, perturbed version of <self>
         resp.cost_same_output_marginal = float(cost[0])  # cost of how different marginal P(Y) became (bad)
-        resp.cost_different_relation = float(cost[1])  # cost of how different P(Y|X) is (should be ~ perturbation size)
+        resp.cost_different_relation = float(cost[1])  # cost of how different P(Y|X) is, compared to desired difference
 
         return resp
 
@@ -2325,7 +2359,8 @@ class JointProbabilityMatrix():
 
         parameter_values_after = pdf_new.matrix2params_incremental()
 
-        assert len(parameter_values_after) > len(parameter_values_before), 'should be additional free parameters'
+        assert num_appended_variables > 0, 'makes no sense to add 0 variables'
+        assert len(parameter_values_after) > len(parameter_values_before), 'should be >0 free parameters to optimize?'
         # see if the first part of the new parameters is exactly the old parameters, so that I know that I only
         # have to optimize the latter part of parameter_values_after
         np.testing.assert_array_almost_equal(parameter_values_before,
@@ -2382,7 +2417,9 @@ class JointProbabilityMatrix():
                 else:
                     pass  # this solution is worse than before, so do not change optres
 
-        assert not optres is None, 'always failed to successfully optimize'
+        if optres is None:
+            # could never find a good solution, in all <num_repeats> attempts
+            raise UserWarning('always failed to successfully optimize: increase num_repeats')
 
         assert len(optres.x) == num_free_parameters
         assert max(optres.x) <= 1.0001, 'parameter bound significantly violated: ' + str(optres.x)
