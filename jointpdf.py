@@ -21,6 +21,7 @@ import warnings
 from compiler.ast import flatten  # note: deprecated in Python 3, in which case: find another flatten
 from collections import Sequence
 import time
+from numbers import Number
 
 
 def maximum_depth(seq):
@@ -101,6 +102,51 @@ def apply_permutation(lst, permutation):
 
 # each variable in a JointProbabilityMatrix has a label, and if not provided then this label is used
 _default_variable_label = 'variable'
+
+
+# this class is supposed to override member joint_probabilities of JointProbabilityMatrix, which is currently
+# taken to be a nested numpy array. Therefore this class is made to act as much as possible as a nested numpy array.
+# However, this class could be inherited and overriden to save e.g. memory storage, e.g. by assuming independence
+# among the variables, but on the outside still act the same.
+class NestedArrayOfProbabilities():
+
+    # _allowed_formats = ('complete',)
+
+    # format = 'complete'
+
+    # type: np.array
+    joint_probabilities = np.array([])
+
+    def __init__(self, joint_probabilities=np.array([])):
+        self.joint_probabilities = joint_probabilities
+
+    def num_variables(self):
+        return np.ndim(self.joint_probabilities)
+
+    def num_values(self):
+        return len(self.joint_probabilities[0])
+
+    def __getitem__(self, item):
+        if type(item) == int:
+            return NestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
+        elif hasattr(item, '__iter__'):  # tuple for instance
+            ret = self.joint_probabilities[item]
+
+            if hasattr(ret, '__iter__'):
+                return NestedArrayOfProbabilities(joint_probabilities=ret)
+            else:
+                assert -0.000001 <= ret <= 1.000001
+
+                return ret  # return a single probability
+        elif isinstance(item, slice):
+            return NestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
+
+    def __setitem__(self, key, value):
+        # let numpy array figure it out
+        self.joint_probabilities[key] = value
+
+    def sum(self):
+        return self.joint_probabilities.sum()
 
 
 class JointProbabilityMatrix():
@@ -1441,9 +1487,37 @@ class JointProbabilityMatrix():
         return mi
 
 
-    def synergistic_information_naive(self, variables_SRV, variables_X):
-        return self.mutual_information(list(variables_SRV), list(variables_X)) \
-               - sum([self.mutual_information(list(variables_SRV), list([var_xi])) for var_xi in variables_X])
+    def synergistic_information_naive(self, variables_SRV, variables_X, return_also_relerr=False):
+        """
+        Estimate the amount of synergistic information contained in the variables (indices) <variables_SRV> about the
+        variables (indices) <variables_X>. It is a naive estimate which works best if <variables_SRV> is (approximately)
+        an SRV, i.e., if it already has very small MI with each individual variable in <variables_X>.
+
+        Also referred to as the Whole-Minus-Sum (WMS) algorithm.
+
+        Note: this is not compatible with the definition of synergy used by synergistic_information(), i.e., one is
+        not an unbiased estimator of the other or anything. Very different.
+
+        :param variables_SRV:
+        :param variables_X:
+        :param return_also_relerr: if True then a tuple of 2 floats is returned, where the first is the best estimate
+         of synergy and the second is the relative error of this estimate (which is preferably below 0.1).
+        :rtype: float or tuple of float
+        """
+
+        indiv_mis = [self.mutual_information(list(variables_SRV), list([var_xi])) for var_xi in variables_X]
+        total_mi = self.mutual_information(list(variables_SRV), list(variables_X))
+
+        syninfo_lowerbound = total_mi - sum(indiv_mis)
+        syninfo_upperbound = total_mi - max(indiv_mis)
+
+        if not return_also_relerr:
+            return (syninfo_lowerbound + syninfo_upperbound) / 2.0
+        else:
+            best_estimate_syninfo = (syninfo_lowerbound + syninfo_upperbound) / 2.0
+            uncertainty_range = syninfo_upperbound - syninfo_lowerbound
+
+            return (best_estimate_syninfo, uncertainty_range / best_estimate_syninfo)
 
 
     # todo: return not just a number but an object with more result information, which maybe if evaluated as
@@ -2146,10 +2220,12 @@ class JointProbabilityMatrix():
         return np.mean(susceptibilities) / original_mi
 
 
-    def susceptibility_non_local(self, num_output_variables, perturbation_size=0.1, ntrials=25):
+    def susceptibility_non_local(self, num_output_variables, num_second_input_variables=1,
+                                 perturbation_size=0.1, ntrials=25):
         """
-        Perturb the current pdf Pr(X,Y) by changing Pr(Y|X) slightly, but keeping Pr(Y) and Pr(X) fixed. Then
+        Perturb the current pdf Pr(X1,X2,Y) by changing Pr(X2|X1) slightly, but keeping Pr(X1) and Pr(X2) fixed. Then
         measure the relative change in mutual information I(X:Y). Do this by Monte Carlo using <ntrials> repeats.
+        :param num_second_input_variables: number of variables making up X2.
         :param num_output_variables: the number of variables at the end of the list of variables which are considered
         to be Y. The first variables are taken to be X. If your Y is mixed with the X, first do reordering.
         :param perturbation_size:
@@ -2159,6 +2235,8 @@ class JointProbabilityMatrix():
         """
         num_input_variables = len(self) - num_output_variables
 
+        assert num_input_variables >= 2, 'how can I do non-local perturbation if only 1 input variable?'
+
         assert num_input_variables > 0, 'makes no sense to compute resilience with an empty set'
 
         original_mi = self.mutual_information(range(num_input_variables),
@@ -2166,9 +2244,15 @@ class JointProbabilityMatrix():
 
         susceptibilities = []
 
+        pdf_inputs = self[range(num_input_variables)]
+
+        cond_pdf_output = self - pdf_inputs
+
         for i in xrange(ntrials):
-            resp = self.perturb_non_local(num_output_variables, perturbation_size)
-            pdf_perturbed = resp.pdf
+            # perturb only among the input variables
+            resp = pdf_inputs.perturb_non_local(num_second_input_variables, perturbation_size)
+
+            pdf_perturbed = resp.pdf + cond_pdf_output
 
             susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
                                                               range(num_input_variables,
