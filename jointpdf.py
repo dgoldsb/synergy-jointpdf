@@ -118,13 +118,15 @@ class NestedArrayOfProbabilities():
     joint_probabilities = np.array([])
 
     def __init__(self, joint_probabilities=np.array([])):
-        self.joint_probabilities = joint_probabilities
+        # assert isinstance(joint_probabilities, np.ndarray), 'should pass numpy array?'
+
+        self.reset(joint_probabilities)
 
     def num_variables(self):
         return np.ndim(self.joint_probabilities)
 
     def num_values(self):
-        return len(self.joint_probabilities[0])
+        return np.shape(self.joint_probabilities)[-1]
 
     def __getitem__(self, item):
         if type(item) == int:
@@ -148,12 +150,54 @@ class NestedArrayOfProbabilities():
     def sum(self):
         return self.joint_probabilities.sum()
 
+    def flatiter(self):
+        return self.joint_probabilities.flat
+
+    def clip_all_probabilities(self):
+        """
+        Make sure all probabilities in the joint probability matrix are in the range [0.0, 1.0], which could be
+        violated sometimes due to floating point operation roundoff errors.
+        """
+        self.joint_probabilities = np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
+
+        if np.random.random() < 0.05:
+            try:
+                np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+            except AssertionError as e:
+                print 'error message: ' + str(e)
+
+                print 'error: len(self.joint_probabilities) =', len(self.joint_probabilities)
+                print 'error: shape(self.joint_probabilities) =', np.shape(self.joint_probabilities)
+                if len(self.joint_probabilities) < 30:
+                    print 'error: self.joint_probabilities =', self.joint_probabilities
+
+                raise AssertionError(e)
+
+    def flatten(self):
+        return self.joint_probabilities.flatten()
+
+    def reset(self, jointprobs):  # basically __init__ but can be called even if object already exists
+        if isinstance(jointprobs, np.ndarray):
+            self.joint_probabilities = jointprobs
+        else:
+            assert isinstance(jointprobs.joint_probabilities, np.ndarray), 'nested reset problem'
+
+            self.duplicate(jointprobs)
+
+    def duplicate(self, other):
+        assert isinstance(other.joint_probabilities, np.ndarray), 'nesting problem'
+
+        self.joint_probabilities = other.joint_probabilities
+
+    def __sub__(self, other):
+        return np.subtract(self.joint_probabilities, other.joint_probabilities)
+
 
 class JointProbabilityMatrix():
     # nested list of probabilities. For instance for three binary variables it could be:
     # [[[0.15999394, 0.06049343], [0.1013956, 0.15473886]], [[ 0.1945649, 0.15122334], [0.11951818, 0.05807175]]].
     # The depth (np.ndim) should be numvariables, and the length at each dimension should be numvalues.
-    joint_probabilities = []
+    joint_probabilities = NestedArrayOfProbabilities()
 
     numvariables = 0
     numvalues = 0
@@ -179,23 +223,24 @@ class JointProbabilityMatrix():
             else:
                 raise ValueError('don\'t know what to do with joint_probs=' + str(joint_probs))
         else:
-            self.joint_probabilities = joint_probs
+            self.joint_probabilities = NestedArrayOfProbabilities(joint_probs)
 
         self.clip_all_probabilities()
 
         if self.numvariables > 0:
-            assert np.ndim(self.joint_probabilities) == self.numvariables
-            if self.numvariables > 1:
-                assert len(self.joint_probabilities[0]) == numvalues, 'self.joint_probabilities[0] = ' \
-                                                                      + str(self.joint_probabilities[0])
-                assert len(self.joint_probabilities[-1]) == numvalues
-            else:
-                assert len(self.joint_probabilities) == numvalues
-                assert np.isscalar(self.joint_probabilities[(0,)]), 'this is how joint_probabilities may be called'
+            # if self.numvariables > 1:
+            #     assert len(self.joint_probabilities[0]) == numvalues, 'self.joint_probabilities[0] = ' \
+            #                                                           + str(self.joint_probabilities[0])
+            #     assert len(self.joint_probabilities[-1]) == numvalues
+            # else:
+            #     assert len(self.joint_probabilities) == numvalues
+            #     assert np.isscalar(self.joint_probabilities[(0,)]), 'this is how joint_probabilities may be called'
+            assert self.joint_probabilities.num_values() == self.numvalues
+            assert self.joint_probabilities.num_variables() == self.numvariables
 
-            np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+            np.testing.assert_almost_equal(self.joint_probabilities.sum(), 1.0)
         else:
-            raise ValueError('numvariables == 0 not supported (yet?)')
+            warnings.warn('numvariables == 0, not sure if it is supported by all code (yet)! Fingers crossed.')
 
 
     def copy(self):
@@ -264,25 +309,29 @@ class JointProbabilityMatrix():
 
 
     def generate_independent_joint_probabilities(self):
-        self.joint_probabilities = np.zeros([self.numvalues]*self.numvariables)
-        self.joint_probabilities = self.joint_probabilities + 1.0 / np.power(self.numvalues, self.numvariables)
-        np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+        jp = np.zeros([self.numvalues]*self.numvariables)
+        jp = jp + 1.0 / np.power(self.numvalues, self.numvariables)
+        np.testing.assert_almost_equal(np.sum(jp), 1.0)
+
+        self.joint_probabilities = NestedArrayOfProbabilities(jp)
 
 
     def generate_random_joint_probabilities(self):
-        self.joint_probabilities = np.random.random([self.numvalues]*self.numvariables)
-        self.joint_probabilities /= np.sum(self.joint_probabilities)
+        jp = np.random.random([self.numvalues]*self.numvariables)
+        jp /= np.sum(jp)
+
+        self.joint_probabilities = NestedArrayOfProbabilities(jp)
 
 
     def random_samples(self, n=1):
-        # sample_indices = np.random.multinomial(n, [i for i in self.joint_probabilities.flat])
+        # sample_indices = np.random.multinomial(n, [i for i in self.joint_probabilities.flatiter()])
 
         # todo: I don't think this generalizes well for different numvalues per variable. Just generate 1000 value lists
         # and pick one according to their relative probabilities? Much more general and above all much more scalable!
 
         assert np.isscalar(self.numvalues), 'refactor this function, see todo above'
 
-        flat_joint_probs = [i for i in self.joint_probabilities.flat]
+        flat_joint_probs = [i for i in self.joint_probabilities.flatiter()]
 
         sample_indices = np.random.choice(len(flat_joint_probs), p=flat_joint_probs, size=n)
 
@@ -352,20 +401,7 @@ class JointProbabilityMatrix():
         Make sure all probabilities in the joint probability matrix are in the range [0.0, 1.0], which could be
         violated sometimes due to floating point operation roundoff errors.
         """
-        self.joint_probabilities = np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
-
-        if np.random.random() < 0.1:
-            try:
-                np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
-            except AssertionError as e:
-                print 'error message: ' + str(e)
-
-                print 'error: len(self.joint_probabilities) =', len(self.joint_probabilities)
-                print 'error: shape(self.joint_probabilities) =', np.shape(self.joint_probabilities)
-                if len(self.joint_probabilities) < 30:
-                    print 'error: self.joint_probabilities =', self.joint_probabilities
-
-                raise AssertionError(e)
+        self.joint_probabilities.clip_all_probabilities()
 
 
     def estimate_from_data_from_file(self, filename, discrete=True, method='empirical'):
@@ -408,7 +444,7 @@ class JointProbabilityMatrix():
         all_unique_values = list(set(np.array(repeated_measurements).flat))
 
         # todo: store the unique values as a member field so that later algorithms know what original values
-        # corresponded to the values 0, 1, 2, ...
+        # corresponded to the values 0, 1, 2, ... and for estimating MI based on samples rather than 'true' dist.
 
         numvals = len(all_unique_values)
 
@@ -539,7 +575,8 @@ class JointProbabilityMatrix():
     def append_variables(self, num_added_variables, added_joint_probabilities=None):
         assert num_added_variables > 0
 
-        if isinstance(added_joint_probabilities, JointProbabilityMatrix):
+        if isinstance(added_joint_probabilities, JointProbabilityMatrix) \
+                or isinstance(added_joint_probabilities, NestedArrayOfProbabilities):
             added_joint_probabilities = added_joint_probabilities.joint_probabilities
 
         new_joint_pdf = self.appended_joint_prob_matrix(num_added_variables,
@@ -551,8 +588,6 @@ class JointProbabilityMatrix():
             assert len(new_joint_pdf[-1]) == self.numvalues
         np.testing.assert_almost_equal(np.sum(new_joint_pdf), 1.0)
 
-        # self.joint_probabilities = new_joint_pdf
-        # self.numvariables = self.numvariables + num_added_variables
         self.reset(self.numvariables + num_added_variables, self.numvalues, new_joint_pdf)
 
 
@@ -610,8 +645,6 @@ class JointProbabilityMatrix():
             assert len(extended_joint_probs[-1]) == self.numvalues
         np.testing.assert_almost_equal(np.sum(extended_joint_probs), 1.0)
 
-        # self.joint_probabilities = extended_joint_probs
-        # self.numvariables = len(state_transitions[0])
         self.reset(len(state_transitions[0]), self.numvalues, extended_joint_probs)
 
 
@@ -740,7 +773,8 @@ class JointProbabilityMatrix():
 
         assert np.ndim(list_probs) == 1
 
-        self.joint_probabilities = np.reshape(list_probs, [self.numvalues]*self.numvariables)
+        self.joint_probabilities = NestedArrayOfProbabilities(np.reshape(list_probs,
+                                                                         [self.numvalues]*self.numvariables))
 
         self.clip_all_probabilities()
 
@@ -847,10 +881,6 @@ class JointProbabilityMatrix():
 
             pdf_conds = self.conditional_probability_distributions([0])
 
-            # todo: remove this test, I am trying to find a bug now
-            if np.random.randint(5) == 0:
-                assert pdf1 + pdf_conds == self, 'should still be same distribution taken together'
-
             assert len(pdf_conds) == self.numvalues, 'should be one pdf for each value of first variable'
 
             for val in xrange(self.numvalues):
@@ -918,15 +948,15 @@ class JointProbabilityMatrix():
             ### start already by setting the pdf of the first variable...
 
             pdf_1 = JointProbabilityMatrix(1, self.numvalues)
-            pdf_1.params2matrix(parameters[:(len(pdf_1.joint_probabilities.flat) - 1)])
+            pdf_1.params2matrix(parameters[:(len(pdf_1.joint_probabilities.flatiter()) - 1)])
 
-            assert (len(pdf_1.joint_probabilities.flat) - 1) == (self.numvalues - 1), 'assumption directly above'
+            assert (len(pdf_1.joint_probabilities.flatiter()) - 1) == (self.numvalues - 1), 'assumption directly above'
 
-            assert len(pdf_1.joint_probabilities.flat) == self.numvalues
+            assert len(pdf_1.joint_probabilities.flatiter()) == self.numvalues
 
-            assert len(flatten(parameters)) == len(self.joint_probabilities.flat) - 1, \
+            assert len(flatten(parameters)) == len(self.joint_probabilities.flatiter()) - 1, \
                 'more or fewer parameters than needed: ' \
-                              'need ' + str(len(self.joint_probabilities.flat) - 1) + ', got ' + str(len(parameters)) \
+                              'need ' + str(len(self.joint_probabilities.flatiter()) - 1) + ', got ' + str(len(parameters)) \
                               + '; #vars, #vals = ' + str(self.numvariables) + ', ' + str(self.numvalues)
 
             if __debug__ and self._debug_params2matrix:
@@ -939,7 +969,7 @@ class JointProbabilityMatrix():
                                                          self.scalars_up_to_level(parameters[:(self.numvalues - 1)]))
 
             # remove the used parameters from the list
-            parameters = parameters[(len(pdf_1.joint_probabilities.flat) - 1):]
+            parameters = parameters[(len(pdf_1.joint_probabilities.flatiter()) - 1):]
             assert len(parameters) == self.numvalues  # one subtree per conditional pdf
 
             pdf_conds = dict()
@@ -958,16 +988,16 @@ class JointProbabilityMatrix():
 
                 # todo: changing the parameters list is not necessary, maybe faster if not?
 
-                # pdf_cond.params2matrix_incremental(parameters[:(len(pdf_cond.joint_probabilities.flat) - 1)])
+                # pdf_cond.params2matrix_incremental(parameters[:(len(pdf_cond.joint_probabilities.flatiter()) - 1)])
                 pdf_cond.params2matrix_incremental(parameters[0])
 
                 # conditional pdf should have the same set of parameters as the ones I used to create it
                 # (todo: remove this expensive check if it seems to work for  while)
                 if self._debug_params2matrix:  # seemed to work for a long time...
                     try:
-                        # todo: test can be probabilistic, e.g. performed with 10% chance?
-                        np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
-                                                             self.scalars_up_to_level(parameters[0]))
+                        if np.random.randint(20) == 0:
+                            np.testing.assert_array_almost_equal(pdf_cond.matrix2params_incremental(),
+                                                                 self.scalars_up_to_level(parameters[0]))
                     except AssertionError as e:
                         # print 'debug: parameters[0] =', parameters[0]
                         # print 'debug: len(pdf_cond) =', len(pdf_cond)
@@ -1022,12 +1052,8 @@ class JointProbabilityMatrix():
                         #                                                        'self.scalars_up_to_level(parameters[0]) = ' \
                         #                                                        + str(self.scalars_up_to_level(parameters[0]))
 
-                # right?
-                np.testing.assert_almost_equal(np.sum(pdf_cond.joint_probabilities), 1.0)
+                np.testing.assert_almost_equal(pdf_cond.joint_probabilities.sum(), 1.0)
 
-                # remove the used parameters from the list
-                # CHANGE123
-                # parameters = parameters[(len(pdf_cond.joint_probabilities.flat) - 1):]
                 parameters = parameters[1:]
 
                 # add the conditional pdf
@@ -1107,22 +1133,27 @@ class JointProbabilityMatrix():
         behavior of the object then add them also here and everywhere where called.
         :type numvariables: int
         :type numvalues: int
-        :type joint_prob_matrix: JointProbabilityMatrix
+        :type joint_prob_matrix: NestedArrayOfProbabilities
         """
 
         self.numvariables = numvariables
         self.numvalues = numvalues
-        self.joint_probabilities = joint_prob_matrix
+        self.joint_probabilities.reset(joint_prob_matrix)
 
         if labels is None:
             self.labels = [_default_variable_label]*numvariables
         else:
             self.labels = labels
 
-        assert np.ndim(joint_prob_matrix) == self.numvariables, 'ndim = ' + str(np.ndim(joint_prob_matrix)) + ', ' \
-                                                                'self.numvariables = ' + str(self.numvariables) + ', ' \
-                                                                'joint matrix = ' + str(joint_prob_matrix)
-        assert list(set(np.shape(self.joint_probabilities)))[0] == self.numvalues
+        # assert np.ndim(joint_prob_matrix) == self.numvariables, 'ndim = ' + str(np.ndim(joint_prob_matrix)) + ', ' \
+        #                                                         'self.numvariables = ' + str(self.numvariables) + ', ' \
+        #                                                         'joint matrix = ' + str(joint_prob_matrix)
+        assert self.joint_probabilities.num_variables() == self.numvariables, \
+            'ndim = ' + str(np.ndim(joint_prob_matrix)) + ', ' \
+                                                          'self.numvariables = ' + str(self.numvariables) + ', ' \
+                                                                'joint matrix = ' + str(self.joint_probabilities.joint_probabilities) \
+            + ', joint_probabilities.num_variables() = ' + str(self.joint_probabilities.num_variables())
+        assert self.joint_probabilities.num_values() == self.numvalues
 
         # # maybe this check should be removed, it is also checked in clip_all_* below, but after clipping, which
         # # may be needed to get this condition valid again?
@@ -1395,12 +1426,12 @@ class JointProbabilityMatrix():
 
         if variables is None:
             if np.random.random() < 0.1:
-                np.testing.assert_almost_equal(np.sum(self.joint_probabilities), 1.0)
+                np.testing.assert_almost_equal(self.joint_probabilities.sum(), 1.0)
 
             probs = self.joint_probabilities.flatten()
             probs = np.select([probs != 0], [probs], default=1)
 
-            # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flat))
+            # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flatiter()))
             log_terms = probs * np.log2(probs)
             # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
             joint_entropy = -np.sum(log_terms)
@@ -2788,8 +2819,10 @@ class JointProbabilityMatrix():
             debug_min_random_cost_val = np.min(debug_random_cost_values)
             debug_max_random_cost_val = np.max(debug_random_cost_values)
 
-            print 'debug: cost values of random parameter vectors:', debug_random_cost_values, '-- took', \
-                debug_random_time_after - debug_random_time_before, 'seconds for', debug_num_random_costs, 'vectors.'
+            if verbose:
+                print 'debug: cost values of random parameter vectors:', debug_random_cost_values, '-- took', \
+                    debug_random_time_after - debug_random_time_before, 'seconds for', debug_num_random_costs, \
+                    'vectors.'
 
         initial_guess_minimal = list(np.array(pdf_X_X1_X2.matrix2params_incremental())[free_params_X1_X2_given_X])
 
@@ -2926,85 +2959,85 @@ class JointProbabilityMatrix():
 
         # todo: END of optimization
 
-        # note: the code below is 'old', in the sense that it should be equivalent above but using an optimization
-        # step in a (much) larger parameter space
-
-        def cost_func2(proposed_params):
-            assert len(free_parameters) == len(proposed_params)
-
-            params_list = list(initial_params_list[original_parameters]) + list(proposed_params)
-
-            pdf_ortho_para.params2matrix_incremental(params_list)  # in-place
-
-            # note: unwanted effects should be positive terms ('cost'), and desired MIs should be negative terms
-            cost = pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) \
-                   - pdf_ortho_para.mutual_information(subject_variables, parallel_variables) \
-                   - pdf_ortho_para.mutual_information(variables_to_orthogonalize,
-                                                       orthogonal_variables + parallel_variables)
-
-            assert np.isfinite(cost)
-            assert np.isscalar(cost)
-
-            return float(cost)
-
-
-        initial_guess = list(initial_params_list[free_parameters])
-
-        if verbose and __debug__:
-            print 'debug: append_orthogonalized_variables: BEFORE optimization, cost func =', cost_func2(initial_guess)
-
-            # mutual informations
-            print 'debug: pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) =', \
-                pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables)
-            print 'debug: pdf_ortho_para.mutual_information(subject_variables, parallel_variables) =', \
-                pdf_ortho_para.mutual_information(subject_variables, parallel_variables)
-            print 'debug: pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables) =', \
-                pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables)
-            print 'debug: pdf_ortho_para.mutual_information(variables_to_orthogonalize, ' \
-                  'orthogonal_variables + parallel_variables) =', \
-                pdf_ortho_para.mutual_information(variables_to_orthogonalize, orthogonal_variables + parallel_variables)
-
-            # entropies
-            print 'debug: pdf_ortho_para.entropy(subject_variables) =', \
-                pdf_ortho_para.entropy(subject_variables)
-            print 'debug: pdf_ortho_para.entropy(variables_to_orthogonalize) =', \
-                pdf_ortho_para.entropy(variables_to_orthogonalize)
-            print 'debug: pdf_ortho_para.entropy(orthogonal_variables) =', \
-                pdf_ortho_para.entropy(orthogonal_variables)
-            print 'debug: pdf_ortho_para.entropy(parallel_variables) =', \
-                pdf_ortho_para.entropy(parallel_variables)
-
-        optres = minimize(cost_func2, initial_guess, bounds=[(0.0, 1.0)]*len(free_parameters))
-
-        assert optres.success, 'scipy\'s minimize() failed'
-
-        if verbose and __debug__:
-            print 'debug: append_orthogonalized_variables: AFTER optimization, cost func =', optres.fun
-
-            # mutual informations
-            print 'debug: pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) =', \
-                pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables)
-            print 'debug: pdf_ortho_para.mutual_information(subject_variables, parallel_variables) =', \
-                pdf_ortho_para.mutual_information(subject_variables, parallel_variables)
-            print 'debug: pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables) =', \
-                pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables)
-            print 'debug: pdf_ortho_para.mutual_information(variables_to_orthogonalize, ' \
-                  'orthogonal_variables + parallel_variables) =', \
-                pdf_ortho_para.mutual_information(variables_to_orthogonalize, orthogonal_variables + parallel_variables)
-
-            # entropies
-            print 'debug: pdf_ortho_para.entropy(subject_variables) =', \
-                pdf_ortho_para.entropy(subject_variables)
-            print 'debug: pdf_ortho_para.entropy(variables_to_orthogonalize) =', \
-                pdf_ortho_para.entropy(variables_to_orthogonalize)
-            print 'debug: pdf_ortho_para.entropy(orthogonal_variables) =', \
-                pdf_ortho_para.entropy(orthogonal_variables)
-            print 'debug: pdf_ortho_para.entropy(parallel_variables) =', \
-                pdf_ortho_para.entropy(parallel_variables)
-
-        self.duplicate(pdf_ortho_para)
-
-        # del pdf_ortho_para
+        # # note: the code below is 'old', in the sense that it should be equivalent above but using an optimization
+        # # step in a (much) larger parameter space
+        #
+        # def cost_func2(proposed_params):
+        #     assert len(free_parameters) == len(proposed_params)
+        #
+        #     params_list = list(initial_params_list[original_parameters]) + list(proposed_params)
+        #
+        #     pdf_ortho_para.params2matrix_incremental(params_list)  # in-place
+        #
+        #     # note: unwanted effects should be positive terms ('cost'), and desired MIs should be negative terms
+        #     cost = pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) \
+        #            - pdf_ortho_para.mutual_information(subject_variables, parallel_variables) \
+        #            - pdf_ortho_para.mutual_information(variables_to_orthogonalize,
+        #                                                orthogonal_variables + parallel_variables)
+        #
+        #     assert np.isfinite(cost)
+        #     assert np.isscalar(cost)
+        #
+        #     return float(cost)
+        #
+        #
+        # initial_guess = list(initial_params_list[free_parameters])
+        #
+        # if verbose and __debug__:
+        #     print 'debug: append_orthogonalized_variables: BEFORE optimization, cost func =', cost_func2(initial_guess)
+        #
+        #     # mutual informations
+        #     print 'debug: pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) =', \
+        #         pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(subject_variables, parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(subject_variables, parallel_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(variables_to_orthogonalize, ' \
+        #           'orthogonal_variables + parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(variables_to_orthogonalize, orthogonal_variables + parallel_variables)
+        #
+        #     # entropies
+        #     print 'debug: pdf_ortho_para.entropy(subject_variables) =', \
+        #         pdf_ortho_para.entropy(subject_variables)
+        #     print 'debug: pdf_ortho_para.entropy(variables_to_orthogonalize) =', \
+        #         pdf_ortho_para.entropy(variables_to_orthogonalize)
+        #     print 'debug: pdf_ortho_para.entropy(orthogonal_variables) =', \
+        #         pdf_ortho_para.entropy(orthogonal_variables)
+        #     print 'debug: pdf_ortho_para.entropy(parallel_variables) =', \
+        #         pdf_ortho_para.entropy(parallel_variables)
+        #
+        # optres = minimize(cost_func2, initial_guess, bounds=[(0.0, 1.0)]*len(free_parameters))
+        #
+        # assert optres.success, 'scipy\'s minimize() failed'
+        #
+        # if verbose and __debug__:
+        #     print 'debug: append_orthogonalized_variables: AFTER optimization, cost func =', optres.fun
+        #
+        #     # mutual informations
+        #     print 'debug: pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables) =', \
+        #         pdf_ortho_para.mutual_information(subject_variables, orthogonal_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(subject_variables, parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(subject_variables, parallel_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(orthogonal_variables, parallel_variables)
+        #     print 'debug: pdf_ortho_para.mutual_information(variables_to_orthogonalize, ' \
+        #           'orthogonal_variables + parallel_variables) =', \
+        #         pdf_ortho_para.mutual_information(variables_to_orthogonalize, orthogonal_variables + parallel_variables)
+        #
+        #     # entropies
+        #     print 'debug: pdf_ortho_para.entropy(subject_variables) =', \
+        #         pdf_ortho_para.entropy(subject_variables)
+        #     print 'debug: pdf_ortho_para.entropy(variables_to_orthogonalize) =', \
+        #         pdf_ortho_para.entropy(variables_to_orthogonalize)
+        #     print 'debug: pdf_ortho_para.entropy(orthogonal_variables) =', \
+        #         pdf_ortho_para.entropy(orthogonal_variables)
+        #     print 'debug: pdf_ortho_para.entropy(parallel_variables) =', \
+        #         pdf_ortho_para.entropy(parallel_variables)
+        #
+        # self.duplicate(pdf_ortho_para)
+        #
+        # # del pdf_ortho_para
 
 
     # todo: set default entropy_cost_factor=0.1 or 0.05?
@@ -3446,7 +3479,6 @@ class JointProbabilityMatrix():
 
             list_of_scalars_remaining = list_of_scalars_remaining[num_scalars_at_level:]
 
-        # todo: further order the scalars in the expected way
         def tree_from_levels(all_scalars_at_level):
             if len(all_scalars_at_level) == 0:
                 return []
@@ -3502,6 +3534,16 @@ class JointProbabilityMatrix():
         assert len(flatten(tree)) == len(list_of_scalars), 'all scalars should end up in the tree, and not duplicate'
 
         return tree
+
+
+# maybe some day generalize to "ParameterizedJointProbabilityMatrix"...
+class TemporalJointProbabilityMatrix():
+
+    # this can be taken as Pr(X_{t=0})
+    initial_pdf = JointProbabilityMatrix(0, 0)  # just so that IDE gets the type of member right
+
+    # this can be taken as Pr(X_{t+1} | X_{t})
+    cond_next_pdf = {(): JointProbabilityMatrix(0, 0)}
 
 
 
@@ -3685,8 +3727,8 @@ def run_synergistic_variables_test(numvars=2):
     pdf_old = pdf_syn.marginalize_distribution(range(pdf.numvariables))
 
     # trying to figure out why I hit the assertion "pdf == pdf_old"
-    np.testing.assert_almost_equal(np.sum(pdf_old.joint_probabilities), 1.0), 'all probabilities should sum to 1.0'
-    np.testing.assert_almost_equal(np.sum(pdf.joint_probabilities), 1.0), 'all probabilities should sum to 1.0'
+    np.testing.assert_almost_equal(pdf_old.joint_probabilities.sum(), 1.0), 'all probabilities should sum to 1.0'
+    np.testing.assert_almost_equal(pdf.joint_probabilities.sum(), 1.0), 'all probabilities should sum to 1.0'
 
     np.testing.assert_array_almost_equal(pdf.joint_probabilities, pdf_old.joint_probabilities)
     assert pdf == pdf_old, 'adding and then removing variables should result in the same joint pdf'
