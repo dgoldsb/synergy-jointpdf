@@ -3540,11 +3540,104 @@ class JointProbabilityMatrix():
 class TemporalJointProbabilityMatrix():
 
     # this can be taken as Pr(X_{t=0})
-    initial_pdf = JointProbabilityMatrix(0, 0)  # just so that IDE gets the type of member right
+    current_pdf = JointProbabilityMatrix(0, 0)  # just so that IDE gets the type of member right
 
+    # todo: make a class for conditional pdfs sometime?
     # this can be taken as Pr(X_{t+1} | X_{t})
     cond_next_pdf = {(): JointProbabilityMatrix(0, 0)}
 
+
+    def __init__(self, current_pdf, cond_next_pdf='random'):
+
+        self.reset(current_pdf, cond_next_pdf)
+
+
+    def next(self, current_state=None):
+
+        if current_state is None:
+            # todo: for certain cases, like full nested ndarray matrix of probabilities, I think this can be written
+            # as a matrix/numpy multiplication, which could be much faster
+            new_joint_probs_array = np.sum([self.current_pdf(states)
+                                            * self.cond_next_pdf[states].joint_probabilities.joint_probabilities
+                                            for states in self.current_pdf.statespace()], axis=0)
+        else:
+            new_joint_probs_array = self.cond_next_pdf[current_state].joint_probabilities.joint_probabilities
+
+        ret_temp_pdf = self.copy()
+
+        assert np.shape(new_joint_probs_array) == np.shape(ret_temp_pdf.current_pdf.joint_probabilities.joint_probabilities)
+
+        # todo: would be more neat to do this through a reset() or so, but I am missing a constructor now that is
+        # flexible, i.e., can also take a np.ndarray or a Nested... object
+        ret_temp_pdf.current_pdf.joint_probabilities.reset(new_joint_probs_array)
+
+        assert ret_temp_pdf.current_pdf.joint_probabilities.num_values() == self.current_pdf.joint_probabilities.num_values()
+        assert ret_temp_pdf.current_pdf.joint_probabilities.num_variables() == self.current_pdf.joint_probabilities.num_variables()
+
+        return ret_temp_pdf
+
+
+    def next_conditional(self):
+        return copy.deepcopy(self.cond_next_pdf)  # simple enough
+
+
+    def future(self, numsteps, current_state=None):
+        new_pdf = self.copy()
+
+        new_pdf.steps(numsteps, current_state=current_state)
+
+        return new_pdf
+
+
+    def future_conditional(self, numsteps):
+        if numsteps == 0:
+            return {states: self.current_pdf  # pdf will not change regardless of current state
+                    for states, pdf in self.cond_next_pdf.iteritems()}
+        elif numsteps > 0:
+            return {states: TemporalJointProbabilityMatrix(pdf).future(numsteps - 1).current_pdf
+                    for states, pdf in self.cond_next_pdf.iteritems()}
+        else:
+            raise NotImplementedError('numsteps cannot be < 0.')
+
+
+    def step(self, current_state=None):
+        self.duplicate(self.next(current_state=current_state))
+
+
+    def steps(self, numsteps, current_state=None):
+        for i in xrange(numsteps):
+            self.step(current_state=current_state)
+
+
+    def duplicate(self, other):
+        self.reset(other.current_pdf, other.cond_next_pdf)
+
+
+    def copy(self):
+        """
+        :rtype: TemporalJointProbabilityMatrix
+        """
+        return copy.deepcopy(self)
+
+
+    def reset(self, current_pdf, cond_next_pdf='random'):
+
+        assert current_pdf.numvalues >= 0, 'just for making sure that it seems to be a JointProbabilityMatrix-like ' \
+                                           'object'
+        assert current_pdf.numvariables >= 0, 'just for making sure that it seems to be a ' \
+                                              'JointProbabilityMatrix-like object'
+
+        self.current_pdf = current_pdf
+
+        if cond_next_pdf is None:
+            self.cond_next_pdf = {states: current_pdf for states in current_pdf.statespace()}
+        elif cond_next_pdf == 'random':
+            self.cond_next_pdf = {states: JointProbabilityMatrix(current_pdf.numvariables, current_pdf.numvalues)
+                                  for states in current_pdf.statespace()}
+        else:
+            assert type(cond_next_pdf) == dict, 'currently must be a dictionary'
+
+            self.cond_next_pdf = cond_next_pdf
 
 
 ### UNIT TESTING:
