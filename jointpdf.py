@@ -5,10 +5,10 @@ __author__ = 'rquax'
 Owner of this project:
 
     Rick Quax
-    https://staff.fnwi.uva.nl/r.quax/index.html
+    https://staff.fnwi.uva.nl/r.quax
     University of Amsterdam
 
-You are free to use this package for your own non-profit, academic work. All I ask is to be suitably credited.
+You are free to use this package only for your own non-profit, academic work. All I ask is to be suitably credited.
 '''
 
 
@@ -21,7 +21,9 @@ import warnings
 from compiler.ast import flatten  # note: deprecated in Python 3, in which case: find another flatten
 from collections import Sequence
 import time
-from numbers import Number
+from abc import abstractmethod, ABCMeta  # for requiring certain methods to be overridden by subclasses
+from numbers import Integral, Number
+import matplotlib.pyplot as plt
 
 
 def maximum_depth(seq):
@@ -104,15 +106,261 @@ def apply_permutation(lst, permutation):
 _default_variable_label = 'variable'
 
 
+# any derived class from this interface is supposed
+# to replace the dictionaries now used for conditional pdfs (namely, dict where keys are
+# tuples of values for all variables and the values are JointProbabilityMatrix objects). For now it will be
+# made to be superficially equivalent to a dict, then hopefully a derived class can have a different
+# inner workings (not combinatorial explosion of the number of keys) while otherwise indistinguishable
+# note: use this class name in isinstance(obj, ConditionalProbabilityMatrix)
+class ConditionalProbabilities():
+
+    # for enabling the decorator 'abstractmethod', which means that a given function MUST be overridden by a
+    # subclass. I do this because all functions depend heavily on the data structure of cond_pdf, but derived
+    # classes will highly likely have different structures, because that would be the whole point of inheritance:
+    # currently the cond_pdf encodes the full conditional pdf using a dictionary, but the memory usage of that
+    # scales combinatorially.
+    __metaclass__ = ABCMeta
+
+    # a dict which fully explicitly encodes the conditional pdf,
+    # namely, dict where keys are
+    # tuples of values for all variables and the values are JointProbabilityMatrix objects
+    cond_pdf = {}
+
+
+    @abstractmethod
+    def __init__(self, cond_pdf=None):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def generate_random_conditional_pdf(self, num_given_variables, num_output_variables, num_values=2):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def __getitem__(self, item):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def iteritems(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def itervalues(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def iterkeys(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def num_given_variables(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def num_output_variables(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def num_conditional_probabilities(self):
+        assert False, 'should have been implemented'
+
+
+    @abstractmethod
+    def update(self, partial_cond_pdf):
+        assert False, 'should have been implemented'
+
+
+class ConditionalProbabilityMatrix(ConditionalProbabilities):
+
+    # a dict which fully explicitly encodes the conditional pdf,
+    # namely, dict where keys are
+    # tuples of values for all variables and the values are JointProbabilityMatrix objects
+    cond_pdf = {}
+
+
+    def __init__(self, cond_pdf=None):
+        if cond_pdf is None:
+            self.cond_pdf = {}
+        elif type(cond_pdf) == dict:
+            self.cond_pdf = cond_pdf
+        elif isinstance(cond_pdf, JointProbabilityMatrix):
+            self.cond_pdf = {states: cond_pdf for states in cond_pdf.statespace()}
+        else:
+            raise NotImplementedError('unknown type for cond_pdf')
+
+
+    def __getitem__(self, item):
+        return self.cond_pdf[item]
+
+
+    def __eq__(self, other):
+        if isinstance(other, basestring):
+            return False
+        elif isinstance(other, Number):
+            return False
+        else:
+            assert hasattr(other, 'num_given_variables'), 'should be ConditionalProbabilityMatrix'
+            assert hasattr(other, 'iteritems'), 'should be ConditionalProbabilityMatrix'
+
+            for states, pdf in self.iteritems():
+                if not other[states] == pdf:
+                    return False
+
+            return True
+
+
+    def generate_random_conditional_pdf(self, num_given_variables, num_output_variables, num_values=2):
+        pdf = JointProbabilityMatrix(num_given_variables, num_values)  # only used for convenience, for .statespace()
+
+        self.cond_pdf = {states: JointProbabilityMatrix(num_output_variables, num_values)
+                         for states in pdf.statespace()}
+
+
+    def __getitem__(self, item):
+        assert len(self.cond_pdf) > 0, 'uninitialized dict'
+
+        return self.cond_pdf[item]
+
+
+    def iteritems(self):
+        return self.cond_pdf.iteritems()
+
+
+    def itervalues(self):
+        return self.cond_pdf.itervalues()
+
+
+    def iterkeys(self):
+        return self.cond_pdf.iterkeys()
+
+
+    def num_given_variables(self):
+        assert len(self.cond_pdf) > 0, 'uninitialized dict'
+
+        return len(self.cond_pdf.iterkeys().next())
+
+
+    def num_output_variables(self):
+        assert len(self.cond_pdf) > 0, 'uninitialized dict'
+
+        return len(self.cond_pdf.itervalues().next())
+
+
+    def num_conditional_probabilities(self):
+        return len(self.cond_pdf)
+
+
+    def update(self, partial_cond_pdf):
+        if type(partial_cond_pdf) == dict:
+            # check only if already initialized with at least one conditional probability
+            if __debug__ and len(self.cond_pdf) > 0:
+                assert len(partial_cond_pdf.iterkeys().next()) == self.num_given_variables(), 'partial cond. pdf is ' \
+                                                                                              'conditioned on a different' \
+                                                                                              ' number of variables'
+                assert len(partial_cond_pdf.itervalues().next()) == self.num_output_variables(), \
+                    'partial cond. pdf has a different number of output variables'
+
+            self.cond_pdf.update(partial_cond_pdf)
+        elif isinstance(partial_cond_pdf, ConditionalProbabilities):
+            self.cond_pdf.update(partial_cond_pdf.cond_pdf)
+        else:
+            raise NotImplementedError('unknown type for partial_cond_pdf')
+
+
 # this class is supposed to override member joint_probabilities of JointProbabilityMatrix, which is currently
 # taken to be a nested numpy array. Therefore this class is made to act as much as possible as a nested numpy array.
 # However, this class could be inherited and overriden to save e.g. memory storage, e.g. by assuming independence
 # among the variables, but on the outside still act the same.
+# note: use this class name for isinstance(., .) calls, because it will also be true for derived classes
 class NestedArrayOfProbabilities():
 
-    # _allowed_formats = ('complete',)
+    __metaclass__ = ABCMeta
 
-    # format = 'complete'
+    # type: np.array
+    joint_probabilities = np.array([])
+
+    @abstractmethod
+    def __init__(self, joint_probabilities=np.array([])):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def num_variables(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def num_values(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def __getitem__(self, item):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def __setitem__(self, key, value):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def sum(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def flatiter(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def clip_all_probabilities(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def flatten(self):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def reset(self, jointprobs):  # basically __init__ but can be called even if object already exists
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def duplicate(self, other):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def __sub__(self, other):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def generate_uniform_joint_probabilities(self, numvariables, numvalues):
+        assert False, 'must be implemented by subclass'
+
+
+    @abstractmethod
+    def generate_random_joint_probabilities(self, numvariables, numvalues):
+        assert False, 'must be implemented by subclass'
+
+
+# this class is supposed to override member joint_probabilities of JointProbabilityMatrix, which is currently
+# taken to be a nested numpy array. Therefore this class is made to act as much as possible as a nested numpy array.
+# However, this class could be inherited and overriden to save e.g. memory storage, e.g. by assuming independence
+# among the variables, but on the outside still act the same.
+class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
 
     # type: np.array
     joint_probabilities = np.array([])
@@ -122,36 +370,47 @@ class NestedArrayOfProbabilities():
 
         self.reset(joint_probabilities)
 
+
     def num_variables(self):
         return np.ndim(self.joint_probabilities)
+
 
     def num_values(self):
         return np.shape(self.joint_probabilities)[-1]
 
+
     def __getitem__(self, item):
+        assert len(item) == self.joint_probabilities.ndim, 'see if this is only used to get single joint probs'
+
         if type(item) == int:
-            return NestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
+            return FullNestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
         elif hasattr(item, '__iter__'):  # tuple for instance
             ret = self.joint_probabilities[item]
 
             if hasattr(ret, '__iter__'):
-                return NestedArrayOfProbabilities(joint_probabilities=ret)
+                return FullNestedArrayOfProbabilities(joint_probabilities=ret)
             else:
-                assert -0.000001 <= ret <= 1.000001
+                assert -0.000001 <= ret <= 1.000001  # this seems the only used case
 
                 return ret  # return a single probability
         elif isinstance(item, slice):
-            return NestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
+            return FullNestedArrayOfProbabilities(joint_probabilities=self.joint_probabilities[item])
+
 
     def __setitem__(self, key, value):
+        assert False, 'see if used at all?'
+
         # let numpy array figure it out
         self.joint_probabilities[key] = value
+
 
     def sum(self):
         return self.joint_probabilities.sum()
 
+
     def flatiter(self):
         return self.joint_probabilities.flat
+
 
     def clip_all_probabilities(self):
         """
@@ -173,8 +432,10 @@ class NestedArrayOfProbabilities():
 
                 raise AssertionError(e)
 
+
     def flatten(self):
         return self.joint_probabilities.flatten()
+
 
     def reset(self, jointprobs):  # basically __init__ but can be called even if object already exists
         if isinstance(jointprobs, np.ndarray):
@@ -184,20 +445,164 @@ class NestedArrayOfProbabilities():
 
             self.duplicate(jointprobs)
 
+
     def duplicate(self, other):
         assert isinstance(other.joint_probabilities, np.ndarray), 'nesting problem'
 
         self.joint_probabilities = other.joint_probabilities
 
+
     def __sub__(self, other):
         return np.subtract(self.joint_probabilities, other.joint_probabilities)
+
+
+    def generate_uniform_joint_probabilities(self, numvariables, numvalues):
+        self.joint_probabilities = np.zeros([numvalues]*numvariables)
+        self.joint_probabilities = self.joint_probabilities + 1.0 / np.power(numvalues, numvariables)
+
+
+    def generate_random_joint_probabilities(self, numvariables, numvalues):
+        self.joint_probabilities = np.random.random([numvalues]*numvariables)
+        self.joint_probabilities /= np.sum(self.joint_probabilities)
+
+# todo: move params2matrix and matrix2params to the NestedArray classes? Is specific per subclass...
+class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
+
+    __metaclass__ = ABCMeta
+
+    """
+    note: each sub-array sums to 1.0
+    type: np.array of np.array of float
+    """
+    marginal_probabilities = np.array([])  # this initial value indicates: zero variables
+
+    def __init__(self, joint_probabilities=np.array([])):
+        self.reset(joint_probabilities)
+
+
+    def num_variables(self):
+        """
+        The number of variables for which this object stores a joint pdf.
+        """
+        return len(self.marginal_probabilities)
+
+
+    def num_values(self):
+        assert len(self.marginal_probabilities) > 0, 'not yet initialized, so cannot determine num_values'
+
+        return len(self.marginal_probabilities[0])
+
+
+    def __getitem__(self, item):
+        """
+        If you supply an integer then it specifies the value of the first variable, so I will return the remaining
+        PDF for the rest of the variables. If you supply a tuple then I will repeat this for every integer in the
+        tuple.
+        :param item: value or tuple of values for the first N variables, where N is the length of <item>.
+        :type item: int or tuple
+        """
+        if isinstance(item, Integral):
+            assert False, 'seems not used'
+
+            return IndependentNestedArrayOfProbabilities(self.marginal_probabilities[0][item]
+                                                         * self.marginal_probabilities[len(item):])
+        else:
+            if len(item) == len(self.marginal_probabilities):
+                return np.product([self.marginal_probabilities[vix][item[vix]] for vix in xrange(len(item))])
+            else:
+                assert len(item) < len(self.marginal_probabilities), 'supplied more values than I have variables'
+
+                return IndependentNestedArrayOfProbabilities(np.product([self.marginal_probabilities[vix][item[vix]]
+                                                                         for vix in xrange(len(item))])
+                                                             * self.marginal_probabilities[len(item):])
+
+
+    def __setitem__(self, key, value):
+        assert False, 'is this used? if so, make implementation consistent with getitem? So that getitem(setitem)' \
+                      ' yields back <value>? Now thinking of it, I don\'t think this is possible, because how would' \
+                      ' I set the value of a joint state? It is made up of a multiplication of |X| probabilities,' \
+                      ' and setting these probabilities to get the supplied joint probability is an ambiguous task.'
+
+
+    def sum(self):
+        """
+        As far as I know, this is only used to verify that probabilities sum up to 1.
+        """
+        return np.average(np.sum(self.marginal_probabilities, axis=1))
+
+
+    def flatiter(self):
+        return self.marginal_probabilities.flat
+
+
+    def clip_all_probabilities(self):
+        self.marginal_probabilities = np.minimum(np.maximum(self.marginal_probabilities, 0.0), 1.0)
+
+
+    def flatten(self):
+        return self.marginal_probabilities.flatten()
+
+
+    def reset(self, joint_probabilities):  # basically __init__ but can be called even if object already exists
+        if isinstance(joint_probabilities, np.ndarray):
+            shape = np.shape(joint_probabilities)
+
+            # assume that the supplied array is in MY format, so array of single-variable prob. arrays
+            if len(shape) == 2:
+                assert joint_probabilities[0].sum() <= 1.000001, 'should be (marginal) probabilities'
+
+                self.marginal_probabilities = joint_probabilities
+            elif len(joint_probabilities) == 0:
+                # zero variables
+                self.marginal_probabilities = np.array([])
+            else:
+                raise ValueError('if you want to supply a nested array of probabilities, create a joint pdf'
+                                 ' from it first and then pass it to me, because I would need to marginalize variables')
+        elif isinstance(joint_probabilities, JointProbabilityMatrix):
+            self.marginal_probabilities = np.array([joint_probabilities.marginalize_distribution([vix])
+                                                     .joint_probabilities.matrix2vector()
+                                                 for vix in xrange(len(joint_probabilities))])
+        else:
+            raise NotImplementedError('unknown type of argument: ' + str(joint_probabilities))
+
+
+    def duplicate(self, other):
+        """
+        Become a copy of <other>.
+        :type other: IndependentNestedArrayOfProbabilities
+        """
+        self.marginal_probabilities = other.marginal_probabilities
+
+
+    def __sub__(self, other):
+        """
+        As far as I can tell, only needed to test e.g. for np.testing.assert_array_almost_equal.
+        :type other: IndependentNestedArrayOfProbabilities
+        """
+        return self.marginal_probabilities - other.marginal_probabilities
+
+
+    def generate_uniform_joint_probabilities(self, numvariables, numvalues):
+        self.marginal_probabilities = np.zeros([numvariables, numvalues])
+        self.marginal_probabilities = self.marginal_probabilities + 1.0 / numvalues
+
+        # todo: remove check if works
+        np.testing.assert_almost_equal(np.sum(self.marginal_probabilities), 1.0 * numvariables)
+
+
+    def generate_random_joint_probabilities(self, numvariables, numvalues):
+        self.marginal_probabilities = np.random.random([numvariables, numvalues])
+        # normalize:
+        self.marginal_probabilities /= np.transpose(np.tile(np.sum(self.marginal_probabilities, axis=1), (numvalues,1)))
+
+        # todo: remove check if works
+        np.testing.assert_almost_equal(np.sum(self.marginal_probabilities), 1.0 * numvariables)
 
 
 class JointProbabilityMatrix():
     # nested list of probabilities. For instance for three binary variables it could be:
     # [[[0.15999394, 0.06049343], [0.1013956, 0.15473886]], [[ 0.1945649, 0.15122334], [0.11951818, 0.05807175]]].
-    # The depth (np.ndim) should be numvariables, and the length at each dimension should be numvalues.
-    joint_probabilities = NestedArrayOfProbabilities()
+    joint_probabilities = FullNestedArrayOfProbabilities()
 
     numvariables = 0
     numvalues = 0
@@ -206,7 +611,9 @@ class JointProbabilityMatrix():
     # on labels at all, only variable indices 0..N-1.
     labels = []
 
-    def __init__(self, numvariables, numvalues, joint_probs=None, labels=None):
+    def __init__(self, numvariables, numvalues, joint_probs=None, labels=None,
+                 create_using=FullNestedArrayOfProbabilities):
+
         self.numvariables = numvariables
         self.numvalues = numvalues
 
@@ -216,14 +623,19 @@ class JointProbabilityMatrix():
             self.labels = labels
 
         if joint_probs is None:
+            self.joint_probabilities = create_using()
             self.generate_random_joint_probabilities()
         elif isinstance(joint_probs, basestring):
-            if joint_probs == 'random' or joint_probs == 'independent' or joint_probs == 'iid':
-                self.generate_independent_joint_probabilities()
+            if joint_probs == 'independent' or joint_probs == 'iid':
+                self.joint_probabilities = create_using()
+                self.generate_uniform_joint_probabilities(numvariables, numvalues)
+            elif joint_probs == 'random':
+                self.joint_probabilities = create_using()
+                self.generate_random_joint_probabilities()
             else:
                 raise ValueError('don\'t know what to do with joint_probs=' + str(joint_probs))
         else:
-            self.joint_probabilities = NestedArrayOfProbabilities(joint_probs)
+            self.joint_probabilities = create_using(joint_probs)
 
         self.clip_all_probabilities()
 
@@ -240,7 +652,8 @@ class JointProbabilityMatrix():
 
             np.testing.assert_almost_equal(self.joint_probabilities.sum(), 1.0)
         else:
-            warnings.warn('numvariables == 0, not sure if it is supported by all code (yet)! Fingers crossed.')
+            pass
+            # warnings.warn('numvariables == 0, not sure if it is supported by all code (yet)! Fingers crossed.')
 
 
     def copy(self):
@@ -308,19 +721,25 @@ class JointProbabilityMatrix():
         return trans_table
 
 
-    def generate_independent_joint_probabilities(self):
-        jp = np.zeros([self.numvalues]*self.numvariables)
-        jp = jp + 1.0 / np.power(self.numvalues, self.numvariables)
-        np.testing.assert_almost_equal(np.sum(jp), 1.0)
+    def generate_uniform_joint_probabilities(self, numvariables, numvalues, create_using=None):
+        # jp = np.zeros([self.numvalues]*self.numvariables)
+        # jp = jp + 1.0 / np.power(self.numvalues, self.numvariables)
+        # np.testing.assert_almost_equal(np.sum(jp), 1.0)
 
-        self.joint_probabilities = NestedArrayOfProbabilities(jp)
+        if not create_using is None:
+            self.joint_probabilities = create_using()
+
+        self.joint_probabilities.generate_uniform_joint_probabilities(numvariables, numvalues)
 
 
-    def generate_random_joint_probabilities(self):
-        jp = np.random.random([self.numvalues]*self.numvariables)
-        jp /= np.sum(jp)
+    def generate_random_joint_probabilities(self, create_using=None):
+        # jp = np.random.random([self.numvalues]*self.numvariables)
+        # jp /= np.sum(jp)
 
-        self.joint_probabilities = NestedArrayOfProbabilities(jp)
+        if not create_using is None:
+            self.joint_probabilities = create_using()
+
+        self.joint_probabilities.generate_random_joint_probabilities(self.numvariables, self.numvalues)
 
 
     def random_samples(self, n=1):
@@ -652,7 +1071,8 @@ class JointProbabilityMatrix():
         """
         Reorder the variables, for instance if self.numvariables == 3 then call with variables=[2,1,0] to reverse the
         order of the variables. The new joint probability matrix will be determined completely by the old matrix.
-        It is also possible to duplicate variables, e.g. variables=[0,1,2,2] to duplicate the last variable.
+        It is also possible to duplicate variables, e.g. variables=[0,1,2,2] to duplicate the last variable (but
+        not sure if that is what you want, it will simply copy joint probs).
         :param variables: sequence of int
         """
         assert len(variables) >= self.numvariables, 'I cannot reorder if you do\'nt give me the new ordering completely'
@@ -748,17 +1168,19 @@ class JointProbabilityMatrix():
 
 
     def __getitem__(self, item):
-        if not hasattr(item, '__iter__'):
+        if item == 'all':
+            return self
+        elif not hasattr(item, '__iter__'):
             return self.marginalize_distribution([item])
         else:
             return self.marginalize_distribution(item)
 
 
-    def __add__(self, other):
+    def __iadd__(self, other):
         """
 
         :param other: can be JointProbabilityMatrix or a conditional distribution (dict of JointProbabilityMatrix)
-        :type other: JointProbabilityMatrix or dict
+        :type other: JointProbabilityMatrix or ConditionalProbabilities or dict
         """
 
         self.append_variables_using_conditional_distributions(other)
@@ -773,8 +1195,7 @@ class JointProbabilityMatrix():
 
         assert np.ndim(list_probs) == 1
 
-        self.joint_probabilities = NestedArrayOfProbabilities(np.reshape(list_probs,
-                                                                         [self.numvalues]*self.numvariables))
+        self.joint_probabilities.reset(np.reshape(list_probs, [self.numvalues]*self.numvariables))
 
         self.clip_all_probabilities()
 
@@ -881,7 +1302,7 @@ class JointProbabilityMatrix():
 
             pdf_conds = self.conditional_probability_distributions([0])
 
-            assert len(pdf_conds) == self.numvalues, 'should be one pdf for each value of first variable'
+            # assert len(pdf_conds) == self.numvalues, 'should be one pdf for each value of first variable'
 
             for val in xrange(self.numvalues):
                 pdf_cond = pdf_conds[tuple([val])]
@@ -956,8 +1377,8 @@ class JointProbabilityMatrix():
 
             assert len(flatten(parameters)) == len(self.joint_probabilities.flatiter()) - 1, \
                 'more or fewer parameters than needed: ' \
-                              'need ' + str(len(self.joint_probabilities.flatiter()) - 1) + ', got ' + str(len(parameters)) \
-                              + '; #vars, #vals = ' + str(self.numvariables) + ', ' + str(self.numvalues)
+                  'need ' + str(len(self.joint_probabilities.flatiter()) - 1) + ', got ' + str(len(flatten(parameters))) \
+                  + '; #vars, #vals = ' + str(self.numvariables) + ', ' + str(self.numvalues)
 
             if __debug__ and self._debug_params2matrix:
                 # remove this (expensive) check after it seems to work a few times?
@@ -1189,17 +1610,17 @@ class JointProbabilityMatrix():
         self.append_variables_using_conditional_distributions({(): joint_pdf})
 
 
-    def append_variables_using_conditional_distributions(self, pdf_conds, given_variables=None):
+    def append_variables_using_conditional_distributions(self, cond_pdf, given_variables=None):
         """
 
 
-        :param pdf_conds: dictionary of JointProbabilityMatrix objects, one for each possible set of values for the
+        :param cond_pdf: dictionary of JointProbabilityMatrix objects, one for each possible set of values for the
         existing <self.numvariables> variables. If you provide a dict with one empty tuple as key then it is
         equivalent to just providing the pdf, or calling append_independent_variables with that joint pdf. If you
         provide a dict with tuples as keys which have fewer values than self.numvariables then the dict will be
         duplicated for all possible values for the remaining variables, and this function will call itself recursively
         with complete tuples.
-        :type pdf_conds: dict of tuple | JointProbabilityMatrix
+        :type cond_pdf dict of tuple or JointProbabilityMatrix or ConditionalProbabilities
         :param given_variables: If you provide a dict with tuples as keys which have fewer values than
         self.numvariables then it is assumed that the tuples specify the values for the consecutive highest indexed
         variables (so always until variable self.numvariables-1). Unless you specify this list, whose length should
@@ -1207,12 +1628,14 @@ class JointProbabilityMatrix():
         :type given_variables: list of int
         """
 
-        if isinstance(pdf_conds, JointProbabilityMatrix):
-            pdf_conds = {tuple(my_values): pdf_conds for my_values in self.statespace()}
-        else:
-            assert type(pdf_conds) == dict
+        if type(cond_pdf) == dict:
+            cond_pdf = ConditionalProbabilityMatrix(cond_pdf)  # make into conditional pdf object
 
-            num_conditioned_vars = len(pdf_conds.keys()[0])
+        if isinstance(cond_pdf, JointProbabilityMatrix):
+            cond_pdf = ConditionalProbabilityMatrix({tuple(my_values): cond_pdf for my_values in self.statespace()})
+        elif isinstance(cond_pdf, ConditionalProbabilities):
+            # num_conditioned_vars = len(cond_pdf.keys()[0])
+            num_conditioned_vars = cond_pdf.num_given_variables()
 
             assert num_conditioned_vars <= len(self), 'makes no sense to condition on more variables than I have?'
 
@@ -1222,13 +1645,13 @@ class JointProbabilityMatrix():
                 # is conditioned on the last m variables, and simply copy the same conditional pdf for the first
                 # len(self) - m variables, which implies independence.
 
-                pdf_conds_complete = dict()
+                pdf_conds_complete = ConditionalProbabilityMatrix()
 
                 num_independent_vars = len(self) - num_conditioned_vars
 
                 if __debug__:
                     # finding bug, check if all values of the dictionary are pdfs
-                    for debug_pdf in pdf_conds.itervalues():
+                    for debug_pdf in cond_pdf.itervalues():
                         assert isinstance(debug_pdf, JointProbabilityMatrix), 'debug_pdf = ' + str(debug_pdf)
 
                 statespace_per_independent_variable = [range(self.numvalues)
@@ -1237,9 +1660,9 @@ class JointProbabilityMatrix():
                 if given_variables is None:
                     for indep_vals in itertools.product(*statespace_per_independent_variable):
                         pdf_conds_complete.update({(tuple(indep_vals) + tuple(key)): value
-                                                   for key, value in pdf_conds.items()})
+                                                   for key, value in cond_pdf.iteritems()})
                 else:
-                    assert len(given_variables) == len(pdf_conds.keys()[0]), \
+                    assert len(given_variables) == len(cond_pdf.iterkeys().next()), \
                         'if conditioned on ' + str(len(given_variables)) + 'then I also expect a conditional pdf ' \
                         + 'which conditions on ' + str(len(given_variables)) + ' variables.'
 
@@ -1251,21 +1674,24 @@ class JointProbabilityMatrix():
                         pdf_conds_complete.update({tuple(apply_permutation(indep_vals + tuple(key),
                                                                            list(not_given_variables)
                                                                            + list(given_variables))): value
-                                                   for key, value in pdf_conds.items()})
+                                                   for key, value in cond_pdf.iteritems()})
 
-                assert len(pdf_conds_complete.keys()[0]) == len(self)
+                assert len(pdf_conds_complete.iterkeys().next()) == len(self)
+                assert pdf_conds_complete.num_given_variables() == len(self)
 
                 # recurse once with a complete conditional pdf, so this piece of code should not be executed again:
-                self.append_variables_using_conditional_distributions(pdf_conds=pdf_conds_complete)
+                self.append_variables_using_conditional_distributions(cond_pdf=pdf_conds_complete)
 
                 return
 
-        assert type(pdf_conds) == dict
+        assert isinstance(cond_pdf, ConditionalProbabilities)
 
-        num_added_variables = pdf_conds[(0,)*self.numvariables].numvariables
+        num_added_variables = cond_pdf[(0,)*self.numvariables].numvariables
+
+        assert cond_pdf.num_output_variables() == num_added_variables  # checking after refactoring
 
         assert num_added_variables > 0, 'makes no sense to append 0 variables?'
-        assert self.numvalues == pdf_conds[(0,)*self.numvariables].numvalues, 'added variables should have same #values'
+        assert self.numvalues == cond_pdf[(0,)*self.numvariables].numvalues, 'added variables should have same #values'
 
         # see if at the end, the new joint pdf has the expected list of identifying parameter values
         if __debug__ and len(self) == 1:
@@ -1282,14 +1708,14 @@ class JointProbabilityMatrix():
             existing_variables_values = values[:self.numvariables]
             added_variables_values = values[self.numvariables:]
 
-            assert len(added_variables_values) == pdf_conds[tuple(existing_variables_values)].numvariables, 'error: ' \
+            assert len(added_variables_values) == cond_pdf[tuple(existing_variables_values)].numvariables, 'error: ' \
                     'len(added_variables_values) = ' + str(len(added_variables_values)) + ', cond. numvariables = ' \
-                    '' + str(pdf_conds[tuple(existing_variables_values)].numvariables) + ', len(values) = ' \
+                    '' + str(cond_pdf[tuple(existing_variables_values)].numvariables) + ', len(values) = ' \
                     + str(len(values)) + ', existing # variables = ' + str(self.numvariables) + ', ' \
                     'num_added_variables = ' + str(num_added_variables)
 
             prob_existing = self(existing_variables_values)
-            prob_added_cond_existing = pdf_conds[tuple(existing_variables_values)](added_variables_values)
+            prob_added_cond_existing = cond_pdf[tuple(existing_variables_values)](added_variables_values)
 
             assert 0.0 <= prob_existing <= 1.0, 'prob not normalized'
             assert 0.0 <= prob_added_cond_existing <= 1.0, 'prob not normalized'
@@ -1297,9 +1723,10 @@ class JointProbabilityMatrix():
             extended_joint_probs[tuple(values)] = prob_existing * prob_added_cond_existing
 
             if __debug__ and len(self) == 1:
-                _debug_parameters_before_append.append(pdf_conds[tuple(existing_variables_values)].matrix2params_incremental)
+                _debug_parameters_before_append.append(cond_pdf[tuple(existing_variables_values)].matrix2params_incremental)
 
-        np.testing.assert_almost_equal(np.sum(extended_joint_probs), 1.0)
+        if __debug__ and np.random.randint(10) == 0:
+            np.testing.assert_almost_equal(np.sum(extended_joint_probs), 1.0)
 
         self.reset(self.numvariables + num_added_variables, self.numvalues, extended_joint_probs)
 
@@ -1408,12 +1835,14 @@ class JointProbabilityMatrix():
 
         lists_of_possible_given_values = [range(self.numvalues) for variable in xrange(len(given_variables))]
 
-        return {tuple(given_values): self.conditional_probability_distribution(given_variables=given_variables,
+        dic = {tuple(given_values): self.conditional_probability_distribution(given_variables=given_variables,
                                                                                given_values=given_values)
                 for given_values in itertools.product(*lists_of_possible_given_values)}
 
+        return ConditionalProbabilityMatrix(dic)
 
-    # todo: try to make this entropy() function VERY efficient, or compiled (weave?), or C++ binding or something,
+
+    # todo: try to make this entropy() function VERY efficient, maybe compiled (weave?), or C++ binding or something,
     # it is a central
     # function in all information-theoretic quantities and especially it is a crucial bottleneck for optimization
     # procedures such as in append_orthogonal* which call information-theoretic quantities a LOT.
@@ -1962,11 +2391,8 @@ class JointProbabilityMatrix():
                     range(len(subject_variables))
                 )
 
-                assert type(cond_pdf_syns_on_subjects) == dict
-                assert len(cond_pdf_syns_on_subjects) > 0, 'conditioned on 0 values?'
-
-                # if this hits then something is unintuitive with conditioning on variables...
-                assert len(cond_pdf_syns_on_subjects.keys()[0]) == len(subject_variables)
+                assert type(cond_pdf_syns_on_subjects) == dict \
+                       or isinstance(cond_pdf_syns_on_subjects, ConditionalProbabilities)
 
                 pdf_with_srvs_for_agnostic = self.copy()
                 pdf_with_srvs_for_agnostic.append_variables_using_conditional_distributions(cond_pdf_syns_on_subjects,
@@ -2063,11 +2489,11 @@ class JointProbabilityMatrix():
                 range(len(subject_variables))
             )
 
-            assert type(cond_pdf_syns_on_subjects) == dict
-            assert len(cond_pdf_syns_on_subjects) > 0, 'conditioned on 0 values?'
+            assert isinstance(cond_pdf_syns_on_subjects, ConditionalProbabilities)
+            assert cond_pdf_syns_on_subjects.num_given_variables() > 0, 'conditioned on 0 variables?'
 
             # if this hits then something is unintuitive with conditioning on variables...
-            assert len(cond_pdf_syns_on_subjects.keys()[0]) == len(subject_variables)
+            assert cond_pdf_syns_on_subjects.num_given_variables() == len(subject_variables)
 
             pdf_with_srvs = self.copy()
             pdf_with_srvs.append_variables_using_conditional_distributions(cond_pdf_syns_on_subjects,
@@ -2131,7 +2557,9 @@ class JointProbabilityMatrix():
 
     def susceptibility_local_single(self, var_id, num_output_variables, perturbation_size=0.1, ntrials=25):
 
-        if var_id >= len(self) - num_output_variables:
+        num_non_output_variables = len(self) - num_output_variables
+
+        if var_id >= num_non_output_variables:
             raise ValueError('variable ' + str(var_id) + ' to perturb lies in output range, not input (first '
                              + str(len(self) - num_output_variables) + ' variables)')
 
@@ -2173,6 +2601,8 @@ class JointProbabilityMatrix():
 
         susceptibilities = []
 
+        pdf_output_only = self[range(num_non_output_variables, len(self))]
+
         for i in xrange(ntrials):
             pdf_var_only = pdf_var_only_orig.copy()
 
@@ -2185,10 +2615,16 @@ class JointProbabilityMatrix():
 
             pdf_var_only.append_variables_using_conditional_distributions(cond_pdf_rest)
 
-            new_mi = pdf_var_only.mutual_information(range(len(pdf_var_only) - num_output_variables),
-                                                     range(len(pdf_var_only) - num_output_variables, len(pdf_var_only)))
+            # new_mi = pdf_var_only.mutual_information(range(len(pdf_var_only) - num_output_variables),
+            #                                          range(len(pdf_var_only) - num_output_variables, len(pdf_var_only)))
+            #
+            # susceptibilities.append(abs(new_mi - original_mi))
 
-            susceptibilities.append(abs(new_mi - original_mi))
+            pdf_perturbed_output_only = pdf_var_only[range(num_non_output_variables, len(self))]
+
+            susceptibility = pdf_output_only.kullback_leibler_divergence(pdf_perturbed_output_only)
+
+            susceptibilities.append(susceptibility)
 
         return np.mean(susceptibilities) / original_mi
 
@@ -2235,6 +2671,8 @@ class JointProbabilityMatrix():
 
         susceptibilities = []
 
+        pdf_output_only = self[range(num_input_variables, len(self))]
+
         for i in xrange(ntrials):
             perturbation = np.random.random(len(affected_params))
             perturbation = perturbation / np.linalg.norm(perturbation) * perturbation_size  # normalize vector norm
@@ -2242,16 +2680,79 @@ class JointProbabilityMatrix():
             pdf_perturbed.params2matrix_incremental(map(clip_to_unit_line, np.add(affected_params, perturbation))
                                                     + static_params)
 
-            susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
-                                                              range(num_input_variables,
-                                                                    num_input_variables + num_output_variables)) \
-                             - original_mi
+            # susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
+            #                                                   range(num_input_variables,
+            #                                                         num_input_variables + num_output_variables)) \
+            #                  - original_mi
+
+            pdf_perturbed_output_only = pdf_perturbed[range(num_input_variables, len(self))]
+
+            susceptibility = pdf_perturbed.kullback_leibler_divergence(pdf_perturbed_output_only)
+
             susceptibilities.append(abs(susceptibility))
 
         return np.mean(susceptibilities) / original_mi
 
 
-    def susceptibility_non_local(self, num_output_variables, num_second_input_variables=1,
+    def susceptibility_non_local(self, output_variables, variables_X1, variables_X2,
+                                 perturbation_size=0.1, ntrials=25):
+
+        if list(variables_X1) + list(variables_X2) + list(output_variables) == range(max(output_variables)+1):
+            # all variables are already nice ordered, so call directly susceptibility_non_local_ordered, maybe
+            # only extraneous variables need to be deleted
+
+            if len(self) > max(output_variables) + 1:
+                pdf_lean = self[:(max(output_variables) + 1)]
+
+                # should be exactly the same function call as in 'else', but on different pdf (removing extraneous
+                # variables)
+                return pdf_lean.susceptibility_non_local_ordered(len(output_variables),
+                                                         num_second_input_variables=len(variables_X2),
+                                                         perturbation_size=perturbation_size, ntrials=ntrials)
+            else:
+                return self.susceptibility_non_local_ordered(len(output_variables),
+                                                     num_second_input_variables=len(variables_X2),
+                                                     perturbation_size=perturbation_size, ntrials=ntrials)
+        else:
+            # first reorder, then remove extraneous variables, and then call susceptibility_non_local_ordered
+
+            reordering_relevant = list(variables_X1) + list(variables_X2) + list(output_variables)
+
+            extraneous_vars = np.setdiff1d(range(len(self)), reordering_relevant)
+
+            reordering = reordering_relevant + list(extraneous_vars)
+
+            pdf_reordered = self.copy()
+            pdf_reordered.reorder_variables(reordering)
+
+            pdf_reordered = pdf_reordered[:len(reordering_relevant)]  # keep only relevant variables (do in reorder?)
+
+            return pdf_reordered.susceptibility_non_local_ordered(len(output_variables),
+                                                                  num_second_input_variables=len(variables_X2),
+                                                                  perturbation_size=perturbation_size, ntrials=ntrials)
+
+
+    def kullback_leibler_divergence(self, other_pdf):
+
+        div = 0.0
+
+        assert len(other_pdf) == len(self), 'must have same number of variables (marginalize first)'
+
+        for states in self.statespace():
+            assert len(states) == len(other_pdf)
+
+            if other_pdf(states) > 0:
+                div += self(states) * np.log2(self(states) / other_pdf(states))
+            else:
+                if self(states) > 0:
+                    div += 0.0
+                else:
+                    div = np.inf  # divergence becomes infinity if the support of Q is not that of P
+
+        return div
+
+
+    def susceptibility_non_local_ordered(self, num_output_variables, num_second_input_variables=1,
                                  perturbation_size=0.1, ntrials=25):
         """
         Perturb the current pdf Pr(X1,X2,Y) by changing Pr(X2|X1) slightly, but keeping Pr(X1) and Pr(X2) fixed. Then
@@ -2279,16 +2780,25 @@ class JointProbabilityMatrix():
 
         cond_pdf_output = self - pdf_inputs
 
+        pdf_outputs = self[range(num_input_variables, len(self))]  # marginal Y
+
         for i in xrange(ntrials):
             # perturb only among the input variables
             resp = pdf_inputs.perturb_non_local(num_second_input_variables, perturbation_size)
 
             pdf_perturbed = resp.pdf + cond_pdf_output
 
-            susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
-                                                              range(num_input_variables,
-                                                                    num_input_variables + num_output_variables)) \
-                             - original_mi
+            pdf_perturbed_outputs = pdf_perturbed[range(num_input_variables, len(self))]  # marginal Y'
+
+            # susceptibility = pdf_perturbed.mutual_information(range(num_input_variables),
+            #                                                   range(num_input_variables,
+            #                                                         num_input_variables + num_output_variables)) \
+            #                  - original_mi
+
+            # TODO: this compares the marginals of the outputs, but the MI between the old and new output which
+            # would be better, but is more involved.
+            susceptibility = pdf_outputs.kullback_leibler_divergence(pdf_perturbed_outputs)
+
             susceptibilities.append(abs(susceptibility))
 
         return np.mean(susceptibilities) / original_mi
@@ -2296,11 +2806,311 @@ class JointProbabilityMatrix():
 
     class PerturbNonLocalResponse():
         pdf = None  # JointProbabilityMatrix object
-        cost_same_output_marginal = None  # float, should be as close to zero as possible.
-        cost_different_relation = None  # float, should be as close to zero as possible
+        # cost_same_output_marginal = None  # float, should be as close to zero as possible.
+        # cost_different_relation = None  # float, should be as close to zero as possible
+        perturb_size = None  # norm of vector added to params
 
 
-    def perturb_non_local(self, num_output_variables, perturbation_size=0.1):
+    def susceptibility(self, variables_Y, variables_X='all', perturbation_size=0.1, only_non_local=False):
+
+        # note: at the moment I only perturb per individual variable in X, not jointly; need to supprt this in
+        # self.perturb()
+
+        if variables_X in ('all', 'auto'):
+            variables_X = list(np.setdiff1d(range(len(self)), variables_Y))
+
+        assert len(variables_X) > 0, 'makes no sense to measure susceptibility to zero variables (X)'
+
+        pdf_X = self[variables_X]  # marginalize X out of Pr(X,Y)
+        cond_pdf_Y = self.conditional_probability_distributions(variables_X)
+
+        if __debug__:
+            ent_X = pdf_X.entropy()
+
+        pdf_XX = pdf_X.copy()
+        pdf_XX.append_variables_using_state_transitions_table(lambda x, nv: x)  # duplicate X
+
+        if __debug__:
+            # duplicating X should not increase entropy in any way
+            np.testing.assert_almost_equal(ent_X, pdf_XX.entropy())
+
+        for x2id in xrange(len(variables_X), 2*len(variables_X)):
+            pdf_XX.perturb([x2id], perturbation_size=perturbation_size, only_non_local=only_non_local)
+
+        if __debug__:
+            # I just go ahead and assume that now the entropy must have increased, since I have exerted some
+            # external (noisy) influence
+            # note: hitting this assert is highly unlikely but could still happen, namely if the perturbation(s)
+            # fail to happen
+            # note: could happen if some parameter(s) are 0 or 1, because then there are other parameter values which
+            # are irrelevant and have no effect, so those could be changed to satisfy the 'perturbation' constraint
+            if not 0 in pdf_XX.matrix2params_incremental() and not 1 in pdf_XX.matrix2params_incremental():
+                assert ent_X != pdf_XX.entropy(), 'ent_X=' + str(ent_X) + ', pdf_XX.entropy()=' + str(pdf_XX.entropy())
+
+        pdf_XXYY = pdf_XX.copy()
+        pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X)))
+        pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X), 2*len(variables_X)))
+
+        ent_Y = pdf_XXYY.entropy(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)))
+        mi_YY = pdf_XXYY.mutual_information(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)),
+                                            range(2*len(variables_X) + len(variables_Y),
+                                                  2*len(variables_X) + 2*len(variables_Y)))
+
+        impact = 1.0 - mi_YY / ent_Y
+
+        return impact
+
+
+    # todo: rename to perturb(..., only_non_local=False)
+    def perturb(self, perturbed_variables, perturbation_size=0.1, only_non_local=False):
+        """
+        Perturb the pdf P(X,Y) by changing P(Y|X) without actually changing P(X) or P(Y), by numerical optimization.
+        Y is assumed to be formed by stochastic variables collected at the end of the pdf.
+
+        This function changes the object in-place (<self>).
+        :param num_output_variables: |Y|.
+        :param perturbation_size: the higher, the more different P(Y|X) will be from <self>
+        :rtype: PerturbNonLocalResponse
+        """
+
+        subject_variables = np.setdiff1d(range(len(self)), list(perturbed_variables))
+
+        assert len(subject_variables) + len(perturbed_variables)
+
+        if max(subject_variables) < min(perturbed_variables):
+            # the variables are a contiguous block of subjects and then a block of perturbs. Now we can use the property
+            # of self.matrix2params_incremental() in that its parameters are ordered to encode dependencies to
+            # lower-numbered variables.
+
+            pdf_subs_only = self[range(len(subject_variables))]
+
+            params_subs_only = list(pdf_subs_only.matrix2params_incremental())
+
+            params_subs_perturbs = list(self.matrix2params_incremental())
+
+            num_static_params = len(params_subs_only)
+            num_free_params = len(params_subs_perturbs) - num_static_params
+
+            free_params_orig = list(params_subs_perturbs[num_static_params:])
+
+            # using equation: a^2 + b^2 + c^2 + ... = p^2, where p is norm and a..c are vector elements.
+            # I can then write s_a * p^2 + s_b(p^2 - s_a * p^2) + ... = p^2, so that a = sqrt(s_a * p^2), where all
+            # s_{} are independent coordinates in range [0,1]
+            def from_sphere_coords_to_vec(coords, norm=perturbation_size):
+                accounted_norm = np.power(norm, 2)
+
+                vec = []
+
+                for coord in coords:
+                    if -0.0001 <= coord <= 1.0001:
+                        coord = min(max(coord, 0.0), 1.0)
+                    assert 0 <= coord <= 1.0, 'invalid coordinate'
+
+                    if accounted_norm < 0.0:
+                        assert accounted_norm > -0.0001, 'accounted_norm dropped below zero, seems not just rounding' \
+                                                         ' error: ' + str(accounted_norm)
+
+                    accounted_norm_i = coord * accounted_norm
+
+                    vec.append(np.sqrt(accounted_norm_i))
+
+                    accounted_norm -= accounted_norm_i
+
+                # add last vector element, which simply consumes all remaining 'norm' quantity
+                vec.append(np.sqrt(accounted_norm))
+
+                # norm of resulting vector should be <norm>
+                np.testing.assert_almost_equal(np.linalg.norm(vec), norm)
+
+                return vec
+
+            pdf_perturbs_only = self[range(len(subject_variables), len(subject_variables) + len(perturbed_variables))]
+            params_perturbs_only = list(pdf_perturbs_only.matrix2params_incremental())
+
+            def clip_to_unit_line(num):  # helper function, make sure all probabilities remain valid
+                return max(min(num, 1), 0)
+
+            pdf_new = self.copy()
+
+            # note: to find a perturbation vector of <num_free_params> length and of norm <perturbation_size> we
+            # now just have to find <num_free_params-1> independent values in range [0,1] and retrieve the
+            # perturbation vector by from_sphere_coords_to_vec
+            # rel_weight_out_of_bounds: the higher the more adversion to going out of hypercube (and accepting the
+            # ensuing necessary clipping, which makes the norm of the perturbation vector less than requested)
+            def cost_perturb_vec(sphere_coords, return_cost_list=False, rel_weight_out_of_bounds=10.0):
+                new_params = params_subs_perturbs  # old param values
+                perturb_vec = from_sphere_coords_to_vec(sphere_coords)
+                new_params = np.add(new_params, [0]*num_static_params + perturb_vec)
+                new_params_clipped = map(clip_to_unit_line, new_params)
+
+                # if the params + perturb_vec would go out of the unit hypercube then this number will become nonzero
+                # and increase with 'severity'. should use this as added, high cost
+                missing_param_mass = np.sum(np.power(np.subtract(new_params, new_params_clipped), 2))
+
+                pdf_new.params2matrix_incremental(new_params_clipped)
+
+                pdf_new_perturbs_only = pdf_new[range(len(subject_variables),
+                                                      len(subject_variables) + len(perturbed_variables))]
+                params_new_perturbs_only = pdf_new_perturbs_only.matrix2params_incremental()
+
+                marginal_pdf_perturbs_diff = np.sum(np.power(np.subtract(params_perturbs_only, params_new_perturbs_only), 2))
+
+                # cost term for going out of the hypercube, which we don't want
+                cost_out_of_bounds = np.sqrt(missing_param_mass) / perturbation_size
+
+                if only_non_local or return_cost_list:
+                    # note: assumed to be maximally <perturbation_size, namely by a vector on the rim of the hypercube
+                    # and then in the perpendicular direction outward into 'unallowed' space (like negative)
+                    cost_diff_marginal_perturbed = np.sqrt(marginal_pdf_perturbs_diff) / perturbation_size
+                else:
+                    # we don't care about a cost term for keeping the marginal the same
+                    cost_diff_marginal_perturbed = 0
+
+                if not return_cost_list:
+                    return float(rel_weight_out_of_bounds * cost_out_of_bounds + cost_diff_marginal_perturbed)
+                else:
+                    # this is for diagnostics only, not for any optimization procedure
+                    return (cost_out_of_bounds, cost_diff_marginal_perturbed)
+
+            num_sphere_coords = num_free_params - 1  # see description for from_sphere_coords_to_vec()
+
+            initial_perturb_vec = np.random.random(num_sphere_coords)
+
+            optres = minimize(cost_perturb_vec, initial_perturb_vec, bounds=[(0.0, 1.0)]*num_sphere_coords)
+
+            assert optres.success, 'scipy\'s minimize() failed'
+
+            assert optres.fun >= -0.0001, 'cost function as constructed cannot be negative, what happened?'
+
+            # convert optres.x to new parameters
+            new_params = params_subs_perturbs  # old param values
+            perturb_vec = from_sphere_coords_to_vec(optres.x)
+            new_params = np.add(new_params, [0]*num_static_params + perturb_vec)
+            new_params_clipped = map(clip_to_unit_line, new_params)
+
+            self.params2matrix_incremental(new_params_clipped)
+
+            # get list of individual cost terms, for better diagnostics by caller
+            cost = cost_perturb_vec(optres.x, return_cost_list=True)
+
+            resp = self.PerturbNonLocalResponse()
+            resp.pdf = self  # final resulting pdf P'(X,Y), which is slightly different, perturbed version of <self>
+            resp.cost_out_of_bounds = float(cost[0])  # cost of how different marginal P(Y) became (bad)
+            resp.cost_diff_marginal_perturbed = float(cost[1])  # cost of how different P(Y|X) is, compared to desired difference
+            resp.perturb_size = np.linalg.norm(np.subtract(params_subs_perturbs, new_params_clipped))
+
+            return resp
+        else:
+            pdf_reordered = self.copy()
+
+            retained_vars = list(subject_variables) + list(perturbed_variables)
+            ignored_vars = list(np.setdiff1d(range(len(self)), retained_vars))
+
+            if len(ignored_vars) > 0:
+                cond_pdf_ignored = self.conditional_probability_distributions(ignored_vars)
+
+            pdf_reordered.reorder_variables(list(subject_variables) + list(perturbed_variables))
+
+            resp = pdf_reordered.perturb(range(len(subject_variables),
+                                               len(subject_variables) + len(perturbed_variables)))
+
+            # note: pdf_reordered is now changed in place, the perturbed values
+
+            if len(ignored_vars) > 0:
+                pdf_reordered.append_variables_using_conditional_distributions(cond_pdf_ignored)
+
+            reverse_ordering = [-1]*len(self)
+
+            for new_six in xrange(len(subject_variables)):
+                orig_six = subject_variables[new_six]
+                reverse_ordering[orig_six] = new_six
+
+            for new_pix in xrange(len(subject_variables), len(subject_variables) + len(perturbed_variables)):
+                orig_pix = perturbed_variables[new_pix - len(subject_variables)]
+                reverse_ordering[orig_pix] = new_pix
+
+            for new_iix in xrange(len(subject_variables) + len(perturbed_variables),
+                                  len(subject_variables) + len(perturbed_variables) + len(ignored_vars)):
+                orig_pix = perturbed_variables[new_pix - len(subject_variables) - len(perturbed_variables)]
+                reverse_ordering[orig_pix] = new_pix
+
+            pdf_reordered.reorder_variables(reverse_ordering)
+
+            self.duplicate(pdf_reordered)  # change in-place this object now (could remove the use of pdf_reordered?)
+
+            return resp
+
+
+        # assert False, 'todo'
+        #
+        # num_input_variables = len(self) - num_output_variables
+        #
+        # assert num_input_variables > 0, 'makes no sense to perturb a relation with an empty set'
+        #
+        # original_params = self.matrix2params_incremental()
+        #
+        # static_params = list(self[range(num_input_variables)].matrix2params_incremental())
+        #
+        # num_free_params = len(original_params) - len(static_params)
+        #
+        # marginal_output_pdf = self[range(num_input_variables, len(self))]
+        # assert len(marginal_output_pdf) == num_output_variables, 'programming error'
+        # marginal_output_pdf_params = marginal_output_pdf.matrix2params_incremental()
+        #
+        # pdf_new = self.copy()  # just to create an object which I can replace everytime in cost function
+        #
+        # def clip_to_unit_line(num):  # helper function, make sure all probabilities remain valid
+        #     return max(min(num, 1), 0)
+        #
+        # def cost_perturb_non_local(free_params, return_cost_list=False):
+        #     new_params = static_params + list(map(clip_to_unit_line, free_params))
+        #
+        #     pdf_new.params2matrix_incremental(new_params)
+        #
+        #     marginal_output_pdf_new = pdf_new[range(num_input_variables, len(self))]
+        #     marginal_output_pdf_new_params = marginal_output_pdf_new.matrix2params_incremental()
+        #
+        #     cost_same_output_marginal = np.linalg.norm(np.subtract(marginal_output_pdf_new_params,
+        #                                                            marginal_output_pdf_params))
+        #     cost_different_relation = np.linalg.norm(np.subtract(free_params, original_params[len(static_params):]))
+        #
+        #     if not return_cost_list:
+        #         cost = np.power(cost_same_output_marginal - 0.0, 2) \
+        #                + np.power(cost_different_relation - perturbation_size, 2)
+        #     else:
+        #         cost = [np.power(cost_same_output_marginal - 0.0, 2),
+        #                 np.power(cost_different_relation - perturbation_size, 2)]
+        #
+        #     return cost
+        #
+        # initial_guess_perturb_vec = np.random.random(num_free_params)
+        # initial_guess_perturb_vec /= np.linalg.norm(initial_guess_perturb_vec)
+        # initial_guess_perturb_vec *= perturbation_size
+        #
+        # initial_guess = np.add(original_params[len(static_params):],
+        #                        initial_guess_perturb_vec)
+        # initial_guess = map(clip_to_unit_line, initial_guess)  # make sure stays in hypercube's unit volume
+        #
+        # optres = minimize(cost_perturb_non_local, initial_guess, bounds=[(0.0, 1.0)]*num_free_params)
+        #
+        # assert optres.success, 'scipy\'s minimize() failed'
+        #
+        # assert optres.fun >= -0.0001, 'cost function as constructed cannot be negative, what happened?'
+        #
+        # pdf_new.params2matrix_incremental(list(static_params) + list(optres.x))
+        #
+        # # get list of individual cost terms, for better diagnostics by caller
+        # cost = cost_perturb_non_local(optres.x, return_cost_list=True)
+        #
+        # resp = self.PerturbNonLocalResponse()
+        # resp.pdf = pdf_new  # final resulting pdf P'(X,Y), which is slightly different, perturbed version of <self>
+        # resp.cost_same_output_marginal = float(cost[0])  # cost of how different marginal P(Y) became (bad)
+        # resp.cost_different_relation = float(cost[1])  # cost of how different P(Y|X) is, compared to desired difference
+        #
+        # return resp
+
+
+    def perturb_non_local(self, num_output_variables, perturbation_size=0.1):  # todo: generalize
         """
         Perturb the pdf P(X,Y) by changing P(Y|X) without actually changing P(X) or P(Y), by numerical optimization.
         Y is assumed to be formed by stochastic variables collected at the end of the pdf.
@@ -2711,7 +3521,7 @@ class JointProbabilityMatrix():
         if __debug__:
             cond_pdf_X1_X2_given_X = pdf_X_X1_X2.conditional_probability_distributions(range(len(variables_to_orthogonalize)))
 
-            assert len(cond_pdf_X1_X2_given_X.values()[0]) == num_added_variables_orthogonal \
+            assert cond_pdf_X1_X2_given_X.num_output_variables() == num_added_variables_orthogonal \
                                                               + num_added_variables_parallel
 
             pdf_test_Y_X_X1_X2 = self.copy()
@@ -3544,15 +4354,54 @@ class TemporalJointProbabilityMatrix():
 
     # todo: make a class for conditional pdfs sometime?
     # this can be taken as Pr(X_{t+1} | X_{t})
-    cond_next_pdf = {(): JointProbabilityMatrix(0, 0)}
+    cond_next_pdf = ConditionalProbabilityMatrix()
 
 
-    def __init__(self, current_pdf, cond_next_pdf='random'):
+    def __init__(self, current_pdf, cond_next_pdf):
+        """
 
-        self.reset(current_pdf, cond_next_pdf)
+        :param current_pdf:
+
+        Note: you can get unexpected results if you pass me a PDF object but also use the same objet in other places,
+        because ***** Python passes it by reference silently. So I copy it below, which costs memory but saves
+        frustration; if you are really sure that you don't get conflicts of a shared object and need memory space,
+        you could remove the .copy().
+        :type current_pdf: JointProbabilityMatrix
+        :param cond_next_pdf: can also be 'random'
+        :type cond_next_pdf: ConditionalProbabilityMatrix or str or dict
+        """
+        self.reset(current_pdf.copy(), cond_next_pdf)
 
 
-    def next(self, current_state=None):
+    def reset(self, current_pdf, cond_next_pdf='random'):
+
+        assert current_pdf.numvalues >= 0, 'just for making sure that it seems to be a JointProbabilityMatrix-like ' \
+                                           'object'
+        assert current_pdf.numvariables >= 0, 'just for making sure that it seems to be a ' \
+                                              'JointProbabilityMatrix-like object'
+
+        self.current_pdf = current_pdf
+
+        if cond_next_pdf is None:
+            self.cond_next_pdf = ConditionalProbabilityMatrix({states: current_pdf
+                                                               for states in current_pdf.statespace()})
+        elif cond_next_pdf == 'random':
+            self.cond_next_pdf = ConditionalProbabilityMatrix({states: JointProbabilityMatrix(current_pdf.numvariables,
+                                                                                              current_pdf.numvalues)
+                                                               for states in current_pdf.statespace()})
+        else:
+            assert hasattr(cond_next_pdf, 'iterkeys'), 'should be a ConditionalProbabilityMatrix'
+            assert hasattr(cond_next_pdf, 'num_given_variables'), 'should be a ConditionalProbabilityMatrix'
+
+            self.cond_next_pdf = cond_next_pdf
+
+
+    def __eq__(self, other):
+
+        assert False, 'looking for bug'
+
+
+    def next(self, current_state=None):  # PDF of next time step
 
         if current_state is None:
             # todo: for certain cases, like full nested ndarray matrix of probabilities, I think this can be written
@@ -3590,12 +4439,19 @@ class TemporalJointProbabilityMatrix():
 
 
     def future_conditional(self, numsteps):
+
+        # if retained_variables != 'all':
+        #     retained_variables = tuple(retained_variables)
+
         if numsteps == 0:
-            return {states: self.current_pdf  # pdf will not change regardless of current state
-                    for states, pdf in self.cond_next_pdf.iteritems()}
+            # pdf will not change regardless of current state
+            return ConditionalProbabilityMatrix({states: self.current_pdf
+                                                 for states, pdf in self.cond_next_pdf.iteritems()})
+        elif numsteps == 1:
+            return self.next_conditional()
         elif numsteps > 0:
-            return {states: TemporalJointProbabilityMatrix(pdf).future(numsteps - 1).current_pdf
-                    for states, pdf in self.cond_next_pdf.iteritems()}
+            return ConditionalProbabilityMatrix({states: TemporalJointProbabilityMatrix(pdf, self.cond_next_pdf).future(numsteps - 1).current_pdf
+                                                 for states, pdf in self.cond_next_pdf.iteritems()})
         else:
             raise NotImplementedError('numsteps cannot be < 0.')
 
@@ -3605,12 +4461,46 @@ class TemporalJointProbabilityMatrix():
 
 
     def steps(self, numsteps, current_state=None):
-        for i in xrange(numsteps):
+        if current_state is None:
+            for i in xrange(numsteps):
+                self.step(current_state=current_state)
+        elif numsteps > 0:
+            # only constrain the current state for the first step, after that sum over all possible states
             self.step(current_state=current_state)
+
+            for i in xrange(numsteps - 1):
+                self.step(current_state=None)
+        else:
+            pass  # nothing to do
 
 
     def duplicate(self, other):
         self.reset(other.current_pdf, other.cond_next_pdf)
+
+
+    '''
+    HOW TO get to IDT picture:
+
+    > temp_pdf = jointpdf.TemporalJointProbabilityMatrix(jointpdf.JointProbabilityMatrix(3, 2), 'random')
+    > [plt.plot([temp_pdf.mutual_information([ix], range(len(temp_pdf.current_pdf)), dt2=dt) for dt in range(10)], '-') for ix in range(len(temp_pdf.current_pdf))]; plt.yscale('log'); plt.show()
+    '''
+    def mutual_information(self, variables1, variables2, dt2=0):
+        if dt2 == 0:
+            return self.current_pdf.mutual_information(variables1, variables2)
+        elif dt2 > 0:
+            # cond_pdf_dt = self.future_conditional(dt2,
+            #                                       retained_variables=variables2)  # try to save some space
+            #
+            # joint_pdf = self.current_pdf + cond_pdf_dt
+            # assert len(joint_pdf) == len(self.current_pdf) + len(variables2)
+            #
+            # return joint_pdf.mutual_information(variables1, range(len(self.current_pdf), len(self.current_pdf) + len(variables2)))
+            cond_pdf_dt = self.future_conditional(dt2)
+
+            joint_pdf = self.current_pdf + cond_pdf_dt
+            assert len(joint_pdf) == len(self.current_pdf) * 2
+
+            return joint_pdf.mutual_information(variables1, np.add(len(self.current_pdf), variables2))
 
 
     def copy(self):
@@ -3618,26 +4508,6 @@ class TemporalJointProbabilityMatrix():
         :rtype: TemporalJointProbabilityMatrix
         """
         return copy.deepcopy(self)
-
-
-    def reset(self, current_pdf, cond_next_pdf='random'):
-
-        assert current_pdf.numvalues >= 0, 'just for making sure that it seems to be a JointProbabilityMatrix-like ' \
-                                           'object'
-        assert current_pdf.numvariables >= 0, 'just for making sure that it seems to be a ' \
-                                              'JointProbabilityMatrix-like object'
-
-        self.current_pdf = current_pdf
-
-        if cond_next_pdf is None:
-            self.cond_next_pdf = {states: current_pdf for states in current_pdf.statespace()}
-        elif cond_next_pdf == 'random':
-            self.cond_next_pdf = {states: JointProbabilityMatrix(current_pdf.numvariables, current_pdf.numvalues)
-                                  for states in current_pdf.statespace()}
-        else:
-            assert type(cond_next_pdf) == dict, 'currently must be a dictionary'
-
-            self.cond_next_pdf = cond_next_pdf
 
 
 ### UNIT TESTING:
@@ -4335,6 +5205,47 @@ def run_all_tests(verbose=True, all_inclusive=False):
 ### and for which I would like to see the results e.g. to plot in the paper
 
 
+def test_susceptibilities(num_vars_X, num_vars_Y, num_values, num_samples=50, synergistic=True):
+
+    resp = TestSynergyInRandomPdfs()
+
+    resp.susceptibility_new_local_list = []
+    resp.susceptibility_new_global_list = []
+
+    time_before = time.time()
+
+    for sample in xrange(num_samples):
+        if not synergistic:
+            pdf = JointProbabilityMatrix(num_vars_X + num_vars_Y, num_values)
+        else:
+            pdf = JointProbabilityMatrix(num_vars_X, num_values)
+            pdf.append_synergistic_variables(num_vars_Y)
+
+        num_X1 = int(num_vars_X / 2)
+
+        print 'note: computing old susceptibilities... t=' + str(time.time() - time_before)
+
+        resp.susceptibilities_local_list.append(pdf.susceptibilities_local(num_vars_Y))
+        resp.susceptibility_global_list.append(pdf.susceptibility_non_local(range(num_vars_X, len(pdf)), range(num_X1),
+                                                                            range(num_X1, num_vars_X)))
+
+        print 'note: computing new susceptibilities... t=' + str(time.time() - time_before)
+
+        resp.susceptibility_new_local_list.append(pdf.susceptibility(range(num_vars_X, len(pdf)), only_non_local=False))
+        resp.susceptibility_new_global_list.append(pdf.susceptibility(range(num_vars_X, len(pdf)), only_non_local=True))
+
+        resp.pdf_XY_list.append(pdf.copy())
+        resp.total_mi_list.append(pdf.mutual_information(range(num_vars_X), range(num_vars_X, len(pdf))))
+        indiv_mis = [pdf.mutual_information([xi], range(num_vars_X, len(pdf))) for xi in range(num_vars_X)]
+        resp.indiv_mi_list_list.append(indiv_mis)
+
+        print 'note: finished loop sample=' + str(sample+1) + ' (of ' + str(num_samples) + ') t=' \
+              + str(time.time() - time_before)
+        print 'note: susceptibilities:', resp.susceptibilities_local_list[-1], ', ', resp.susceptibility_global_list, \
+            ', ', resp.susceptibility_new_local_list[-1], ', ', resp.susceptibility_new_global_list[-1]
+
+    return resp
+
 
 # returned by test_upper_bound_single_srv_entropy()
 class TestUpperBoundSingleSRVEntropyResult():
@@ -4467,6 +5378,73 @@ def test_upper_bound_single_srv_entropy(num_subject_variables=2, num_synergistic
     return result
 
 
+class TestUpperBoundManySRVEntropyResult():
+
+    # three-level dictionary, num_subject_variables_list --> num_synergistic_variables_list --> num_values_list,
+    # and values are TestUpperBoundSingleSRVEntropyResult objects
+    single_res_dic = dict()
+
+
+    def plot_rel_err_and_frac_success(self, num_samples=1):
+
+        figs = []
+
+        for num_sub in self.single_res_dic.iterkeys():
+            for num_syn in self.single_res_dic[num_sub].iterkeys():
+                fig = plt.figure()
+
+                num_vals_list = self.single_res_dic[num_sub][num_syn].keys()
+                num_successes = [len(self.single_res_dic[num_sub][num_syn][n].rel_errors_srv) for n in num_vals_list]
+
+                plt.boxplot([self.single_res_dic[num_sub][num_syn][n].rel_errors_srv for n in num_vals_list],
+                            labels=map(str, num_vals_list))
+                # plt.ylim([0,0.15])
+                # plt.xlim([0.5, 4.5])
+                plt.xlabel('Number of values per variable')
+                plt.ylabel('Relative error of H(S)')
+
+                ax2 = plt.twinx()
+
+                ax2.set_ylabel('Fraction of successful SRVs')
+                ax2.plot((1,2,3,4), [s / num_samples for s in num_successes], '-o')
+                ax2.set_ylim([0.80, 1.02])
+
+                plt.show()
+
+                figs.append(fig)
+
+        return figs
+
+
+    def plot_efficiency(self):
+        """
+
+        Warning: for num_subject_variables > 2 and num_synergistic_variables < num_subject_variables - 1 then
+        the synergistic entropy does not fit in the SRV anyway, so efficiency of 1.0 would be impossible.
+        :return: list of figure handles
+        """
+        figs = []
+
+        for num_sub in self.single_res_dic.iterkeys():
+            for num_syn in self.single_res_dic[num_sub].iterkeys():
+                fig = plt.figure()
+
+                num_vals_list = self.single_res_dic[num_sub][num_syn].keys()
+
+                # list of lists
+                effs = [np.divide(self.single_res_dic[num_sub][num_syn][n].entropies_srv,
+                                  self.single_res_dic[num_sub][num_syn][n].theoretical_upper_bounds) for n in (2,3,4,5)]
+
+                plt.boxplot(effs, labels=num_vals_list)
+                plt.ylabel('H(S) / H_syn(X)')
+                plt.xlabel('Number of values per variable')
+                plt.show()
+
+                figs.append(fig)
+
+        return figs
+
+
 def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,3]),
                                              num_synergistic_variables_list=list([1,2]),
                                              num_values_list=list([2,3]),
@@ -4509,6 +5487,15 @@ def test_upper_bound_single_srv_entropy_many(num_subject_variables_list=list([2,
 
 
 class TestSynergyInRandomPdfs():
+
+    def __init__(self):
+        self.syn_info_list = []
+        self.total_mi_list = []
+        self.indiv_mi_list_list = []  # list of list
+        self.susceptibility_global_list = []
+        self.susceptibilities_local_list = []  # list of list
+        self.pdf_XY_list = []
+
     syn_info_list = []
     total_mi_list = []
     indiv_mi_list_list = []  # list of list
@@ -4704,3 +5691,73 @@ def test_accuracy_orthogonalization(num_subject_variables=2, num_orthogonalized_
 def test_num_srvs(num_subject_variables=2, num_synergistic_variables=2, num_values=2, num_samples=10,
                   verbose=True, num_repeats=5):
     assert False
+
+
+def test_impact_perturbation(num_variables_X=2, num_variables_Y=1, num_values=5,
+                                num_samples=20, tolerance_nonsyn_mi=0.05, verbose=True, minimize_method=None,
+                                perturbation_size=0.1, num_repeats_per_srv_append=3):
+
+    """
+
+
+    :param minimize_method: the default is chosen if None, which is good, but not necessarily fast. One other, faster
+    option I found was "SLSQP", but I have not quantified rigorously how much better/worse in terms of accuracy it is.
+    :param num_variables_X:
+    :param num_variables_Y:
+    :param num_values:
+    :param num_samples:
+    :param tolerance_nonsyn_mi:
+    :param verbose:
+    :rtype: TestSynergyInRandomPdfs
+    """
+
+    result = TestSynergyInRandomPdfs()
+
+    time_before = time.time()
+
+    try:
+        for i in xrange(num_samples):
+            pdf = JointProbabilityMatrix(num_variables_X, num_values)
+            pdf.append_synergistic_variables(num_variables_Y, num_repeats=num_repeats_per_srv_append)
+
+            pdf_Y_cond_X = pdf.conditional_probability_distributions(range(len(num_variables_X)))
+
+            result.pdf_XY_list.append(pdf)
+
+            result.syn_info_list.append(pdf.synergistic_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          range(num_variables_X),
+                                                          tolerance_nonsyn_mi=tolerance_nonsyn_mi,
+                                                          verbose=bool(int(verbose)-1),
+                                                          minimize_method=minimize_method,
+                                                          num_repeats_per_srv_append=num_repeats_per_srv_append))
+
+            result.total_mi_list.append(pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          range(num_variables_X)))
+
+            indiv_mi_list = [pdf.mutual_information(range(num_variables_X, num_variables_X + num_variables_Y),
+                                                          [xid]) for xid in xrange(num_variables_X)]
+
+            result.indiv_mi_list_list.append(indiv_mi_list)
+
+            result.susceptibility_global_list.append(pdf.susceptibility_global(num_variables_Y, ntrials=50,
+                                                                               perturbation_size=perturbation_size))
+
+            result.susceptibilities_local_list.append(pdf.susceptibilities_local(num_variables_Y, ntrials=50,
+                                                                                 perturbation_size=perturbation_size))
+
+            if verbose:
+                print 'note: finished sample', i, 'of', num_samples, ', syn. info. =', result.syn_info_list[-1], 'after', \
+                    time.time() - time_before, 'seconds'
+    except KeyboardInterrupt as e:
+        min_len = len(result.susceptibilities_local_list)  # last thing to append to in above loop, so min. length
+
+        result.syn_info_list = result.syn_info_list[:min_len]
+        result.total_mi_list = result.total_mi_list[:min_len]
+        result.indiv_mi_list_list = result.indiv_mi_list_list[:min_len]
+        result.susceptibility_global_list = result.susceptibility_global_list[:min_len]
+
+        if verbose:
+            print 'note: keyboard interrupt. Will stop the loop and return the', min_len, 'result I have so far.', \
+                'Took me', time.time() - time_before, 'seconds.'
+
+    return result
