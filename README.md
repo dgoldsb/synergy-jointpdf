@@ -45,3 +45,16 @@ p_ABC = p_AB
 # compute the information synergy that C contains about A and B (takes a while)
 p_ABC.synergistic_information([2], [0,1])
 ```
+
+* Basic information-theoretical measures
+
+```python
+from jointpdf import JointProbabilityMatrix
+
+# randomly generate a joint probability mass function p(A,B,C) 
+# of 3 discrete stochastic variables, each having 4 possible values
+p_ABC = JointProbabilityMatrix(3,4)
+
+# compute the information synergy that C contains about A and B (takes a while)
+p_ABC.synergistic_information([2], [0,1])
+```
