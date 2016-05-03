@@ -462,8 +462,10 @@ class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
 
 
     def generate_random_joint_probabilities(self, numvariables, numvalues):
+        # todo: this does not result in random probability densities... Should do recursive
         self.joint_probabilities = np.random.random([numvalues]*numvariables)
         self.joint_probabilities /= np.sum(self.joint_probabilities)
+
 
 # todo: move params2matrix and matrix2params to the NestedArray classes? Is specific per subclass...
 class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
@@ -599,6 +601,49 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
         np.testing.assert_almost_equal(np.sum(self.marginal_probabilities), 1.0 * numvariables)
 
 
+class CausalImpactResponse():
+    perturbed_variables = None
+
+    mi_orig = None
+    mi_nudged_list = None
+    mi_diffs = None
+    avg_mi_diff = None
+    std_mi_diff = None
+
+    impacts_on_output = None
+    avg_impact = None
+    std_impact = None
+
+    correlations = None
+    avg_corr = None
+    std_corr = None
+
+    residuals = None
+    avg_residual = None
+    std_residual = None
+
+    def __init__(self):
+        self.perturbed_variables = None
+
+        self.mi_orig = None
+        self.mi_nudged_list = None
+        self.mi_diffs = None
+        self.avg_mi_diff = None
+        self.std_mi_diff = None
+
+        self.impacts_on_output = None
+        self.avg_impact = None
+        self.std_impact = None
+
+        self.correlations = None
+        self.avg_corr = None
+        self.std_corr = None
+
+        self.residuals = None
+        self.avg_residual = None
+        self.std_residual = None
+
+
 class JointProbabilityMatrix():
     # nested list of probabilities. For instance for three binary variables it could be:
     # [[[0.15999394, 0.06049343], [0.1013956, 0.15473886]], [[ 0.1945649, 0.15122334], [0.11951818, 0.05807175]]].
@@ -611,7 +656,7 @@ class JointProbabilityMatrix():
     # on labels at all, only variable indices 0..N-1.
     labels = []
 
-    def __init__(self, numvariables, numvalues, joint_probs=None, labels=None,
+    def __init__(self, numvariables, numvalues, joint_probs='unbiased', labels=None,
                  create_using=FullNestedArrayOfProbabilities):
 
         self.numvariables = numvariables
@@ -630,8 +675,14 @@ class JointProbabilityMatrix():
                 self.joint_probabilities = create_using()
                 self.generate_uniform_joint_probabilities(numvariables, numvalues)
             elif joint_probs == 'random':
+                # this is BIASED! I.e., if generating bits then the marginal p of one bit being 1 is not uniform
                 self.joint_probabilities = create_using()
                 self.generate_random_joint_probabilities()
+            elif joint_probs == 'unbiased':
+                self.joint_probabilities = create_using()
+                self.generate_random_joint_probabilities()  # just to get valid params and pass the debugging tests
+                numparams = len(self.matrix2params_incremental(True))
+                self.params2matrix_incremental(np.random.random(numparams))
             else:
                 raise ValueError('don\'t know what to do with joint_probs=' + str(joint_probs))
         else:
@@ -1336,8 +1387,15 @@ class JointProbabilityMatrix():
     _debug_params2matrix = False  # internal variable, used to debug a debug statement, can be removed in a while
 
 
+    # todo: should this be part of e.g. FullNestedArrayOfProbabilities instead of this class?
     def params2matrix_incremental(self, parameters):
-
+        """
+        Takes in a row of floats in range [0.0, 1.0] and changes <self> to a new PDF which is characterized by the
+        parameters. Benefit: np.random.random(M**N - 1) results in an unbiased sample of PDF, wnere M is numvalues
+        and N is numvariables.
+        :param parameters: list of floats, length equal to what matrix2params_incrmental() returns (M**N - 1)
+        :type parameters: list of float
+        """
         if __debug__:
             # store the original provided list of scalars
             original_parameters = list(parameters)
@@ -1846,12 +1904,7 @@ class JointProbabilityMatrix():
     # it is a central
     # function in all information-theoretic quantities and especially it is a crucial bottleneck for optimization
     # procedures such as in append_orthogonal* which call information-theoretic quantities a LOT.
-    def entropy(self, variables=None):
-        # def log2term(p):  # p log_2 p
-        #     if 0.0 < p < 1.0:
-        #         return -p * np.log2(p)
-        #     else:
-        #         return 0.0  # 0 log 0 == 0 is assumed
+    def entropy(self, variables=None, base=2):
 
         if variables is None:
             if np.random.random() < 0.1:
@@ -1860,16 +1913,23 @@ class JointProbabilityMatrix():
             probs = self.joint_probabilities.flatten()
             probs = np.select([probs != 0], [probs], default=1)
 
-            # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flatiter()))
-            log_terms = probs * np.log2(probs)
-            # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
-            joint_entropy = -np.sum(log_terms)
+            if base == 2:
+                # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flatiter()))
+                log_terms = probs * np.log2(probs)
+                # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
+                joint_entropy = -np.sum(log_terms)
+            elif base == np.e:
+                # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flatiter()))
+                log_terms = probs * np.log(probs)
+                # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
+                joint_entropy = -np.sum(log_terms)
+            else:
+                # joint_entropy = np.sum(map(log2term, self.joint_probabilities.flatiter()))
+                log_terms = probs * (np.log(probs) / np.log(base))
+                # log_terms = np.select([np.isfinite(log_terms)], [log_terms])
+                joint_entropy = -np.sum(log_terms)
 
             assert joint_entropy >= 0.0
-            # note: the extra 0.001 is for roundoff errors
-            assert joint_entropy <= np.log2(self.numvalues) * self.numvariables + 0.001, \
-                'joint_entropy=' + str(joint_entropy) + ', np.log2(self.numvalues) * self.numvariables = ' \
-                + str(np.log2(self.numvalues) * self.numvariables)
 
             return joint_entropy
         else:
@@ -1880,7 +1940,7 @@ class JointProbabilityMatrix():
 
             marginal_pdf = self.marginalize_distribution(retained_variables=variables)
 
-            return marginal_pdf.entropy()
+            return marginal_pdf.entropy(base=base)
 
 
     def conditional_entropy(self, variables, given_variables=None):
@@ -1917,7 +1977,7 @@ class JointProbabilityMatrix():
         return self.mutual_information(variables1, variables2)
 
 
-    def mutual_information(self, variables1, variables2):
+    def mutual_information(self, variables1, variables2, base=2):
         assert hasattr(variables1, '__iter__'), 'variables1 = ' + str(variables1)
         assert hasattr(variables2, '__iter__'), 'variables2 = ' + str(variables2)
 
@@ -1925,14 +1985,14 @@ class JointProbabilityMatrix():
             mi = 0  # trivial case, no computation needed
         elif len(variables1) == len(variables2):
             if np.equal(sorted(variables1), sorted(variables2)).all():
-                mi = self.entropy(variables1)  # more efficient, shortcut
+                mi = self.entropy(variables1, base=base)  # more efficient, shortcut
             else:
                 # this one should be equal to the outer else-clause (below), i.e., the generic case
-                mi = self.entropy(variables1) + self.entropy(variables2) \
-                     - self.entropy(list(set(list(variables1) + list(variables2))))
+                mi = self.entropy(variables1, base=base) + self.entropy(variables2, base=base) \
+                     - self.entropy(list(set(list(variables1) + list(variables2))), base=base)
         else:
-            mi = self.entropy(variables1) + self.entropy(variables2) \
-                 - self.entropy(list(set(list(variables1) + list(variables2))))
+            mi = self.entropy(variables1, base=base) + self.entropy(variables2, base=base) \
+                 - self.entropy(list(set(list(variables1) + list(variables2))), base=base)
 
         assert np.isscalar(mi)
         assert np.isfinite(mi)
@@ -2811,71 +2871,294 @@ class JointProbabilityMatrix():
         perturb_size = None  # norm of vector added to params
 
 
-    def susceptibility(self, variables_Y, variables_X='all', perturbation_size=0.1, only_non_local=False):
+    def susceptibility(self, variables_Y, variables_X='all', perturbation_size=0.1, only_non_local=False,
+                       impact_measure='midiff'):
 
         # note: at the moment I only perturb per individual variable in X, not jointly; need to supprt this in
         # self.perturb()
 
+        """
+        :param impact_measure: 'midiff' for nudge control impact, 'relative' for normalized
+        :type impact_measure: str
+        """
         if variables_X in ('all', 'auto'):
             variables_X = list(np.setdiff1d(range(len(self)), variables_Y))
 
         assert len(variables_X) > 0, 'makes no sense to measure susceptibility to zero variables (X)'
 
-        pdf_X = self[variables_X]  # marginalize X out of Pr(X,Y)
-        cond_pdf_Y = self.conditional_probability_distributions(variables_X)
+        if impact_measure == 'relative':
+            pdf_X = self[variables_X]  # marginalize X out of Pr(X,Y)
+            cond_pdf_Y = self.conditional_probability_distributions(variables_X)
 
-        if __debug__:
-            ent_X = pdf_X.entropy()
+            if __debug__:
+                ent_X = pdf_X.entropy()
 
-        pdf_XX = pdf_X.copy()
-        pdf_XX.append_variables_using_state_transitions_table(lambda x, nv: x)  # duplicate X
+            pdf_XX = pdf_X.copy()
+            pdf_XX.append_variables_using_state_transitions_table(lambda x, nv: x)  # duplicate X
 
-        if __debug__:
-            # duplicating X should not increase entropy in any way
-            np.testing.assert_almost_equal(ent_X, pdf_XX.entropy())
+            if __debug__:
+                # duplicating X should not increase entropy in any way
+                np.testing.assert_almost_equal(ent_X, pdf_XX.entropy())
 
-        for x2id in xrange(len(variables_X), 2*len(variables_X)):
-            pdf_XX.perturb([x2id], perturbation_size=perturbation_size, only_non_local=only_non_local)
+            for x2id in xrange(len(variables_X), 2*len(variables_X)):
+                pdf_XX.perturb([x2id], perturbation_size=perturbation_size, only_non_local=only_non_local)
 
-        if __debug__:
-            # I just go ahead and assume that now the entropy must have increased, since I have exerted some
-            # external (noisy) influence
-            # note: hitting this assert is highly unlikely but could still happen, namely if the perturbation(s)
-            # fail to happen
-            # note: could happen if some parameter(s) are 0 or 1, because then there are other parameter values which
-            # are irrelevant and have no effect, so those could be changed to satisfy the 'perturbation' constraint
-            if not 0 in pdf_XX.matrix2params_incremental() and not 1 in pdf_XX.matrix2params_incremental():
-                assert ent_X != pdf_XX.entropy(), 'ent_X=' + str(ent_X) + ', pdf_XX.entropy()=' + str(pdf_XX.entropy())
+            if __debug__:
+                # I just go ahead and assume that now the entropy must have increased, since I have exerted some
+                # external (noisy) influence
+                # note: hitting this assert is highly unlikely but could still happen, namely if the perturbation(s)
+                # fail to happen
+                # note: could happen if some parameter(s) are 0 or 1, because then there are other parameter values which
+                # are irrelevant and have no effect, so those could be changed to satisfy the 'perturbation' constraint
+                if not 0 in pdf_XX.matrix2params_incremental() and not 1 in pdf_XX.matrix2params_incremental():
+                    assert ent_X != pdf_XX.entropy(), 'ent_X=' + str(ent_X) + ', pdf_XX.entropy()=' + str(pdf_XX.entropy())
 
-        pdf_XXYY = pdf_XX.copy()
-        pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X)))
-        pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X), 2*len(variables_X)))
+            pdf_XXYY = pdf_XX.copy()
+            pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X)))
+            pdf_XXYY.append_variables_using_conditional_distributions(cond_pdf_Y, range(len(variables_X), 2*len(variables_X)))
 
-        ent_Y = pdf_XXYY.entropy(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)))
-        mi_YY = pdf_XXYY.mutual_information(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)),
-                                            range(2*len(variables_X) + len(variables_Y),
-                                                  2*len(variables_X) + 2*len(variables_Y)))
 
-        impact = 1.0 - mi_YY / ent_Y
+            ent_Y = pdf_XXYY.entropy(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)))
+            mi_YY = pdf_XXYY.mutual_information(range(2*len(variables_X), 2*len(variables_X) + len(variables_Y)),
+                                                range(2*len(variables_X) + len(variables_Y),
+                                                      2*len(variables_X) + 2*len(variables_Y)))
+
+            impact = 1.0 - mi_YY / ent_Y
+        elif impact_measure in ('midiff',):
+            pdf2 = self.copy()
+
+            pdf2.perturb(variables_X, perturbation_size=perturbation_size, only_non_local=only_non_local)
+
 
         return impact
+
+
+    def nudge(self, perturbed_variables, epsilon=0.01):
+
+        if max(perturbed_variables) == len(perturbed_variables) - 1:
+            pdf_X = self[perturbed_variables]  # marginalize X out of Pr(X,Y)
+            cond_pdf_Y = self.conditional_probability_distributions(perturbed_variables)
+
+            # finding bug: probability mass should be 1
+            np.testing.assert_almost_equal(np.sum(pdf_X.joint_probabilities.joint_probabilities), 1)
+
+            nudge = np.random.uniform(-abs(epsilon), abs(epsilon), np.shape(pdf_X.joint_probabilities.joint_probabilities))
+            nudge -= np.sum(nudge) / float(nudge.size)  # should sum up to 0 to keep prob. mass unity
+
+            # looking for bug. make sure no nudge goes out of bounds [-epsilon, +epsilon]
+            # todo: remove and see if that also works fine (is not so cheap operation in general)
+            nudge = np.max([nudge, np.zeros(np.shape(nudge)) - abs(epsilon)], axis=0)
+            nudge = np.min([nudge, np.zeros(np.shape(nudge)) + abs(epsilon)], axis=0)
+
+            # make sure that no probability goes out of bound [0, 1]
+            nudge = np.max([nudge, 0 - pdf_X.joint_probabilities.joint_probabilities], axis=0)
+            nudge = np.min([nudge, 1 - pdf_X.joint_probabilities.joint_probabilities], axis=0)
+
+            # again... surely there must be some smarter way of doing this?
+            nudge -= np.sum(nudge) / float(nudge.size)  # should sum up to 0 to keep prob. mass unity
+
+            new_probs = pdf_X.joint_probabilities.joint_probabilities + nudge
+
+            # todo: remove test once it works a while
+            if np.random.randint(10) == 0:
+                assert np.max(new_probs) <= 1.0, 'no prob should be >1.0: ' + str(np.max(new_probs))
+                assert np.min(new_probs) >= 0.0, 'no prob should be <0.0: ' + str(np.min(new_probs))
+
+            # assert np.max(nudge) <= abs(epsilon), 'no nudge should be >' + str(epsilon) + ': ' + str(np.max(nudge))
+            # assert np.min(nudge) >= -abs(epsilon), 'no nudge should be <' + str(-epsilon) + ': ' + str(np.min(nudge))
+
+            # total probability mass should be unchanged  (todo: remove test once it works a while)
+            np.testing.assert_almost_equal(np.sum(new_probs), 1)
+
+            if __debug__:
+                pdf_X_orig = pdf_X.copy()
+
+            pdf_X.joint_probabilities.reset(new_probs)
+
+            if __debug__:  # looking for bug, can be removed
+                apparent_nudge = pdf_X.joint_probabilities.joint_probabilities - pdf_X_orig.joint_probabilities.joint_probabilities
+
+                assert np.shape(nudge) == np.shape(apparent_nudge), \
+                    'np.shape(nudge) = ' + str(np.shape(nudge)) + ', np.shape(apparent_nudge) = ' + str(np.shape(apparent_nudge))
+                np.testing.assert_almost_equal(apparent_nudge, nudge)
+
+            self.duplicate(pdf_X + cond_pdf_Y)
+
+            return nudge
+        else:
+            raise UserWarning('not implemented: reordering variables and then recursing')
+
+
+    def causal_impact_of_nudge(self, perturbed_variables, epsilon=0.01, num_samples=20, base=2):
+
+        output_variables = np.setdiff1d(range(len(self)), perturbed_variables)
+
+        ret = CausalImpactResponse()
+
+        ret.perturbed_variables = perturbed_variables
+        ret.mi_orig = self.mutual_information(perturbed_variables, output_variables, base=base)
+
+        ret.mi_nudged_list = []
+        ret.impacts_on_output = []
+        ret.correlations = []
+
+        pdf_out = self.marginalize_distribution(output_variables)
+        pdf_pert = self.marginalize_distribution(perturbed_variables)
+
+        cond_out = self.conditional_probability_distributions(perturbed_variables)
+
+        for i in xrange(num_samples):
+            pdf = self.copy()
+
+            nudge = pdf.nudge(perturbed_variables, epsilon)
+
+            ### determine MI difference
+
+            ret.mi_nudged_list.append(pdf.mutual_information(perturbed_variables, output_variables, base=base))
+
+            ### compute causal impact term
+
+            pdf_out_new = pdf.marginalize_distribution(output_variables)
+
+            impact = np.sum(np.power(pdf_out_new.joint_probabilities - pdf_out.joint_probabilities, 2)
+                            / pdf_out.joint_probabilities.joint_probabilities)
+            ret.impacts_on_output.append(impact)
+
+            if __debug__:
+                debug_impact = np.sum([np.power(pdf_out_new(b) - pdf_out(b), 2) / pdf_out(b)
+                                       for b in pdf_out.statespace()])
+
+                np.testing.assert_array_almost_equal(impact, debug_impact)
+
+            assert impact >= 0.0
+
+            ### determine correlation term (with specific surprise)
+
+            if __debug__:
+                # shorthand, but for production mode I am worried that such an extra function call to a very central
+                # function (in Python) may slow things down a lot, so I do it in debug only (seems to take 10-25%
+                # more time indeed)
+                def logbase_debug(x, base):
+                    if base==2:
+                        return np.log2(x)
+                    elif base==np.e:
+                        return np.log(x)
+                    else:
+                        return np.log(x) / np.log(base)
+
+                # looking for bug, todo: remove
+                np.testing.assert_almost_equal(np.sum([nudge[pvs] for pvs in cond_out.iterkeys()]), 0)
+
+
+                debug_surprise_terms_fast = np.array([np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
+                                               * logbase_debug(cond_out[pvs].joint_probabilities.joint_probabilities
+                                                         / pdf_out.joint_probabilities.joint_probabilities, base))
+                                               for pvs in cond_out.iterkeys()])
+
+                debug_surprise_sum_fast = np.sum(debug_surprise_terms_fast)
+
+                pdf_pert_new = pdf.marginalize_distribution(perturbed_variables)
+                np.testing.assert_almost_equal(nudge, pdf_pert_new.joint_probabilities - pdf_pert.joint_probabilities)
+
+                debug_surprise_terms = np.array([np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                                          for ovs in pdf_out.statespace()])
+                     for pvs in cond_out.iterkeys()])
+                debug_surprise_sum = np.sum(debug_surprise_terms)
+                debug_mi_orig = np.sum(
+                    [pdf_pert(pvs) * np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                             for ovs in pdf_out.statespace()])
+                     for pvs in cond_out.iterkeys()])
+
+                np.testing.assert_almost_equal(debug_surprise_sum, debug_surprise_sum_fast)
+                np.testing.assert_almost_equal(debug_mi_orig, ret.mi_orig)
+
+                assert np.all(debug_surprise_terms >= -0.000001), \
+                    'each specific surprise s(a) should be non-negative right? ' + str(np.min(debug_surprise_terms))
+                np.testing.assert_almost_equal(debug_surprise_terms_fast, debug_surprise_terms)
+                assert np.all(debug_surprise_terms_fast >= -0.000001), \
+                    'each specific surprise s(a) should be non-negative right? ' + str(np.min(debug_surprise_terms_fast))
+
+            # todo: precompute cond_out[pvs] * np.log2(cond_out[pvs] / pdf_out) matrix?
+            if base == 2:
+                # note: this is the explicit form, should check if a more implicit numpy array form (faster) will be
+                # equivalent
+                correlation = np.array(
+                    [nudge[pvs] * np.sum([cond_out[pvs](ovs) * np.log2(cond_out[pvs](ovs) / pdf_out(ovs))
+                             for ovs in pdf_out.statespace()]) for pvs in cond_out.iterkeys()])
+                correlation = np.sum(correlation)
+
+                # correlation = np.sum([nudge[pvs] * cond_out[pvs].joint_probabilities.joint_probabilities
+                #               * (np.log2(cond_out[pvs].joint_probabilities.joint_probabilities)
+                #               - np.log2(pdf_out.joint_probabilities.joint_probabilities))
+                #               for pvs in cond_out.iterkeys()])
+
+                if __debug__:
+                    correlation2 = np.sum([nudge[pvs] * np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
+                                  * (np.log2(cond_out[pvs].joint_probabilities.joint_probabilities)
+                                  - np.log2(pdf_out.joint_probabilities.joint_probabilities)))
+                                  for pvs in cond_out.iterkeys()])
+
+                    np.testing.assert_almost_equal(correlation, correlation2)
+            elif base == np.e:
+                correlation = np.sum([nudge[pvs] * np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
+                                      * (np.log(cond_out[pvs].joint_probabilities.joint_probabilities)
+                                         - np.log(pdf_out.joint_probabilities.joint_probabilities)))
+                                      for pvs in cond_out.iterkeys()])
+            else:
+                correlation = np.sum([nudge[pvs] * np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
+                                      * (np.log(cond_out[pvs].joint_probabilities.joint_probabilities)
+                                         - np.log(pdf_out.joint_probabilities.joint_probabilities)) / np.log(base))
+                                      for pvs in cond_out.iterkeys()])
+
+            if __debug__:
+                debug_corr = np.sum(
+                    [nudge[pvs] * np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                                          for ovs in pdf_out.statespace()])
+                     for pvs in cond_out.iterkeys()])
+
+                # should be two ways of computing the same
+                np.testing.assert_almost_equal(debug_corr, correlation)
+
+            ret.correlations.append(correlation)
+
+        ret.avg_mi_diff = np.mean(np.subtract(ret.mi_nudged_list, ret.mi_orig))
+        ret.avg_impact = np.mean(ret.impacts_on_output)
+        ret.avg_corr = np.mean(ret.correlations)
+
+        ret.std_mi_diff = np.std(np.subtract(ret.mi_nudged_list, ret.mi_orig))
+        ret.std_impact = np.std(ret.impacts_on_output)
+        ret.std_corr = np.std(ret.correlations)
+
+        ret.mi_diffs = np.subtract(ret.mi_nudged_list, ret.mi_orig)
+
+        ret.mi_nudged_list = np.array(ret.mi_nudged_list)  # makes it easier to subtract and such by caller
+        ret.impacts_on_output = np.array(ret.impacts_on_output)
+        ret.correlations = np.array(ret.correlations)
+
+        ret.residuals = ret.impacts_on_output - (ret.correlations - ret.mi_diffs)
+        ret.avg_residual = np.mean(ret.residuals)
+        ret.std_residual = np.std(ret.residuals)
+
+        # return [avg, stddev]
+        # return np.mean(np.subtract(mi_nudged_list, mi_orig)), np.std(np.subtract(mi_nudged_list, mi_orig))
+        return ret
 
 
     # todo: rename to perturb(..., only_non_local=False)
     def perturb(self, perturbed_variables, perturbation_size=0.1, only_non_local=False):
         """
-        Perturb the pdf P(X,Y) by changing P(Y|X) without actually changing P(X) or P(Y), by numerical optimization.
-        Y is assumed to be formed by stochastic variables collected at the end of the pdf.
 
-        This function changes the object in-place (<self>).
-        :param num_output_variables: |Y|.
-        :param perturbation_size: the higher, the more different P(Y|X) will be from <self>
-        :rtype: PerturbNonLocalResponse
         """
 
         subject_variables = np.setdiff1d(range(len(self)), list(perturbed_variables))
 
         assert len(subject_variables) + len(perturbed_variables)
+
+        # todo: for the case only_non_local=False this function makes no sense, there is then still an optimization
+        # procedure, but I think it is desired to have a function which adds a *random* vector to the parameters,
+        # and minimize() is not guaranteed to do that in absence of cost terms (other than going out of unit cube)
+        if only_non_local == False:
+            warnings.warn('current perturb() makes little sense with only_non_local=False, see todo above in code')
 
         if max(subject_variables) < min(perturbed_variables):
             # the variables are a contiguous block of subjects and then a block of perturbs. Now we can use the property
