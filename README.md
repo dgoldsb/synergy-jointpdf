@@ -61,3 +61,7 @@ p_ABC.mutual_information([0], [1])
 # compute the information synergy that C contains about A and B (takes a while)
 p_ABC.synergistic_information([2], [0,1])
 ```
+
+### LICENSE ###
+
+Copyright 2016. This software is written and maintained by Rick Quax (University of Amsterdam). See the LICENSE.md file for licensing details.
