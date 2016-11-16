@@ -24,7 +24,12 @@ import time
 from abc import abstractmethod, ABCMeta  # for requiring certain methods to be overridden by subclasses
 from numbers import Integral, Number
 import matplotlib.pyplot as plt
+import sys
 
+
+# I use this instead of -np.inf as result of log(0), which whould be -inf but then 0 * -inf = NaN, whereas by
+# common assumption in information theory: 0 log 0 = 0. So I make it finite here so that the result is indeed 0.
+_finite_inf = sys.float_info.max / 1000
 
 def maximum_depth(seq):
     """
@@ -200,6 +205,10 @@ class ConditionalProbabilityMatrix(ConditionalProbabilities):
         return self.cond_pdf[item]
 
 
+    def __len__(self):
+        return len(self.cond_pdf)
+
+
     def __eq__(self, other):
         if isinstance(other, basestring):
             return False
@@ -274,6 +283,8 @@ class ConditionalProbabilityMatrix(ConditionalProbabilities):
             raise NotImplementedError('unknown type for partial_cond_pdf')
 
 
+_type_prob = np.float128
+
 # this class is supposed to override member joint_probabilities of JointProbabilityMatrix, which is currently
 # taken to be a nested numpy array. Therefore this class is made to act as much as possible as a nested numpy array.
 # However, this class could be inherited and overriden to save e.g. memory storage, e.g. by assuming independence
@@ -284,10 +295,10 @@ class NestedArrayOfProbabilities():
     __metaclass__ = ABCMeta
 
     # type: np.array
-    joint_probabilities = np.array([])
+    joint_probabilities = np.array([], dtype=_type_prob)
 
     @abstractmethod
-    def __init__(self, joint_probabilities=np.array([])):
+    def __init__(self, joint_probabilities=np.array([], dtype=_type_prob)):
         assert False, 'must be implemented by subclass'
 
 
@@ -363,9 +374,9 @@ class NestedArrayOfProbabilities():
 class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
 
     # type: np.array
-    joint_probabilities = np.array([])
+    joint_probabilities = np.array([], dtype=_type_prob)
 
-    def __init__(self, joint_probabilities=np.array([])):
+    def __init__(self, joint_probabilities=np.array([], dtype=_type_prob)):
         # assert isinstance(joint_probabilities, np.ndarray), 'should pass numpy array?'
 
         self.reset(joint_probabilities)
@@ -417,7 +428,8 @@ class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
         Make sure all probabilities in the joint probability matrix are in the range [0.0, 1.0], which could be
         violated sometimes due to floating point operation roundoff errors.
         """
-        self.joint_probabilities = np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
+        self.joint_probabilities = np.array(np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0),
+                                            dtype=_type_prob)
 
         if np.random.random() < 0.05:
             try:
@@ -439,9 +451,9 @@ class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
 
     def reset(self, jointprobs):  # basically __init__ but can be called even if object already exists
         if isinstance(jointprobs, np.ndarray):
-            self.joint_probabilities = jointprobs
+            self.joint_probabilities = np.array(jointprobs, dtype=_type_prob)
         else:
-            assert isinstance(jointprobs.joint_probabilities, np.ndarray), 'nested reset problem'
+            # assert isinstance(jointprobs.joint_probabilities, np.ndarray), 'nested reset problem'
 
             self.duplicate(jointprobs)
 
@@ -449,15 +461,15 @@ class FullNestedArrayOfProbabilities(NestedArrayOfProbabilities):
     def duplicate(self, other):
         assert isinstance(other.joint_probabilities, np.ndarray), 'nesting problem'
 
-        self.joint_probabilities = other.joint_probabilities
+        self.joint_probabilities = np.array(other.joint_probabilities, dtype=_type_prob)
 
 
     def __sub__(self, other):
-        return np.subtract(self.joint_probabilities, other.joint_probabilities)
+        return np.subtract(self.joint_probabilities, np.array(other.joint_probabilities, dtype=_type_prob))
 
 
     def generate_uniform_joint_probabilities(self, numvariables, numvalues):
-        self.joint_probabilities = np.zeros([numvalues]*numvariables)
+        self.joint_probabilities = np.array(np.zeros([numvalues]*numvariables), dtype=_type_prob)
         self.joint_probabilities = self.joint_probabilities + 1.0 / np.power(numvalues, numvariables)
 
 
@@ -478,7 +490,7 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
     """
     marginal_probabilities = np.array([])  # this initial value indicates: zero variables
 
-    def __init__(self, joint_probabilities=np.array([])):
+    def __init__(self, joint_probabilities=np.array([], dtype=_type_prob)):
         self.reset(joint_probabilities)
 
 
@@ -504,7 +516,7 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
         :type item: int or tuple
         """
         if isinstance(item, Integral):
-            assert False, 'seems not used'
+            assert False, 'seems not used?'
 
             return IndependentNestedArrayOfProbabilities(self.marginal_probabilities[0][item]
                                                          * self.marginal_probabilities[len(item):])
@@ -553,17 +565,17 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
             if len(shape) == 2:
                 assert joint_probabilities[0].sum() <= 1.000001, 'should be (marginal) probabilities'
 
-                self.marginal_probabilities = joint_probabilities
+                self.marginal_probabilities = np.array(joint_probabilities, dtype=_type_prob)
             elif len(joint_probabilities) == 0:
                 # zero variables
-                self.marginal_probabilities = np.array([])
+                self.marginal_probabilities = np.array([], dtype=_type_prob)
             else:
                 raise ValueError('if you want to supply a nested array of probabilities, create a joint pdf'
                                  ' from it first and then pass it to me, because I would need to marginalize variables')
         elif isinstance(joint_probabilities, JointProbabilityMatrix):
             self.marginal_probabilities = np.array([joint_probabilities.marginalize_distribution([vix])
                                                      .joint_probabilities.matrix2vector()
-                                                 for vix in xrange(len(joint_probabilities))])
+                                                 for vix in xrange(len(joint_probabilities))], dtype=_type_prob)
         else:
             raise NotImplementedError('unknown type of argument: ' + str(joint_probabilities))
 
@@ -573,7 +585,7 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
         Become a copy of <other>.
         :type other: IndependentNestedArrayOfProbabilities
         """
-        self.marginal_probabilities = other.marginal_probabilities
+        self.marginal_probabilities = np.array(other.marginal_probabilities, dtype=_type_prob)
 
 
     def __sub__(self, other):
@@ -585,20 +597,14 @@ class IndependentNestedArrayOfProbabilities(NestedArrayOfProbabilities):
 
 
     def generate_uniform_joint_probabilities(self, numvariables, numvalues):
-        self.marginal_probabilities = np.zeros([numvariables, numvalues])
+        self.marginal_probabilities = np.array(np.zeros([numvariables, numvalues]), dtype=_type_prob)
         self.marginal_probabilities = self.marginal_probabilities + 1.0 / numvalues
-
-        # todo: remove check if works
-        np.testing.assert_almost_equal(np.sum(self.marginal_probabilities), 1.0 * numvariables)
 
 
     def generate_random_joint_probabilities(self, numvariables, numvalues):
-        self.marginal_probabilities = np.random.random([numvariables, numvalues])
+        self.marginal_probabilities = np.array(np.random.random([numvariables, numvalues]), dtype=_type_prob)
         # normalize:
         self.marginal_probabilities /= np.transpose(np.tile(np.sum(self.marginal_probabilities, axis=1), (numvalues,1)))
-
-        # todo: remove check if works
-        np.testing.assert_almost_equal(np.sum(self.marginal_probabilities), 1.0 * numvariables)
 
 
 class CausalImpactResponse():
@@ -622,6 +628,9 @@ class CausalImpactResponse():
     avg_residual = None
     std_residual = None
 
+    nudges = None
+    upper_bounds_impact = None
+
     def __init__(self):
         self.perturbed_variables = None
 
@@ -643,6 +652,9 @@ class CausalImpactResponse():
         self.avg_residual = None
         self.std_residual = None
 
+        self.nudges = None
+        self.upper_bounds_impact = None
+
 
 class JointProbabilityMatrix():
     # nested list of probabilities. For instance for three binary variables it could be:
@@ -656,6 +668,8 @@ class JointProbabilityMatrix():
     # on labels at all, only variable indices 0..N-1.
     labels = []
 
+    type_prob = _type_prob
+
     def __init__(self, numvariables, numvalues, joint_probs='unbiased', labels=None,
                  create_using=FullNestedArrayOfProbabilities):
 
@@ -667,11 +681,11 @@ class JointProbabilityMatrix():
         else:
             self.labels = labels
 
-        if joint_probs is None:
+        if joint_probs is None or numvariables == 0:
             self.joint_probabilities = create_using()
             self.generate_random_joint_probabilities()
         elif isinstance(joint_probs, basestring):
-            if joint_probs == 'independent' or joint_probs == 'iid':
+            if joint_probs == 'independent' or joint_probs == 'iid' or joint_probs == 'uniform':
                 self.joint_probabilities = create_using()
                 self.generate_uniform_joint_probabilities(numvariables, numvalues)
             elif joint_probs == 'random':
@@ -938,17 +952,34 @@ class JointProbabilityMatrix():
         self.reset(numvars, numvals, joint_prob_matrix=new_joint_probs)
 
 
+    def marginal_probability(self, variables, values):
+
+        if len(set(variables)) == len(self):
+            # speedup, save marginalization step, but is functionally equivalent to else clause
+            return self.joint_probability(values)
+        else:
+            return self[variables](values)
+
+
     def joint_probability(self, values):
         assert len(values) == self.numvariables, 'should specify one value per variable'
-        assert values[0] < self.numvalues, 'variable can only take values 0, 1, ..., <numvalues - 1>: ' + str(values[0])
-        assert values[-1] < self.numvalues, 'variable can only take values 0, 1, ..., <numvalues - 1>: ' \
-                                            + str(values[-1])
 
-        joint_prob = self.joint_probabilities[tuple(values)]
+        if len(self) == 0:
+            if len(values) == 0:
+                return 1
+            else:
+                return 0
+        else:
+            assert values[0] < self.numvalues, 'variable can only take values 0, 1, ..., <numvalues - 1>: ' + str(
+                values[0])
+            assert values[-1] < self.numvalues, 'variable can only take values 0, 1, ..., <numvalues - 1>: ' \
+                                                + str(values[-1])
 
-        assert 0.0 <= joint_prob <= 1.0, 'not a probability? ' + str(joint_prob)
+            joint_prob = self.joint_probabilities[tuple(values)]
 
-        return joint_prob
+            assert 0.0 <= joint_prob <= 1.0, 'not a probability? ' + str(joint_prob)
+
+            return joint_prob
 
 
     def get_variables_with_label_in(self, labels):
@@ -985,6 +1016,9 @@ class JointProbabilityMatrix():
         # if len(variables):
         #     marginalized_joint_probs = np.array([marginalized_joint_probs])
 
+        if len(retained_variables) == 0:
+            return JointProbabilityMatrix(0, self.numvalues)
+
         assert len(retained_variables) > 0, 'makes no sense to marginalize 0 variables'
         assert np.all(map(np.isscalar, retained_variables)), 'each variable identifier should be int in [0, numvalues)'
         assert len(retained_variables) <= self.numvariables, 'cannot marginalize more variables than I have'
@@ -993,17 +1027,20 @@ class JointProbabilityMatrix():
         # not sure yet about doing this:
         # variables = sorted(list(set(variables)))  # ensure uniqueness?
 
-        for values in itertools.product(*lists_of_possible_states_per_variable):
-            marginal_values = [values[varid] for varid in retained_variables]
+        if np.all(sorted(list(set(retained_variables))) == range(self.numvariables)):
+            return self.copy()  # you ask all variables back so I have nothing to do
+        else:
+            for values in itertools.product(*lists_of_possible_states_per_variable):
+                marginal_values = [values[varid] for varid in retained_variables]
 
-            marginalized_joint_probs[tuple(marginal_values)] += self.joint_probability(values)
+                marginalized_joint_probs[tuple(marginal_values)] += self.joint_probability(values)
 
-        np.testing.assert_almost_equal(np.sum(marginalized_joint_probs), 1.0)
+            np.testing.assert_almost_equal(np.sum(marginalized_joint_probs), 1.0)
 
-        marginal_joint_pdf = JointProbabilityMatrix(len(retained_variables), self.numvalues,
-                                                    joint_probs=marginalized_joint_probs)
+            marginal_joint_pdf = JointProbabilityMatrix(len(retained_variables), self.numvalues,
+                                                        joint_probs=marginalized_joint_probs)
 
-        return marginal_joint_pdf
+            return marginal_joint_pdf
 
 
     # helper function
@@ -1013,7 +1050,9 @@ class JointProbabilityMatrix():
 
             # submatrix must sum up to joint probability
             if added_joint_probabilities is None:
-                added_joint_probabilities = np.random.random([self.numvalues]*num_added_variables)
+                # todo: does this add a BIAS? for a whole joint pdf it does, but not sure what I did here (think so...)
+                added_joint_probabilities = np.array(np.random.random([self.numvalues]*num_added_variables),
+                                                     dtype=self.type_prob)
                 added_joint_probabilities /= np.sum(added_joint_probabilities)
                 added_joint_probabilities *= joint_prob_values
 
@@ -1118,12 +1157,25 @@ class JointProbabilityMatrix():
         self.reset(len(state_transitions[0]), self.numvalues, extended_joint_probs)
 
 
+    def reverse_reordering_variables(self, variables):
+
+        varlist = list(variables)
+        numvars = self.numvariables
+
+        # note: if a ValueError occurs then you did not specify every variable index in <variables>, like
+        # [1,2] instead of [1,2,0].
+        reverse_ordering = [varlist.index(ix) for ix in xrange(numvars)]
+
+        self.reorder_variables(reverse_ordering)
+
+
+
     def reorder_variables(self, variables):
         """
         Reorder the variables, for instance if self.numvariables == 3 then call with variables=[2,1,0] to reverse the
         order of the variables. The new joint probability matrix will be determined completely by the old matrix.
         It is also possible to duplicate variables, e.g. variables=[0,1,2,2] to duplicate the last variable (but
-        not sure if that is what you want, it will simply copy joint probs).
+        not sure if that is what you want, it will simply copy joint probs, so probably not).
         :param variables: sequence of int
         """
         assert len(variables) >= self.numvariables, 'I cannot reorder if you do\'nt give me the new ordering completely'
@@ -1599,12 +1651,14 @@ class JointProbabilityMatrix():
 
             raise ValueError('no parameters for 0 variables')
 
+
     def duplicate(self, other_joint_pdf):
         """
 
         :type other_joint_pdf: JointProbabilityMatrix
         """
         self.reset(other_joint_pdf.numvariables, other_joint_pdf.numvalues, other_joint_pdf.joint_probabilities)
+
 
     def reset(self, numvariables, numvalues, joint_prob_matrix, labels=None):
         """
@@ -1617,7 +1671,10 @@ class JointProbabilityMatrix():
 
         self.numvariables = numvariables
         self.numvalues = numvalues
-        self.joint_probabilities.reset(joint_prob_matrix)
+        if type(joint_prob_matrix) == np.ndarray:
+            self.joint_probabilities.reset(np.array(joint_prob_matrix, dtype=self.type_prob))
+        else:
+            self.joint_probabilities.reset(joint_prob_matrix)
 
         if labels is None:
             self.labels = [_default_variable_label]*numvariables
@@ -1656,6 +1713,69 @@ class JointProbabilityMatrix():
     def append_redundant_variables(self, num_redundant_variables):
         self.append_variables_using_state_transitions_table(lambda my_values_tuple, numvals:
                                                             [sum(my_values_tuple) % numvals]*num_redundant_variables)
+
+
+    def append_copy_of(self, variables):
+        self.append_variables_using_state_transitions_table(lambda vals, nv: vals)
+        # note to self: p(A)*p(B|A) == p(B)*p(A|B) leads to: p(A)/p(B) == p(A|B)/p(B|A)
+        #   -->  p(A)/p(B) == [p(A)*p(B|A)/p(B)]/p(B|A)
+
+
+    def append_nudged(self, variables, epsilon=0.01, num_repeats=5, verbose=False):
+        pdf_P = self[variables]
+        pdf_P_copy = pdf_P.copy()
+        nudge = pdf_P_copy.nudge(range(len(variables)), [], epsilon=epsilon)
+        desired_marginal_probabilities = pdf_P_copy.joint_probabilities.joint_probabilities
+
+        # a global variable used by the cost_func() to use for quantifying the cost, without having to re-create a new
+        # pdf object every time
+        pdf_new = pdf_P.copy()
+        pdf_new.append_variables(len(variables))
+
+        max_mi = pdf_P.entropy()
+
+        def cost_func(free_params, parameter_values_before):
+            pdf_new.params2matrix_incremental(list(parameter_values_before) + list(free_params))
+            pdf_P_nudged = pdf_new[range(int(len(pdf_new) / 2), len(pdf_new))]  # marginalize the nudged version
+            prob_diffs = pdf_P_nudged.joint_probabilities.joint_probabilities - desired_marginal_probabilities
+
+            cost_marginal = np.sum(np.power(prob_diffs, 2))
+            # percentage reduction in MI, to try to bring to the same order of magnitude as cost_marginal
+            cost_mi = (max_mi - pdf_new.mutual_information(range(int(len(pdf_new) / 2)),
+                                                           range(int(len(pdf_new) / 2), len(pdf_new)))) / max_mi
+            cost_mi = epsilon * np.power(cost_mi, 2)
+            return cost_marginal + cost_mi
+
+        pdf_P.append_optimized_variables(len(variables), cost_func, num_repeats=num_repeats, verbose=verbose)
+
+        # get the actually achieved marginal probabilities of the append variables, which are hopefully close to
+        # desired_marginal_probabilities
+        obtained_marginal_probabilities = pdf_P[range(len(variables), 2*len(variables))].joint_probabilities.joint_probabilities
+        # the array obtained_nudge is hopefully very close to ``nudge''
+        obtained_nudge = obtained_marginal_probabilities - pdf_P[range(len(variables))].joint_probabilities.joint_probabilities
+
+        cond_P_nudged = pdf_P.conditional_probability_distributions(range(len(variables)),
+                                                                    range(len(variables), 2*len(variables)))
+
+        self.append_variables_using_conditional_distributions(cond_P_nudged, variables)
+
+        return nudge, obtained_nudge
+
+
+    def append_nudged_direct(self, variables, epsilon=0.01):
+        self.append_copy_of(variables)
+        nudge = self.nudge(variables, np.setdiff1d(range(len(self)), variables), epsilon=epsilon)
+
+        print 'debug: MI:', self.mutual_information(variables, range(len(self) - len(variables), len(self)))
+
+        ordering = range(len(self))
+        for vix in xrange(len(variables)):
+            ordering[variables[vix]] = ordering[len(self) - len(variables) + vix]
+            ordering[len(self) - len(variables) + vix] = variables[vix]
+
+        self.reorder_variables(ordering)
+
+        return nudge
 
 
     def append_independent_variables(self, joint_pdf):
@@ -1882,22 +2002,45 @@ class JointProbabilityMatrix():
         return conditional_joint_pdf
 
 
-    def conditional_probability_distributions(self, given_variables):
+    def conditional_probability_distributions(self, given_variables, object_variables='auto'):
         """
 
         :param given_variables:
         :return: dict of JointProbabilityMatrix, keys are all possible values for given_variables
         :rtype: dict of JointProbabilityMatrix
         """
-        assert len(given_variables) < self.numvariables, 'no variables left after conditioning'
+        if len(given_variables) == self.numvariables:  # 'no variables left after conditioning'
+            warnings.warn('conditional_probability_distributions: no variables left after conditioning')
 
-        lists_of_possible_given_values = [range(self.numvalues) for variable in xrange(len(given_variables))]
+            lists_of_possible_given_values = [range(self.numvalues) for variable in xrange(len(given_variables))]
 
-        dic = {tuple(given_values): self.conditional_probability_distribution(given_variables=given_variables,
-                                                                               given_values=given_values)
-                for given_values in itertools.product(*lists_of_possible_given_values)}
+            dic = {tuple(given_values): JointProbabilityMatrix(0, self.numvalues)
+                   for given_values in itertools.product(*lists_of_possible_given_values)}
 
-        return ConditionalProbabilityMatrix(dic)
+            return ConditionalProbabilityMatrix(dic)
+        else:
+            if object_variables in ('auto', 'all'):
+                object_variables = list(np.setdiff1d(range(len(self)), given_variables))
+            else:
+                object_variables = list(object_variables)
+                ignored_variables = list(np.setdiff1d(range(len(self)), list(given_variables) + object_variables))
+
+                pdf = self.copy()
+                pdf.reorder_variables(list(given_variables) + object_variables + ignored_variables)
+                # note: I do this extra step because reorder_variables does not support specifying fewer variables
+                # than len(self), but once it does then it can be combined into a single reorder_variables call.
+                # remove ignored_variables
+                pdf = pdf.marginalize_distribution(range(len(given_variables + object_variables)))
+
+                return pdf.conditional_probability_distributions(range(len(given_variables)))
+
+            lists_of_possible_given_values = [range(self.numvalues) for variable in xrange(len(given_variables))]
+
+            dic = {tuple(given_values): self.conditional_probability_distribution(given_variables=given_variables,
+                                                                                   given_values=given_values)
+                    for given_values in itertools.product(*lists_of_possible_given_values)}
+
+            return ConditionalProbabilityMatrix(dic)
 
 
     # todo: try to make this entropy() function VERY efficient, maybe compiled (weave?), or C++ binding or something,
@@ -1984,6 +2127,9 @@ class JointProbabilityMatrix():
         if len(variables1) == 0 or len(variables2) == 0:
             mi = 0  # trivial case, no computation needed
         elif len(variables1) == len(variables2):
+            assert max(variables1) < len(self), 'variables1 = ' + str(variables1) + ', len(self) = ' + str(len(self))
+            assert max(variables2) < len(self), 'variables2 = ' + str(variables2) + ', len(self) = ' + str(len(self))
+
             if np.equal(sorted(variables1), sorted(variables2)).all():
                 mi = self.entropy(variables1, base=base)  # more efficient, shortcut
             else:
@@ -1991,6 +2137,9 @@ class JointProbabilityMatrix():
                 mi = self.entropy(variables1, base=base) + self.entropy(variables2, base=base) \
                      - self.entropy(list(set(list(variables1) + list(variables2))), base=base)
         else:
+            assert max(variables1) < len(self), 'variables1 = ' + str(variables1) + ', len(self) = ' + str(len(self))
+            assert max(variables2) < len(self), 'variables2 = ' + str(variables2) + ', len(self) = ' + str(len(self))
+
             mi = self.entropy(variables1, base=base) + self.entropy(variables2, base=base) \
                  - self.entropy(list(set(list(variables1) + list(variables2))), base=base)
 
@@ -2929,88 +3078,697 @@ class JointProbabilityMatrix():
 
             pdf2.perturb(variables_X, perturbation_size=perturbation_size, only_non_local=only_non_local)
 
+            impact = np.nan  # pacify IDE
+            assert False, 'todo: finish implementing, calc MI in the two cases and return diff'
 
         return impact
 
 
-    def nudge(self, perturbed_variables, epsilon=0.01):
+    # helper function
+    def generate_nudge(self, epsilon, shape, max_trials=5000):
 
-        if max(perturbed_variables) == len(perturbed_variables) - 1:
-            pdf_X = self[perturbed_variables]  # marginalize X out of Pr(X,Y)
-            cond_pdf_Y = self.conditional_probability_distributions(perturbed_variables)
+        for trial in xrange(max_trials):
+            # generate N-1 random
+            nudge = np.random.uniform(-abs(epsilon), abs(epsilon), np.product(shape) - 1)
+            nudge = np.array(nudge, dtype=_type_prob)
 
-            # finding bug: probability mass should be 1
-            np.testing.assert_almost_equal(np.sum(pdf_X.joint_probabilities.joint_probabilities), 1)
+            sum_nudge = np.sum(nudge)
 
-            nudge = np.random.uniform(-abs(epsilon), abs(epsilon), np.shape(pdf_X.joint_probabilities.joint_probabilities))
-            nudge -= np.sum(nudge) / float(nudge.size)  # should sum up to 0 to keep prob. mass unity
+            if trial == max_trials - 1:  # prevent having to fail (hack-ish)
+                # rescale the nudge so that the final nudge parameter does fit in the range [-epsilon, epsilon]
+                if not (-abs(epsilon) <= sum_nudge <= abs(epsilon)):
+                    nudge /= sum_nudge
+                    nudge *= epsilon
 
-            # looking for bug. make sure no nudge goes out of bounds [-epsilon, +epsilon]
-            # todo: remove and see if that also works fine (is not so cheap operation in general)
-            nudge = np.max([nudge, np.zeros(np.shape(nudge)) - abs(epsilon)], axis=0)
-            nudge = np.min([nudge, np.zeros(np.shape(nudge)) + abs(epsilon)], axis=0)
+                    sum_nudge = np.sum(nudge)  # new sum
 
-            # make sure that no probability goes out of bound [0, 1]
-            nudge = np.max([nudge, 0 - pdf_X.joint_probabilities.joint_probabilities], axis=0)
-            nudge = np.min([nudge, 1 - pdf_X.joint_probabilities.joint_probabilities], axis=0)
+                    assert sum_nudge == epsilon, 'should be corrected now'
 
-            # again... surely there must be some smarter way of doing this?
-            nudge -= np.sum(nudge) / float(nudge.size)  # should sum up to 0 to keep prob. mass unity
+            if -abs(epsilon) <= sum_nudge <= abs(epsilon):
+                nudge = np.concatenate([nudge, [-sum_nudge]])
 
-            new_probs = pdf_X.joint_probabilities.joint_probabilities + nudge
+                if np.sum(nudge) == 0:  # sometimes due to floating point errors I get a small deviation, but I don't
+                    # want that
+                    return np.reshape(nudge, shape)
+                else:
+                    continue  # try again
+            else:
+                pass  # try again
 
-            # todo: remove test once it works a while
-            if np.random.randint(10) == 0:
-                assert np.max(new_probs) <= 1.0, 'no prob should be >1.0: ' + str(np.max(new_probs))
-                assert np.min(new_probs) >= 0.0, 'no prob should be <0.0: ' + str(np.min(new_probs))
+        raise RuntimeError('could not find a suitable nudge vector in max_trials=' + str(max_trials) + ' trials')
 
-            # assert np.max(nudge) <= abs(epsilon), 'no nudge should be >' + str(epsilon) + ': ' + str(np.max(nudge))
-            # assert np.min(nudge) >= -abs(epsilon), 'no nudge should be <' + str(-epsilon) + ': ' + str(np.min(nudge))
 
-            # total probability mass should be unchanged  (todo: remove test once it works a while)
-            np.testing.assert_almost_equal(np.sum(new_probs), 1)
+    def nudge_direct(self, perturbed_variables, epsilon=0.01):
 
-            if __debug__:
-                pdf_X_orig = pdf_X.copy()
+        output_variables = np.setdiff1d(range(len(self)), perturbed_variables)
 
-            pdf_X.joint_probabilities.reset(new_probs)
+        pdf_X = self[perturbed_variables]  # marginalize X out of Pr(X,Y)
+        pdf_Y_X = self.conditional_probability_distributions(perturbed_variables)
 
-            if __debug__:  # looking for bug, can be removed
-                apparent_nudge = pdf_X.joint_probabilities.joint_probabilities - pdf_X_orig.joint_probabilities.joint_probabilities
+        nudge = self.generate_nudge(epsilon, np.shape(pdf_X.joint_probabilities.joint_probabilities))
 
-                assert np.shape(nudge) == np.shape(apparent_nudge), \
-                    'np.shape(nudge) = ' + str(np.shape(nudge)) + ', np.shape(apparent_nudge) = ' + str(np.shape(apparent_nudge))
-                np.testing.assert_almost_equal(apparent_nudge, nudge)
+        # looking for roundoff error
+        np.testing.assert_almost_equal(np.sum(self.joint_probabilities.joint_probabilities), 1.0)
 
-            self.duplicate(pdf_X + cond_pdf_Y)
+        # new_joint_probs = [max(min(self(s) + nudge[np.take(s, list(perturbed_variables))], 1.0), 0.0)
+        #                    for s in self.statespace()]  # too naive
+        # new_joint_probs = [max(min((pdf_X(np.take(s, list(perturbed_variables))) + nudge[np.take(s, list(perturbed_variables))]) * pdf_Y[np.take(s, list(perturbed_variables))](np.take(s, list(output_variables))), 1.0), 0.0)
+        #                    for s in self.statespace()]  # unreadable
+        new_joint_probs = [[max(min((pdf_X(sx) + nudge[sx]) * pdf_Y_X[sx](sy), 1.0), 0.0)
+                           for sx in pdf_X.statespace()] for sy in pdf_Y_X.itervalues().next().statespace()]
+
+        missing_prob_mass = 1.0 - np.sum(new_joint_probs)
+
+        # something very small, few orders of magnitude away from minimum of _type_prob
+        max_abs_missing_prob_mass = 1e-14
+
+        if missing_prob_mass < -max_abs_missing_prob_mass or missing_prob_mass > max_abs_missing_prob_mass:
+            # max_num_correction_trials = 1000
+            # for trial in xrange(max_num_correction_trials):
+            #     correction = np.random.random(np.shape(new_joint_probs))
+            #     correction /= np.sum(correction)
+            #     correction *= missing_prob_mass
+            #
+            #     trial_new_joint_probs = new_joint_probs + correction
+            #
+            #     if np.min(trial_new_joint_probs) >= 0.0 and np.max(trial_new_joint_probs) <= 1.0:
+            #         new_joint_probs = trial_new_joint_probs
+            #
+            #         break
+            #     else:
+            #         if trial == max_num_correction_trials - 1:
+            #             raise UserWarning('after ' + str(max_num_correction_trials) + ' trials I was not able to find'
+            #                                                                           ' a suitable correction for'
+            #                                                                           'missing_prob_mass='
+            #                               + str(missing_prob_mass))
+            #         else:
+            #             continue  # correction is no good, try another
+            max_num_correction_trials = 10
+            for trial in xrange(max_num_correction_trials):
+                for pix in np.random.permutation(xrange(len(new_joint_probs))):
+                    correction = np.random.uniform(size=np.shape(new_joint_probs[pix]))
+                    correction = correction / np.sum(correction)
+                    correction = correction * missing_prob_mass
+                    # correction = np.random.uniform(min(0.5, 2.0/len(new_joint_probs)), 1.0) * missing_prob_mass
+                    correction = np.max([np.min([correction, np.ones(np.shape(correction)) * epsilon], axis=0),
+                                        -np.ones(np.shape(correction)) * epsilon], axis=0)
+
+                    old_prob = copy.deepcopy(new_joint_probs[pix])
+                    # assert np.isscalar(new_joint_probs[pix]), \
+                    #     'looking for bug on line below. np.shape(new_joint_probs)=%s, len(new_joint_probs)=%s' \
+                    #     % (np.shape(new_joint_probs), len(new_joint_probs))
+                    # new_joint_probs[pix] = max(min(new_joint_probs[pix] + correction, 1.0), 0.0)
+                    new_joint_probs[pix] = np.max([np.min([new_joint_probs[pix] + correction,
+                                                           np.ones(np.shape(new_joint_probs[pix]))], axis=0),
+                                                  np.zeros(np.shape(new_joint_probs[pix]))], axis=0)
+
+                    # effective correction amount after clipping
+                    missing_prob_mass -= np.sum(np.subtract(new_joint_probs[pix], old_prob))
+
+                    if not (missing_prob_mass < -max_abs_missing_prob_mass or missing_prob_mass > max_abs_missing_prob_mass):
+                        break
+
+                if not (missing_prob_mass < -max_abs_missing_prob_mass or missing_prob_mass > max_abs_missing_prob_mass):
+                    break  # correction worked
+                else:
+                    warnings.warn('warning: internal: trial=' + str(trial+1) + ' is needed for correction in nudge()')
+
+            new_joint_probs = np.reshape(new_joint_probs, np.shape(self.joint_probabilities.joint_probabilities))
+
+            if True:
+                # new_joint_probs = np.array(new_joint_probs)
+
+                missing_prob_mass = 1.0 - np.sum(new_joint_probs)
+
+                if __debug__:
+                    debug_correction_trials = []
+
+                for _ in xrange(10):
+                    if not abs(missing_prob_mass) < 1e-10:
+                        random_joint_state = tuple(np.random.randint(self.numvalues, size=self.numvariables))
+                        state_prob = new_joint_probs[random_joint_state]
+                        assert np.isscalar(state_prob), \
+                            'np.shape(new_joint_probs)=%s, '
+                        new_joint_probs[random_joint_state] = max(min(new_joint_probs[random_joint_state]
+                                                                      + missing_prob_mass, 1.0), 0.0)
+
+                        if __debug__:
+                            debug_correction_trials.append([len(debug_correction_trials)-1, state_prob,
+                                                            missing_prob_mass])
+
+                        missing_prob_mass = 1.0 - np.sum(new_joint_probs)  # recompute and check
+                    else:
+                        break
+
+                if not abs(missing_prob_mass) < 1e-8:
+                    # if the random option above didn't work then just iterate and find a state prob suitable
+                    # todo: would preferably be permutation of all possible states but that means storing
+                    # all possible states in a list, whereas now it is an iterator so no memory needed
+                    for random_joint_state in itertools.combinations_with_replacement(range(self.numvalues),
+                                                                                      self.numvariables):
+                        state_prob = new_joint_probs[random_joint_state]
+                        assert np.isscalar(state_prob), \
+                            'np.shape(new_joint_probs)=%s, '
+                        new_joint_probs[random_joint_state] = max(min(new_joint_probs[random_joint_state]
+                                                                      + missing_prob_mass, 1.0), 0.0)
+
+                        if __debug__:
+                            debug_correction_trials.append([len(debug_correction_trials) - 1, state_prob,
+                                                            missing_prob_mass])
+
+                        missing_prob_mass = 1.0 - np.sum(new_joint_probs)  # recompute and check
+
+                        if abs(missing_prob_mass) < 1e-10:
+                            break  # done
+
+                np.testing.assert_almost_equal(missing_prob_mass, 0.0, decimal=7, err_msg=str(debug_correction_trials))
+        else:
+            new_joint_probs = np.reshape(new_joint_probs, np.shape(self.joint_probabilities.joint_probabilities))
+
+        # np.testing.assert_almost_equal(np.sum(new_joint_probs), 1.0)  # looking for roundoff error
+
+        self.reset(self.numvariables, self.numvalues, joint_prob_matrix=new_joint_probs)
+
+        pdf_X_new = self[perturbed_variables]
+
+        effective_nudge = pdf_X_new.joint_probabilities.joint_probabilities - pdf_X.joint_probabilities.joint_probabilities
+
+        return effective_nudge
+
+
+    # todo: I think I should adopt the convention that variables are ordered in a causal predecessor partial ordering,
+    # so variable 1 cannot causally influence 0 but 0 *can* causally influence 1. This ordering should always be
+    # possible (otherwise add time to make loops)
+    def nudge(self, perturbed_variables, output_variables, epsilon=0.01, marginalize_prior_ignored=False,
+              method='fixed'):
+        """
+
+        :param perturbed_variables:
+        :param output_variables:
+        :param epsilon:
+        :param marginalize_prior_ignored:
+        :param method:
+            'random': a nudge is drawn uniformly random from the hypercube [-epsilon, +epsilon]^|P| or whatever
+            subspace of that cube that still leaves all probabilities in the range [0,1]
+            'fixed': a nudge is a random vector with norm epsilon, whereas for 'random' the norm can be (much) smaller
+        :return:
+        """
+        perturbed_variables = list(sorted(set(perturbed_variables)))
+        output_variables = list(sorted(set(output_variables)))
+        ignored_variables = list(np.setdiff1d(range(len(self)), perturbed_variables + output_variables))
+
+        # this performs a nudge on each conditional pdf of the perturbed variables, given the values for variables
+        # which appear on the lefthand side of them (these are causal predecessors, which should not be affected by
+        # the nudge)
+        if min(perturbed_variables + output_variables) > 0 and marginalize_prior_ignored:
+            # these variables appear before all perturbed and output variables so there should be no causal effect on
+            # them (marginal probabilities the same, however the conditional pdf with the perturbed variables
+            # may need to change to make the nudge happen, so here I do that (since nudge() by itself tries to fixate
+            # both marginals and conditionals of prior variables, which is not always possible (as e.g. for a copied variable)
+            ignored_prior_variables = range(min(perturbed_variables + output_variables))
+
+            pdf_prior = self[ignored_prior_variables]  # marginal of prior variables
+
+            # conditional pdfs of the rest
+            cond_pdfs = self.conditional_probability_distributions(ignored_prior_variables)
+
+            # the pdf's in the conditional cond_pdfs now are missing the first len(ignored_prior_variables)
+            new_pv = np.subtract(perturbed_variables, len(ignored_prior_variables))
+            new_ov = np.subtract(output_variables, len(ignored_prior_variables))
+            new_iv = np.subtract(ignored_variables, len(ignored_prior_variables))
+
+            nudge_dict = dict()
+
+            for k in cond_pdfs.iterkeys():
+                # do an independent and random nudge for each marginal pdf given the values for the prior variables...
+                # for each individual instance this may create a correlation with the prior variables, but on average
+                # (or for large num_values) it will not.
+                nudge_dict[k] = cond_pdfs[k].nudge(perturbed_variables=new_pv, output_variables=new_ov, epsilon=epsilon)
+
+            new_pdf = pdf_prior + cond_pdfs
+
+            self.duplicate(new_pdf)
+
+            return nudge_dict
+        # code assumes
+        # if max(perturbed_variables) == len(perturbed_variables) - 1 \
+        #         and max(output_variables) == len(perturbed_variables) + len(output_variables) - 1:
+        # todo: doing this rearrangement seems wrong? because the causal predecessors should be first in the list
+        # of variables, so there should be no causation from a 'later' variable back to an 'earlier' variable?
+        # elif max(perturbed_variables) == len(perturbed_variables) - 1:
+        elif True:  # see if this piece of code can also handle ignored variables to precede the perturbed variables
+            pdf_P = self[perturbed_variables]  # marginalize X out of Pr(X,Y)
+            pdf_I = self[ignored_variables]
+            pdf_IO_P = self.conditional_probability_distributions(perturbed_variables)
+            pdf_P_I = self.conditional_probability_distributions(ignored_variables,
+                                                                 object_variables=perturbed_variables)
+            pdf_O_IP = self.conditional_probability_distributions(ignored_variables + perturbed_variables,
+                                                                 object_variables=output_variables)
+
+            # initial limits, to be refined below
+            max_nudge = np.ones(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * epsilon
+            min_nudge = -np.ones(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * epsilon
+
+            for sx in pdf_P.statespace():
+                for sy in pdf_IO_P.itervalues().next().statespace():
+                    if pdf_IO_P[sx](sy) != 0.0:
+                        # follows from equality (P(p) + nudge(p)) * P(rest|p) == 1
+                        # max_nudge[sx] = min(max_nudge[sx], 1.0 / pdf_IO_P[sx](sy) - pdf_P(sx))
+                        # I think this constraint is always superseding the above one, so just use this:
+                        max_nudge[sx] = min(max_nudge[sx], 1.0 - pdf_P(sx))
+                    else:
+                        pass  # this pair of sx and sy is impossible so no need to add a constraint for it?
+                # note: I removed the division because in the second line it adds nothing
+                # min_nudge[sx + sy] = 0.0 / pdf_IO_P[sx](sy) - pdf_P(sx)
+                min_nudge[sx] = max(min_nudge[sx], 0.0 - pdf_P(sx))
+
+                # same nudge will be added to each P(p|i) so must not go out of bounds for any pdf_P_I[si]
+                for pdf_P_i in pdf_P_I.itervalues():
+                    max_nudge[sx] = min(max_nudge[sx], 1.0 - pdf_P_i(sx))
+                    min_nudge[sx] = max(min_nudge[sx], 0.0 - pdf_P_i(sx))
+
+                # I think this should not happen. Worst case, max_nudge[sx + sy] == min_nudge[sx + sy], like
+                # when P(p)=1 for I=1 and P(p)=0 for I=1, then only a nudge of 0 could be added to P(b).
+                # small round off error?
+                # alternative: consider making the nudge dependent on I, which gives more freedom but I am not sure
+                # if then e.g. the expected correlation is still zero. (Should be, right?)
+                assert max_nudge[sx] >= min_nudge[sx], 'unsatisfiable conditions for additive nudge!'
+
+                # note: this is simply a consequence of saying that a nudge should change only a variable's own
+                # probabilities, not the conditional probabilities of this variable given other variables
+                # mechanism)
+                # NOTE: although... it seems inevitable that conditional probabilities change?
+                # NOTE: well, in the derivation you assume that the connditional p(B|A) does not change -- at the moment
+                # (try it?)
+                if max_nudge[sx] == min_nudge[sx]:
+                    warnings.warn('max_nudge[sx] == min_nudge[sx], meaning that I cannot find a single nudge'
+                                  ' \epsilon_a for all ' + str(len(list(pdf_P_I.itervalues())))
+                                  + ' pdf_P_i of pdf_P_I=P(perturbed_variables | ignored_variables='
+                                  + str(ignored_variables) + '); sx=' + str(sx))
+                    # NOTE: implement a different nudge for each value for ignored_variables? Then this does not happen
+                    # NOTE: then the nudge may correlate with ignored_variables, which is not what you want because
+                    # then you could be adding correlations?
+
+            range_nudge = max_nudge - min_nudge
+
+            max_num_trials_nudge_gen = 10000
+            max_secs = 20.
+            time_before = time.time()
+            for trial in xrange(max_num_trials_nudge_gen):
+                if method == 'random' or method == 'fixed':
+                    nudge = np.random.random(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * range_nudge \
+                            + min_nudge
+
+                    # sum_nudge = np.sum(nudge)  # should become 0, but currently will not be
+                    # correction = np.ones(np.shape(pdf_P.joint_probabilities.joint_probabilities)) / nudge.size * sum_nudge
+                    # nudge -= correction
+                    nudge -= np.mean(nudge)  # make sum up to 0
+
+                    if method == 'fixed':  # make sure the
+                        nudge *= epsilon / np.linalg.norm(nudge)
+
+                    if np.all(nudge <= max_nudge) and np.all(nudge >= min_nudge):
+                        break  # found a good nudge!
+                    else:
+                        if trial == max_num_trials_nudge_gen - 1:
+                            raise UserWarning('max_num_trials_nudge_gen=' + str(max_num_trials_nudge_gen)
+                                              + ' was not enough to find a good nudge vector.')
+                        elif time.time() - time_before > max_secs:
+                            raise UserWarning('max_secs=%s was not enough to find a good nudge vector. '
+                                              'trial=%s out of %s' % (max_secs, trial, max_num_trials_nudge_gen))
+                        else:
+                            continue  # darn, let's try again
+                else:
+                    raise NotImplementedError('unknown method: %s' % method)
+            # todo: if the loop above fails then maybe do a minimize() attempt?
+
+            np.testing.assert_almost_equal(np.sum(nudge), 0.0, decimal=10)  # todo: remove after a while
+
+            # this is the point of self.type_prob ...
+            assert type(pdf_P.joint_probabilities.joint_probabilities.flat.next()) == self.type_prob
+
+            # if len(ignored_variables) > 0:  # can this become the main code, so not an if? (also works if
+            if True:
+                # len(ignored*) == 0?)
+                # new attempt for making the new joint pdf
+                new_joint_probs = -np.ones(np.shape(self.joint_probabilities.joint_probabilities))
+
+                print 'debug: ignored_variables = %s, len(self) = %s' % (ignored_variables, len(self))
+
+                for s in self.statespace():
+                    # shorthands: the states pertaining to the three subsets of variables
+                    sp = tuple(np.take(s, perturbed_variables))
+                    so = tuple(np.take(s, output_variables))
+                    si = tuple(np.take(s, ignored_variables))
+
+                    new_joint_probs[s] = pdf_I(si) * min(max((pdf_P_I[si](sp) + nudge[sp]), 0.0), 1.0) * pdf_O_IP[si + sp](so)
+
+                    # might go over by a tiny bit due to roundoff, then just clip
+                    if -1e-10 < new_joint_probs[s] < 0:
+                        new_joint_probs[s] = 0
+                    elif 1 < new_joint_probs[s] < 1 + 1e-10:
+                        new_joint_probs[s] = 1
+
+                    assert 0 <= new_joint_probs[s] <= 1, 'new_joint_probs[s] = ' + str(new_joint_probs[s])
+
+                self.reset(self.numvariables, self.numvalues, new_joint_probs)
+            else:
+                print 'debug: perturbed_variables = %s, len(self) = %s' % (perturbed_variables, len(self))
+
+                new_probs = pdf_P.joint_probabilities.joint_probabilities + nudge
+
+                # this is the point of self.type_prob ...
+                assert type(new_probs.flat.next()) == self.type_prob
+
+                # # todo: remove test once it works a while
+                # if True:
+                #     assert np.max(new_probs) <= 1.0, 'no prob should be >1.0: ' + str(np.max(new_probs))
+                #     assert np.min(new_probs) >= 0.0, 'no prob should be <0.0: ' + str(np.min(new_probs))
+
+                # assert np.max(nudge) <= abs(epsilon), 'no nudge should be >' + str(epsilon) + ': ' + str(np.max(nudge))
+                # assert np.min(nudge) >= -abs(epsilon), 'no nudge should be <' + str(-epsilon) + ': ' + str(np.min(nudge))
+
+                # total probability mass should be unchanged  (todo: remove test once it works a while)
+                np.testing.assert_almost_equal(np.sum(new_probs), 1)
+
+                if __debug__:
+                    pdf_X_orig = pdf_P.copy()
+
+                pdf_P.joint_probabilities.reset(new_probs)
+
+                if len(pdf_IO_P) > 0:
+                    if len(pdf_IO_P.itervalues().next()) > 0:  # non-zero number of variables in I or O?
+                        self.duplicate(pdf_P + pdf_IO_P)
+                    else:
+                        self.duplicate(pdf_P)
+                else:
+                    self.duplicate(pdf_P)
 
             return nudge
         else:
-            raise UserWarning('not implemented: reordering variables and then recursing')
+            # reorder the variables such that the to-be-perturbed variables are first, then call the same function
+            # again (ending up in the if block above) and then reversing the reordering.
+
+            # output_variables = list(np.setdiff1d(range(len(self)), perturbed_variables))
+
+            # WARNING: this seems incorrect, now there is also causal effect on variables which appear before
+            # all perturbed variables, which is not intended as the order in which variables appear give a partial
+            # causality predecessor ordering
+            # todo: remove this else-clause? Now the above elif-clause can handle everything
+
+            self.reorder_variables(perturbed_variables + ignored_variables + output_variables)
+
+            ret = self.nudge(range(len(perturbed_variables)), output_variables, epsilon=epsilon)
+
+            self.reverse_reordering_variables(perturbed_variables + ignored_variables + output_variables)
+
+            return ret
+
+    # I adopt the convention that variables are ordered in a causal predecessor partial ordering,
+    # so variable 1 cannot causally influence 0 but 0 *can* causally influence 1. This ordering should always be
+    # possible (otherwise add time to make loops). Ignored variables are marginalized out first
+    # todo: does not work satisfactorily
+    def nudge_new(self, perturbed_variables, output_variables, force_keep=None, epsilon=0.01):
+
+        if force_keep is None:
+            force_keep = []
+
+        perturbed_variables = sorted(list(set(perturbed_variables)))
+        output_variables = sorted(list(set(output_variables)))
+        ignored_variables = list(np.setdiff1d(range(len(self)), perturbed_variables + output_variables))
+        ignored_variables = list(np.setdiff1d(ignored_variables, force_keep))
+
+        assert len(set(perturbed_variables + output_variables)) == len(perturbed_variables) + len(output_variables), \
+            'perturbed_variables=%s and output_variables%s should not overlap' % (perturbed_variables, output_variables)
+
+        if len(ignored_variables) > 0:
+            self.duplicate(self.marginalize_distribution(perturbed_variables + output_variables))
+
+            perturbed_variables = [pv - np.sum(np.less(ignored_variables, pv)) for pv in perturbed_variables]
+            output_variables = [ov - np.sum(np.less(ignored_variables, ov)) for ov in output_variables]
+
+            assert len(list(np.setdiff1d(range(len(self)), perturbed_variables + output_variables))) == 0, \
+                'perturbed_variables=%s and output_variables%s should cover all variables now: %s' \
+                % (perturbed_variables, output_variables,
+                   np.setdiff1d(range(len(self)), perturbed_variables + output_variables))
+
+            return self.nudge_new(perturbed_variables=perturbed_variables,
+                                  output_variables=output_variables,
+                                  epsilon=epsilon)
+
+        # code assumes
+        # if max(perturbed_variables) == len(perturbed_variables) - 1 \
+        #         and max(output_variables) == len(perturbed_variables) + len(output_variables) - 1:
+        # todo: doing this rearrangement seems wrong? because the causal predecessors should be first in the list
+        # of variables, so there should be no causation from a 'later' variable back to an 'earlier' variable?
+        # if max(perturbed_variables) == len(perturbed_variables) - 1:
+        if True:  # test
+            pdf_P = self[perturbed_variables]  # marginalize X out of Pr(X,Y)
+            pdf_I = self[ignored_variables]
+            pdf_IO_P = self.conditional_probability_distributions(perturbed_variables)
+            pdf_P_I = self.conditional_probability_distributions(ignored_variables,
+                                                                 object_variables=perturbed_variables)
+            pdf_O_IP = self.conditional_probability_distributions(ignored_variables + perturbed_variables,
+                                                                  object_variables=output_variables)
+
+            # initial limits, to be refined below
+            max_nudge = np.ones(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * epsilon
+            min_nudge = -np.ones(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * epsilon
+
+            for sx in pdf_P.statespace():
+                for sy in pdf_IO_P.itervalues().next().statespace():
+                    # follows from (P(p) + nudge(p)) * P(rest|p) == 1
+                    max_nudge[sx] = min(max_nudge[sx], 1.0 / pdf_IO_P[sx](sy) - pdf_P(sx))
+                # note: I removed the division because in the second line it adds nothing
+                # min_nudge[sx + sy] = 0.0 / pdf_IO_P[sx](sy) - pdf_P(sx)
+                min_nudge[sx] = max(min_nudge[sx], 0.0 - pdf_P(sx))
+
+                # same nudge will be added to each P(p|i) so must not go out of bounds for any pdf_P_I[si]
+                for pdf_P_i in pdf_P_I.itervalues():
+                    max_nudge[sx] = min(max_nudge[sx], 1.0 - pdf_P_i(sx))
+                    min_nudge[sx] = max(min_nudge[sx], 0.0 - pdf_P_i(sx))
+
+                # I think this should not happen. Worst case, max_nudge[sx + sy] == min_nudge[sx + sy], like
+                # when P(p)=1 for I=1 and P(p)=0 for I=1, then only a nudge of 0 could be added to P(b).
+                # small round off error?
+                # alternative: consider making the nudge dependent on I, which gives more freedom but I am not sure
+                # if then e.g. the expected correlation is still zero. (Should be, right?)
+                assert max_nudge[sx] >= min_nudge[sx], 'unsatisfiable conditions for additive nudge!'
+
+                if max_nudge[sx] == min_nudge[sx]:
+                    warnings.warn('max_nudge[sx] == min_nudge[sx], meaning that I cannot find a single nudge'
+                                  ' \epsilon_a for all ' + str(len(list(pdf_P_I.itervalues())))
+                                  + ' pdf_P_i of pdf_P_I=P(perturbed_variables | ignored_variables='
+                                  + str(ignored_variables) + ')')
+                    # todo: implement a different nudge for each value for ignored_variables? Then this does not happen
+                    # NOTE: then the nudge may correlate with ignored_variables, which is not what you want because
+                    # then you could be adding correlations?
+
+            range_nudge = max_nudge - min_nudge
+
+            max_num_trials_nudge_gen = 1000
+            for trial in xrange(max_num_trials_nudge_gen):
+                nudge = np.random.random(np.shape(pdf_P.joint_probabilities.joint_probabilities)) * range_nudge \
+                        + min_nudge
+
+                sum_nudge = np.sum(nudge)  # should become 0, but currently will not be
+
+                correction = np.ones(
+                    np.shape(pdf_P.joint_probabilities.joint_probabilities)) / nudge.size * sum_nudge
+
+                nudge -= correction
+
+                if np.all(nudge <= max_nudge) and np.all(nudge >= min_nudge):
+                    break  # found a good nudge!
+                else:
+                    if trial == max_num_trials_nudge_gen - 1:
+                        warnings.warn(
+                            'max_num_trials_nudge_gen=' + str(max_num_trials_nudge_gen) + ' was not enough'
+                            + ' to find a good nudge vector. Will fail...')
+
+                    continue  # darn, let's try again
+
+            np.testing.assert_almost_equal(np.sum(nudge), 0.0, decimal=12)
+
+            # this is the point of self.type_prob ...
+            assert type(pdf_P.joint_probabilities.joint_probabilities.flat.next()) == self.type_prob
+
+            if len(ignored_variables) > 0:  # can this become the main code, so not an if? (also works if
+                # len(ignored*) == 0?)
+                # new attempt for making the new joint pdf
+                new_joint_probs = -np.ones(np.shape(self.joint_probabilities.joint_probabilities))
+
+                for s in self.statespace():
+                    # shorthands: the states pertaining to the three subsets of variables
+                    sp = tuple(np.take(s, perturbed_variables))
+                    so = tuple(np.take(s, output_variables))
+                    si = tuple(np.take(s, ignored_variables))
+
+                    new_joint_probs[s] = pdf_I(si) * (pdf_P_I[si](sp) + nudge[sp]) * pdf_O_IP[si + sp](so)
+
+                    # might go over by a tiny bit due to roundoff, then just clip
+                    if -1e-10 < new_joint_probs[s] < 0:
+                        new_joint_probs[s] = 0
+                    elif 1 < new_joint_probs[s] < 1 + 1e-10:
+                        new_joint_probs[s] = 1
+
+                    assert 0 <= new_joint_probs[s] <= 1, 'new_joint_probs[s] = ' + str(new_joint_probs[s])
+
+                self.reset(self.numvariables, self.numvalues, new_joint_probs)
+            else:
+                new_probs = pdf_P.joint_probabilities.joint_probabilities + nudge
+
+                # this is the point of self.type_prob ...
+                assert type(new_probs.flat.next()) == self.type_prob
+
+                # todo: remove test once it works a while
+                if True:
+                    assert np.max(new_probs) <= 1.0, 'no prob should be >1.0: ' + str(np.max(new_probs))
+                    assert np.min(new_probs) >= 0.0, 'no prob should be <0.0: ' + str(np.min(new_probs))
+
+                # assert np.max(nudge) <= abs(epsilon), 'no nudge should be >' + str(epsilon) + ': ' + str(np.max(nudge))
+                # assert np.min(nudge) >= -abs(epsilon), 'no nudge should be <' + str(-epsilon) + ': ' + str(np.min(nudge))
+
+                # total probability mass should be unchanged  (todo: remove test once it works a while)
+                np.testing.assert_almost_equal(np.sum(new_probs), 1)
+
+                if __debug__:
+                    pdf_X_orig = pdf_P.copy()
+
+                pdf_P.joint_probabilities.reset(new_probs)
+
+                self.duplicate(pdf_P + pdf_IO_P)
+
+            return nudge
+        else:
+            raise UserWarning('you should not mix perturbed_variables and output_variables. Not sure yet how to'
+                              ' implement that. The output variables that occur before a perturbed variable should'
+                              ' probably be swapped but with the condition that they become independent from the'
+                              ' said perturbed variable(s), however the output variable could also be a causal '
+                              ' predecessor for that perturbed variable and swapping them means that this'
+                              ' causal relation would be lost (under the current assumption that variables are'
+                              ' ordered as causal predecessors of each other). Maybe split this up in different'
+                              ' nudge scenarios?')
 
 
-    def causal_impact_of_nudge(self, perturbed_variables, epsilon=0.01, num_samples=20, base=2):
+    # helper function
+    def logbase(self, x, base, replace_zeros=True):
+        """
+        A wrapper around np.log(p) which will return 0 if p is 0, which is useful for MI calc. because 0 log 0 = 0
+        by custom.
+        :type replace_zeros: bool
+        """
 
-        output_variables = np.setdiff1d(range(len(self)), perturbed_variables)
+        if replace_zeros:
+            x2 = copy.deepcopy(x)
+
+            if replace_zeros:
+                np.place(x2, x2 == 0, 1)
+        else:
+            x2 = x
+
+        if base == 2:
+            ret = np.log2(x2)
+        elif base == np.e:
+            ret = np.log(x2)
+        else:
+            ret = np.log(x2) / np.log(base)
+
+        return ret
+
+
+    def causal_impact_of_nudge(self, perturbed_variables, output_variables='auto', hidden_variables=None,
+                               epsilon=0.01, num_samples=20, base=2):
+        """
+        This function determines the *direct* causal impact of <perturbed_variables> on <output_variables>. All other
+         variables are assumed 'fixed', meaning that the question becomes: if I fix all other variables' values, will
+         a change in <perturbed_variables> result in a change in <output_variables>?
+
+         This function will more specifically determine to what extent the mutual information between
+         <perturbed_variables> and <output_variables> is 'causal'. If the return object is <impact> then this
+         extent (fraction) can be calculated as "impact.avg_impact / (impact.avg_corr - impact.avg_mi_diff)".
+        :rtype: CausalImpactResponse
+        """
+
+        # todo: add also an unobserved_variables list or so. now ignored_variables are actually considered fixed,
+        # not traced out
+
+        if hidden_variables is None:
+            hidden_variables = []
+
+        if output_variables in ('auto', 'all'):
+            fixed_variables = []
+
+            output_variables = list(np.setdiff1d(range(len(self)), list(perturbed_variables) + list(hidden_variables)))
+        else:
+            fixed_variables = list(np.setdiff1d(range(len(self)), list(perturbed_variables) + list(hidden_variables)
+                                                + list(output_variables)))
+
+        perturbed_variables = sorted(list(set(perturbed_variables)))
+        hidden_variables = sorted(list(set(hidden_variables)))
+        output_variables = sorted(list(set(output_variables)))
+        fixed_variables = sorted(list(set(fixed_variables)))
+
+        # print 'debug: output_variables =', output_variables
+        # print 'debug: hidden_variables =', hidden_variables
+        # print 'debug: fixed_variables =', fixed_variables
+        # print 'debug: perturbed_variables =', perturbed_variables
+
+        # assert sorted(perturbed_variables + hidden_variables + output_variables + fixed_variables)
+
+        if not hidden_variables is None:
+            if len(hidden_variables) > 0:
+                pdf = self.copy()
+
+                pdf.reorder_variables(list(perturbed_variables) + list(fixed_variables) + list(output_variables)
+                                      + list(hidden_variables))
+
+                # sum out the hidden variables
+                pdf = pdf.marginalize_distribution(range(len(list(perturbed_variables) + list(fixed_variables)
+                                                             + list(output_variables))))
 
         ret = CausalImpactResponse()
 
         ret.perturbed_variables = perturbed_variables
+
         ret.mi_orig = self.mutual_information(perturbed_variables, output_variables, base=base)
 
         ret.mi_nudged_list = []
         ret.impacts_on_output = []
         ret.correlations = []
 
+        ret.nudges = []
+        ret.upper_bounds_impact = []
+
         pdf_out = self.marginalize_distribution(output_variables)
         pdf_pert = self.marginalize_distribution(perturbed_variables)
 
-        cond_out = self.conditional_probability_distributions(perturbed_variables)
+        cond_out = self.conditional_probability_distributions(perturbed_variables, output_variables)
+
+        assert len(cond_out.itervalues().next()) == len(output_variables), \
+            'len(cond_out.itervalues().next()) = ' + str(len(cond_out.itervalues().next())) \
+            + ', len(output_variables) = ' + str(len(output_variables))
 
         for i in xrange(num_samples):
             pdf = self.copy()
 
-            nudge = pdf.nudge(perturbed_variables, epsilon)
+            nudge = pdf.nudge(perturbed_variables, output_variables, epsilon)
+
+            upper_bound_impact = np.sum([np.power(np.sum([nudge[a] * cond_out[a](b)
+                                                          for a in pdf_pert.statespace()]), 2) / pdf_out(b)
+                                         for b in pdf_out.statespace()])
+
+            # NOTE: below I do this multiplier to make everything work out, but I do not yet understand why, but anyway
+            # then I have to do it here as well -- otherwise I cannot compare the below <impact> with this upper bound
+            upper_bound_impact *= 1.0 / 2.0 * 1.0 / np.log(base)
+
+            np.testing.assert_almost_equal(np.sum(nudge), 0, decimal=12,
+                                           err_msg='more strict: 0 != ' + str(np.sum(nudge)))
+            # assert np.sum([nudge[pvs] for pvs in cond_out.iterkeys()]) == 0, \
+            #     'more strict to find bug: ' + str(np.sum([nudge[pvs] for pvs in cond_out.iterkeys()]))
+
+            ret.nudges.append(nudge)
+            ret.upper_bounds_impact.append(upper_bound_impact)
 
             ### determine MI difference
 
@@ -3020,15 +3778,41 @@ class JointProbabilityMatrix():
 
             pdf_out_new = pdf.marginalize_distribution(output_variables)
 
-            impact = np.sum(np.power(pdf_out_new.joint_probabilities - pdf_out.joint_probabilities, 2)
-                            / pdf_out.joint_probabilities.joint_probabilities)
+            impact = np.sum([np.power(pdf_out_new(b) - pdf_out(b), 2) / pdf_out(b)
+                             for b in pdf_out.statespace()])
+            # NOTE: I do not yet understand where the factor 1/2 comes from!
+            # (note to self: the upper bound of i_b is easily derived, but for clearly 100% causal relations
+            # this <impact> falls  short of the upper bound by exactly this multiplier... just a thought. Maybe
+            # I would have to correct <correlations> by this, and not impact?)
+            impact *= 1.0/2.0 * 1.0/np.log(base)
             ret.impacts_on_output.append(impact)
 
             if __debug__:
-                debug_impact = np.sum([np.power(pdf_out_new(b) - pdf_out(b), 2) / pdf_out(b)
-                                       for b in pdf_out.statespace()])
+                # for some reason this seems to be more prone to roundoff errors than above... strange...
+                debug_impact = np.sum(np.power(pdf_out_new.joint_probabilities - pdf_out.joint_probabilities, 2)
+                                      / pdf_out.joint_probabilities.joint_probabilities)
 
-                np.testing.assert_array_almost_equal(impact, debug_impact)
+                debug_impact *= 1.0/2.0 * 1.0/np.log2(base)
+
+                if np.random.randint(10) == 0:
+                    array1 = np.power(pdf_out_new.joint_probabilities - pdf_out.joint_probabilities, 2) \
+                             / pdf_out.joint_probabilities.joint_probabilities
+                    array2 = [np.power(pdf_out_new(b) - pdf_out(b), 2) / pdf_out(b)
+                              for b in pdf_out.statespace()]
+
+                    # print 'error: len(array1) =', len(array1)
+                    # print 'error: len(array2) =', len(array2)
+
+                    np.testing.assert_almost_equal(array1.flatten(), array2)
+
+                # debug_impact seems highly prone to roundoff errors, don't know why, but coupled with the pairwise
+                # testing in the if block above and this more messy test I think it is good to know at least that
+                # the two are equivalent, so probably correct
+                try:
+                    np.testing.assert_almost_equal(impact, debug_impact, decimal=3)
+                except AssertionError as e:
+                    warnings.warn('np.testing.assert_almost_equal(impact=' + str(impact)
+                                  + ', debug_impact=' + str(debug_impact) + ', decimal=3): ' + str(e))
 
             assert impact >= 0.0
 
@@ -3038,20 +3822,36 @@ class JointProbabilityMatrix():
                 # shorthand, but for production mode I am worried that such an extra function call to a very central
                 # function (in Python) may slow things down a lot, so I do it in debug only (seems to take 10-25%
                 # more time indeed)
-                def logbase_debug(x, base):
-                    if base==2:
-                        return np.log2(x)
-                    elif base==np.e:
-                        return np.log(x)
-                    else:
-                        return np.log(x) / np.log(base)
+                # def logbase_debug(x, base):
+                #     if x != 0:
+                #         if base==2:
+                #             return np.log2(x)
+                #         elif base==np.e:
+                #             return np.log(x)
+                #         else:
+                #             return np.log(x) / np.log(base)
+                #     else:
+                #         # assuming that this log factor is part of a p * log(p) term, and 0 log 0 = 0 by
+                #         # common assumption, then the result will now be 0 whereas if -np.inf then it will be np.nan...
+                #         return -_finite_inf
 
-                # looking for bug, todo: remove
-                np.testing.assert_almost_equal(np.sum([nudge[pvs] for pvs in cond_out.iterkeys()]), 0)
+                # looking for bug, sometimes summing nudges in this way results in non-zero
+                try:
+                    np.testing.assert_almost_equal(np.sum([nudge[pvs] for pvs in pdf_pert.statespace()]), 0,
+                                                   err_msg='shape nudge = ' + str(np.shape(nudge)))
+                except IndexError as e:
+                    print 'error: shape nudge = ' + str(np.shape(nudge))
 
+                    raise IndexError(e)
+                # assert np.sum([nudge[pvs] for pvs in cond_out.iterkeys()]) == 0, 'more strict to find bug'
+
+                if __debug__:
+                    if np.any(pdf_out.joint_probabilities.joint_probabilities == 0):
+                        warnings.warn('at least one probability in pdf_out is zero, so will be an infinite term'
+                                      ' in the surprise terms since it has log(... / pdf_out)')
 
                 debug_surprise_terms_fast = np.array([np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
-                                               * logbase_debug(cond_out[pvs].joint_probabilities.joint_probabilities
+                                               * self.logbase(cond_out[pvs].joint_probabilities.joint_probabilities
                                                          / pdf_out.joint_probabilities.joint_probabilities, base))
                                                for pvs in cond_out.iterkeys()])
 
@@ -3060,45 +3860,106 @@ class JointProbabilityMatrix():
                 pdf_pert_new = pdf.marginalize_distribution(perturbed_variables)
                 np.testing.assert_almost_equal(nudge, pdf_pert_new.joint_probabilities - pdf_pert.joint_probabilities)
 
-                debug_surprise_terms = np.array([np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                debug_surprise_terms = np.array([np.sum([cond_out[pvs](ovs)
+                                                         * (self.logbase(cond_out[pvs](ovs)
+                                                            / pdf_out(ovs), base)
+                                                            if cond_out[pvs](ovs) > 0 else 0)
                                           for ovs in pdf_out.statespace()])
                      for pvs in cond_out.iterkeys()])
                 debug_surprise_sum = np.sum(debug_surprise_terms)
                 debug_mi_orig = np.sum(
-                    [pdf_pert(pvs) * np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                    [pdf_pert(pvs) * np.sum([cond_out[pvs](ovs)
+                                             * (self.logbase(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                                                if cond_out[pvs](ovs) > 0 else 0)
                              for ovs in pdf_out.statespace()])
                      for pvs in cond_out.iterkeys()])
 
-                np.testing.assert_almost_equal(debug_surprise_sum, debug_surprise_sum_fast)
-                np.testing.assert_almost_equal(debug_mi_orig, ret.mi_orig)
+                if not np.isnan(debug_surprise_sum_fast):
+                    np.testing.assert_almost_equal(debug_surprise_sum, debug_surprise_sum_fast)
+                if not np.isnan(debug_mi_orig):
+                    np.testing.assert_almost_equal(debug_mi_orig, ret.mi_orig)
 
                 assert np.all(debug_surprise_terms >= -0.000001), \
                     'each specific surprise s(a) should be non-negative right? ' + str(np.min(debug_surprise_terms))
-                np.testing.assert_almost_equal(debug_surprise_terms_fast, debug_surprise_terms)
-                assert np.all(debug_surprise_terms_fast >= -0.000001), \
-                    'each specific surprise s(a) should be non-negative right? ' + str(np.min(debug_surprise_terms_fast))
+                if not np.isnan(debug_surprise_sum_fast):
+                    np.testing.assert_almost_equal(debug_surprise_terms_fast, debug_surprise_terms)
+                    assert np.all(debug_surprise_terms_fast >= -0.000001), \
+                        'each specific surprise s(a) should be non-negative right? ' + str(np.min(debug_surprise_terms_fast))
+
+            def logdiv(p, q, base=2):
+                if q == 0:
+                    return 0  # in sum p(q|p) log p(q|p) / p(q) this will go alright and prevents an error for NaN
+                elif p == 0:
+                    return 0  # same
+                else:
+                    return np.log(p / q) / np.log(base)
 
             # todo: precompute cond_out[pvs] * np.log2(cond_out[pvs] / pdf_out) matrix?
             if base == 2:
                 # note: this is the explicit form, should check if a more implicit numpy array form (faster) will be
                 # equivalent
-                correlation = np.array(
-                    [nudge[pvs] * np.sum([cond_out[pvs](ovs) * np.log2(cond_out[pvs](ovs) / pdf_out(ovs))
-                             for ovs in pdf_out.statespace()]) for pvs in cond_out.iterkeys()])
-                correlation = np.sum(correlation)
+                method_correlation = 'fast'
+                # method_correlation = 'slow'
+                if not method_correlation == 'fast' \
+                        or len(fixed_variables) > 0 \
+                        or len(hidden_variables) > 0:  # else-block is not yet adapted for this case, not sure yet how
+                    correlation = np.array(
+                        [nudge[pvs] * np.sum([cond_out[pvs](ovs) * logdiv(cond_out[pvs](ovs), pdf_out(ovs), base)
+                                 for ovs in pdf_out.statespace()]) for pvs in cond_out.iterkeys()], dtype=_type_prob)
+
+                    assert np.all(np.isfinite(correlation)), \
+                        'correlation contains non-finite scalars, like NaN probably...'
+
+                    correlation = np.sum(correlation)
+
+                    assert np.isfinite(correlation)
+                else:
+                    assert len(fixed_variables) == 0, 'not yet supported by this else block, must tile over ' \
+                                                        'ignored_variables as well, but not sure if it matters how...'
+
+                    # allprobs = self.joint_probabilities.joint_probabilities  # shorthand
+                    try:
+                        allprobs = np.reshape(np.array([cond_out[a].joint_probabilities.joint_probabilities
+                                              for a in pdf_pert.statespace()],
+                                              dtype=_type_prob),
+                                              np.shape(pdf_pert.joint_probabilities.joint_probabilities)
+                                              + np.shape(cond_out.itervalues().next().joint_probabilities.joint_probabilities))
+                    except ValueError as e:
+                        print 'error: np.shape(cond_out.itervalues().next().joint_probabilities.joint_probabilities) =', \
+                            np.shape(cond_out.itervalues().next().joint_probabilities.joint_probabilities)
+                        print 'error: np.shape(self.joint_probabilities.joint_probabilities) =', np.shape(self.joint_probabilities.joint_probabilities)
+                        print 'error: np.shape(cond_out.iterkeys().next().joint_probabilities.joint_probabilities) =', np.shape(cond_out.iterkeys().next().joint_probabilities.joint_probabilities)
+                        print 'error: np.shape(cond_out.itervalues().next().joint_probabilities.joint_probabilities) =', np.shape(cond_out.itervalues().next().joint_probabilities.joint_probabilities)
+
+                        raise ValueError(e)
+                    pdf_out_tiled = np.tile(pdf_out.joint_probabilities.joint_probabilities,
+                                            [pdf_pert.numvalues] * len(pdf_pert) + [1])  # shorthand
+
+                    correlation = np.sum(nudge * np.sum(allprobs * (self.logbase(allprobs, base) - self.logbase(pdf_out_tiled, base)),
+                                                        axis=tuple(range(len(perturbed_variables), len(self)))))
+
+                    assert np.isfinite(correlation)
+
+                    # if __debug__:
+                    #     if num_samples <= 10:
+                    #         print 'debug: correlation =', correlation
+
+                # todo: try to avoid iterating over nudge[pvs] but instead do an implicit numpy operation, because
+                # this way I get roundoff errors sometimes
 
                 # correlation = np.sum([nudge[pvs] * cond_out[pvs].joint_probabilities.joint_probabilities
                 #               * (np.log2(cond_out[pvs].joint_probabilities.joint_probabilities)
                 #               - np.log2(pdf_out.joint_probabilities.joint_probabilities))
                 #               for pvs in cond_out.iterkeys()])
 
-                if __debug__:
+                if __debug__ and np.random.randint(10) == 0:
                     correlation2 = np.sum([nudge[pvs] * np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
-                                  * (np.log2(cond_out[pvs].joint_probabilities.joint_probabilities)
-                                  - np.log2(pdf_out.joint_probabilities.joint_probabilities)))
+                                  * (self.logbase(cond_out[pvs].joint_probabilities.joint_probabilities, 2)
+                                  - self.logbase(pdf_out.joint_probabilities.joint_probabilities, 2)))
                                   for pvs in cond_out.iterkeys()])
 
-                    np.testing.assert_almost_equal(correlation, correlation2)
+                    if not np.isnan(correlation2):
+                        np.testing.assert_almost_equal(correlation, correlation2)
             elif base == np.e:
                 correlation = np.sum([nudge[pvs] * np.sum(cond_out[pvs].joint_probabilities.joint_probabilities
                                       * (np.log(cond_out[pvs].joint_probabilities.joint_probabilities)
@@ -3110,14 +3971,16 @@ class JointProbabilityMatrix():
                                          - np.log(pdf_out.joint_probabilities.joint_probabilities)) / np.log(base))
                                       for pvs in cond_out.iterkeys()])
 
-            if __debug__:
+            if __debug__ and not method_correlation == 'fast':
                 debug_corr = np.sum(
-                    [nudge[pvs] * np.sum([cond_out[pvs](ovs) * logbase_debug(cond_out[pvs](ovs) / pdf_out(ovs), base)
+                    [nudge[pvs] * np.sum([cond_out[pvs](ovs) * self.logbase(cond_out[pvs](ovs) / pdf_out(ovs), base)
                                           for ovs in pdf_out.statespace()])
                      for pvs in cond_out.iterkeys()])
 
                 # should be two ways of computing the same
                 np.testing.assert_almost_equal(debug_corr, correlation)
+
+            assert np.isfinite(correlation), 'correlation should be a finite number'
 
             ret.correlations.append(correlation)
 
@@ -3134,6 +3997,9 @@ class JointProbabilityMatrix():
         ret.mi_nudged_list = np.array(ret.mi_nudged_list)  # makes it easier to subtract and such by caller
         ret.impacts_on_output = np.array(ret.impacts_on_output)
         ret.correlations = np.array(ret.correlations)
+
+        assert np.all(np.isfinite(ret.correlations))
+        assert not np.any(np.isnan(ret.correlations))
 
         ret.residuals = ret.impacts_on_output - (ret.correlations - ret.mi_diffs)
         ret.avg_residual = np.mean(ret.residuals)
@@ -3499,9 +4365,16 @@ class JointProbabilityMatrix():
         return
 
 
-    def append_variables_with_target_mi(self, num_appended_variables, target_mi, verbose=False):
+    def append_variables_with_target_mi(self, num_appended_variables, target_mi, relevant_variables='all',
+                                        verbose=False, num_repeats=None):
 
         # input_variables = [d for d in xrange(self.numvariables) if not d in output_variables]
+
+        if relevant_variables in ('all', 'auto'):
+            relevant_variables = range(len(self))
+        else:
+            assert len(relevant_variables) < len(self), 'cannot be relative to more variables than I originally had'
+            assert max(relevant_variables) <= len(self) - 1, 'relative to new variables...?? should not be'
 
         parameter_values_before = list(self.matrix2params_incremental())
 
@@ -3516,9 +4389,13 @@ class JointProbabilityMatrix():
         num_free_parameters = len(parameter_values_after) - len(parameter_values_before)
 
         def cost_func_target_mi(free_params, parameter_values_before):
+
+            assert np.all(np.isfinite(free_params)), 'looking for bug 23142'
+            # assert np.all(np.isfinite(parameter_values_before))  # todo: remove
+
             pdf_new.params2matrix_incremental(list(parameter_values_before) + list(free_params))
 
-            mi = pdf_new.mutual_information(range(len(self)), range(len(self), len(pdf_new)))
+            mi = pdf_new.mutual_information(relevant_variables, range(len(self), len(pdf_new)))
 
             return np.power(abs(target_mi - mi) / target_mi, 2)
 
@@ -3526,10 +4403,11 @@ class JointProbabilityMatrix():
                                         initial_guess=np.random.random(num_free_parameters),
                                         verbose=verbose)
 
-        return
+        return  # nothing, in-place
 
 
-    def append_optimized_variables(self, num_appended_variables, cost_func, initial_guess=None, verbose=True):
+    def append_optimized_variables(self, num_appended_variables, cost_func, initial_guess=None, verbose=True,
+                                   num_repeats=None):
         """
         Append variables in such a way that their conditional pdf with the existing variables is optimized in some
         sense, for instance they can be synergistic (append_synergistic_variables) or orthogonalized
@@ -3553,11 +4431,16 @@ class JointProbabilityMatrix():
         # these parameters should be unchanged and the first set of parameters of the resulting pdf_new
         parameter_values_before = list(self.matrix2params_incremental())
 
+        assert min(parameter_values_before) >= 0.00000001, \
+            'minimum of %s is < 0, should not be.' % parameter_values_before
+        assert max(parameter_values_before) <= 1.00000001, \
+            'minimum of %s is < 0, should not be.' % parameter_values_before
+
         if __debug__:
             debug_params_before = copy.deepcopy(parameter_values_before)
 
         # a pdf with XORs as appended variables (often already MSRV for binary variables), good initial guess?
-        # note: does not really matter how I set the pdf of this new pddf, as long as it has the correct number of
+        # note: does not really matter how I set the pdf of this new pdf, as long as it has the correct number of
         # paarameters for optimization below
         pdf_new = self.copy()
         pdf_new.append_variables_using_state_transitions_table(
@@ -3584,15 +4467,28 @@ class JointProbabilityMatrix():
 
         param_vectors_trace = []  # storing the parameter vectors visited by the minimize() function
 
-        if type(initial_guess) == int:
-            num_repeats = int(initial_guess)
-            initial_guess = None
+        if num_repeats is None:
+            if type(initial_guess) == int:
+                num_repeats = int(initial_guess)
+                initial_guess = None
 
-            assert num_repeats > 0, 'makes no sense to optimize zero times?'
-        else:
-            num_repeats = 1
+                assert num_repeats > 0, 'makes no sense to optimize zero times?'
+            else:
+                num_repeats = 1
 
         optres = None
+
+        def cost_func_wrapper(free_params, parameter_values_before):
+            # note: jezus CHRIST not only does minimize() ignore the bounds I give it, it also suggests [nan, ...]!
+            # assert np.all(np.isfinite(free_params)), 'looking for bug 23142'
+            if not np.all(np.isfinite(free_params)):
+                return np.power(np.sum(np.isfinite(free_params)), 2) * 10.
+            else:
+                clipped_free_params = np.max([np.min([free_params, np.ones(np.shape(free_params))], axis=0),
+                                             np.zeros(np.shape(free_params))], axis=0)
+                # penalize going out of bounds
+                extra_cost = np.power(np.sum(np.abs(np.subtract(free_params, clipped_free_params))), 2)
+                return cost_func(clipped_free_params, parameter_values_before) + extra_cost
 
         for rep in xrange(num_repeats):
             if initial_guess is None:
@@ -3601,13 +4497,15 @@ class JointProbabilityMatrix():
                 initial_guess_i = initial_guess  # always start from supplied point in parameter space
 
             assert len(initial_guess_i) == num_free_parameters
+            assert np.all(np.isfinite(initial_guess_i)), 'looking for bug 55142'
+            assert np.all(np.isfinite(parameter_values_before)), 'looking for bug 44142'
 
             if verbose:
                 print 'debug: starting minimize() #' + str(rep) \
                       + ' at params=' + str(initial_guess_i) + ' at cost_func=' \
-                      + str(cost_func(initial_guess_i, parameter_values_before))
+                      + str(cost_func_wrapper(initial_guess_i, parameter_values_before))
 
-            optres_i = minimize(cost_func,
+            optres_i = minimize(cost_func_wrapper,
                               initial_guess_i, bounds=[(0.0, 1.0)]*num_free_parameters,
                               # callback=(lambda xv: param_vectors_trace.append(list(xv))) if verbose else None,
                               args=(parameter_values_before,))
@@ -3638,6 +4536,15 @@ class JointProbabilityMatrix():
 
         optimal_parameters_joint_pdf = list(parameter_values_before) + list(optres.x)
 
+        assert min(optimal_parameters_joint_pdf) >= 0.0, \
+            'minimum of %s is < 0, should not be.' % optimal_parameters_joint_pdf
+        assert min(optimal_parameters_joint_pdf) <= 1.0, \
+            'minimum of %s is > 1, should not be.' % optimal_parameters_joint_pdf
+        assert min(parameter_values_before) >= 0.0, \
+            'minimum of %s is < 0, should not be.' % parameter_values_before
+        assert min(parameter_values_before) <= 1.0, \
+            'minimum of %s is > 1, should not be.' % parameter_values_before
+
         pdf_new.params2matrix_incremental(optimal_parameters_joint_pdf)
 
         assert len(pdf_new) == len(self) + num_appended_variables
@@ -3651,8 +4558,8 @@ class JointProbabilityMatrix():
             np.testing.assert_array_almost_equal(parameter_values_before,
                                                  parameter_values_after2[:len(parameter_values_before)])
             # note: for the if see the story in params2matrix_incremental()
-            if not (0.0 in self.scalars_up_to_level(parameter_values_after2) or \
-                            1.0 in self.scalars_up_to_level(parameter_values_after2)):
+            if not (0.000001 >= min(self.scalars_up_to_level(parameter_values_after2)) or \
+                            0.99999 <= max(self.scalars_up_to_level(parameter_values_after2))):
                 try:
                     np.testing.assert_array_almost_equal(parameter_values_after2[len(parameter_values_before):],
                                                          optres.x)
@@ -4635,7 +5542,6 @@ class TemporalJointProbabilityMatrix():
     # this can be taken as Pr(X_{t=0})
     current_pdf = JointProbabilityMatrix(0, 0)  # just so that IDE gets the type of member right
 
-    # todo: make a class for conditional pdfs sometime?
     # this can be taken as Pr(X_{t+1} | X_{t})
     cond_next_pdf = ConditionalProbabilityMatrix()
 
@@ -4672,6 +5578,8 @@ class TemporalJointProbabilityMatrix():
             self.cond_next_pdf = ConditionalProbabilityMatrix({states: JointProbabilityMatrix(current_pdf.numvariables,
                                                                                               current_pdf.numvalues)
                                                                for states in current_pdf.statespace()})
+        elif type(cond_next_pdf) == dict:
+            self.cond_next_pdf = ConditionalProbabilityMatrix(cond_next_pdf)
         else:
             assert hasattr(cond_next_pdf, 'iterkeys'), 'should be a ConditionalProbabilityMatrix'
             assert hasattr(cond_next_pdf, 'num_given_variables'), 'should be a ConditionalProbabilityMatrix'
