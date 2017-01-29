@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2017.1.28)  29 JAN 2017 15:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2017.1.28)  29 JAN 2017 19:35
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -170,18 +170,18 @@ Underfull \hbox (badness 10000) in paragraph at lines 17--23
 
  []
 
+
+Overfull \hbox (0.52057pt too wide) in paragraph at lines 45--46
+[]\OT1/cmr/m/n/10.95 Our additional research question, which extends the former
+, is: "Does the relationship
+ []
+
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (9.36168pt too wide) in paragraph at lines 51--55
-[]\OT1/cmr/m/n/10.95 Second, we will take to test our hypotheses in a simulatio
-n study. We will systematically
- []
-
-
-Overfull \hbox (1.42586pt too wide) in paragraph at lines 51--55
-\OT1/cmr/m/n/10.95 discrete probability functions, and continuous functions. Th
-e latter is a new development,
+Overfull \hbox (0.42216pt too wide) in paragraph at lines 70--74
+\OT1/cmr/m/n/10.95 with the synergy profile. We will consider both systems the 
+work with discrete probability
  []
 
 [2] (./goldsborough_proposal.aux) ) 
@@ -198,7 +198,7 @@ ublic/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mtt10.pfb>
-Output written on goldsborough_proposal.pdf (2 pages, 61252 bytes).
+Output written on goldsborough_proposal.pdf (2 pages, 64074 bytes).
 PDF statistics:
  27 PDF objects out of 1000 (max. 8388607)
  18 compressed objects within 1 object stream

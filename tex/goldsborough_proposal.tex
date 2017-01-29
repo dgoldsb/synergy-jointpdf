@@ -19,37 +19,42 @@
 \textbf{End date}: August 6th, 2017\\
 \textbf{Student}: Dylan Goldsborough (\url{dylan.goldsborough@student.uva.nl})\\
 \textbf{Supervisor}: Rick Quax (\url{r.quax@uva.nl})\\
-\textbf{Second reader}: Jaap Kaandorp (\url{j.kaandorp@uva.nl})\\
+\textbf{Second reader}: Jaap Kaandorp (\url{j.a.kaandorp@uva.nl})\\
 
 \section{Research proposition}
 
-(Based on papers introduction to synergy.)
-The question on relation synergy and resilience holds lot of practical relevance
-Ecology major unanswered question
-Also in neuropsychology, biological neural networks
-Also ANN (Derk Jan).
+In complex systems, the properties of many individual leads to a large scale mergent behavior, which cannot be understood by looking at the components individually.
+In this case, the parts of the system produce some sort of 'synergy' which is a vital part of the dynamics of the system as a whole.
+The quantification of synergy in complex systems is amongs the open problems in information theory. 
+Quax et al. have proposed a method of quantification, using intermediate stochastic variables.
+
+With this tool, we look at another open question in this field: the relation between synergy in a complex systems, and resilience of the system against disturbances. 
+This question has a lot of practical relevance, as it has been asked in different forms in several disciplines. 
+In ecology, for example, the relationship between the complexity and resilience of an ecosystem is on of the primary unanswered questions.
+This relationship is similarly relevant in our understanding of neural networks in neuroscience, and our understanding of artificial neural networks in artificial intelligence.
 Ultimately this can give us a better understanding of why systems are resilient, and a mean to predict the resilience of a system based on its composition alone.
 
 \section{The main problem setting, research questions and/or hypothesis}
 
-> Main problem: determinging links between the complexity of a complex system as a sum of its components, and its resilience to nudges. 
-> RQ: is there a relation between the synergy profile as quantified following Rick Quax (\url{https://bitbucket.org/rquax/jointpdf}).
-Hyp??
-> Additional research question: does the relationship in simulated systems hold for real systems?
-Hyp??
+The main problem adressed in this study is one from information science: we want to determine the links between the complexity of a complex system, of which the quantified synergy is a measure, and its resilience to nudges. 
+This problem is recurrent in many other disciplines, such as biology.
+
+Our primary research question is: "Is there a relation between the synergy profile of a system as quantified following Rick Quax, and the resilience of said system." (Hypotheses.)
+
+
+Our additional research question, which extends the former, is: "Does the relationship observed in simulated systems hold for real world complex systems?" (Hypotheses.)
 
 \section{Research design and method(s)}
 
-Simulation study
-> Extend Python library for continuous (Fourier)
-> Generate random system both discrete and continuous
-> Create synergy profiles and determine resilience
-> Record
+We will perform a simulation study to test the hypothesis that there is a relationship between the synergy profile of a system, and its resilience to nudges. 
+To do so, we will extend the Python library developed by Rick Quax to quantify synergy (\url{https://bitbucket.org/rquax/jointpdf}) to support continuous probability distributions.
+We will then sample a set of discrete systems and continuous systems, where a system is a collection of variables that are defined by a PDF, and that are mutually dependent.
+Of these systems, we will generate their synergy profiles, as well as determine their resilience against nudges.
+From the resulting dataset we then will test our hypotheses.
 
-Applied section
-> Apply to real world system
-> Create synergy profiles and determine resilience
-> Compare to what we know
+After the simulation study, we will test the results on a real complex system.
+We will create a synergy profile, and estimate the resilience on this basis.
+We will then compare the predicted resilience to the resilience of the system that is known to us from emperical studies.
 
 \section{Project time table}
 
@@ -63,7 +68,7 @@ The preference in (b) lies in an ecological system of which the resilience is ro
 The challenge lies in finding a suitable dataset, and determining how to interpret the system in the context of this synergy quantification.
 
 Second, we will take to test our hypotheses in a simulation study. 
-We will systematically generate random systems, with varying degrees of resilience, and examine if there is a relationship with the synergy profile. 
+We will generate random systems, with varying degrees of resilience, and examine if there is a relationship with the synergy profile. 
 We will consider both systems the work with discrete probability functions, and continuous functions. 
 The latter is a new development, which is necesarry for application to real-life systems.
 
