@@ -7,3 +7,5 @@
 ## Phase 2: continuous (KNN) simulation study
 
 ## Phase 3: application
+
+# Documentation
