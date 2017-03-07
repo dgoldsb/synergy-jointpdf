@@ -11,7 +11,7 @@
 
 ## Phase 0: literature (April 6th 2017 done)
 
-* [ ] Read papers, make notes in the wiki
+* [ ] Read papers, make notes in the Wiki
 * [ ] For a 7+, have a focused literature study that shows the knowledge gaps
 * [ ] Include following
     * X-or is perfect synergistic
