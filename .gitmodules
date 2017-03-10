@@ -1,0 +1,3 @@
+[submodule "jointpdf"]
+	path = jointpdf
+	url = https://bitbucket.org/rquax/jointpdf.git
