@@ -1,14 +1,39 @@
+"""
+A brief exploration of the jointpdf framework
+"""
+from __future__ import print_function
 import MIprofile
-import jointpdf
+from jointpdf import jointpdf
 
 def main():
-    # Maak een profiel
+    """
+    Exploration happens here
+    """
+
+    # Create a single profile and plot it
+    # TODO: make it a class too, just a discrete and cont version
+    system = MIprofile.create_system_discrete()
+    plot_data = MIprofile.create_mi_profile(system)
+    MIprofile.plot_mi_profile(plot_data)
+
+    # Create several profiles and plot them
+    print("Todo...")
+
+    # Do some stuff with a single system
     system = jointpdf.JointProbabilityMatrix(numvariables=2, numvalues=2
                                              , joint_probs='unbiased')
-
-    # Maak een set van profielen
-
-    # Plot die profielen
+    print("The entropy of the system is "+str(system.entropy()))
+    system.append_variables(num_added_variables=1, added_joint_probabilities=None)
+    print("The entropy of the system with another variable appended is "+str(system.entropy()))
+    system.append_synergistic_variables(num_synergistic_variables=1
+                                        , initial_guess_summed_modulo=False
+                                        , verbose=True, subject_variables=None, agnostic_about=None
+                                        , num_repeats=1, minimize_method=None)
+    print("The entropy of the system with a synergistic variable appended is "
+          +str(system.entropy()))
+    system.set_labels(['a', 'b', 'c', 'd'])
+    print(system.get_labels())
+    print(system.mutual_information_labels('a', 'b'))
 
 if __name__ == '__main__':
     main()
