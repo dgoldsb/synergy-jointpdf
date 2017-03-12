@@ -19,21 +19,27 @@
     * If the average profile is above the line, it means redundancy
 * [ ] Give meaning to what synergy is
 
-## Phase 1: discrete simulation study (May 6th 2017 done)
+## Phase 1: discrete simulation study with nudges (May 6th 2017 done)
 
 * [ ] Make an envelope of several random types of MI profiles, and record properties
 * [ ] Come up with a research design
 * [ ] Make hypothesis maximum vs. average different
+* [ ] Discuss what has been done already
 
 ## Phase 2: continuous (KNN) simulation study (May 31st 2017 done)
+
+* [ ] Find how I will do nudges in KNN simulation study
 
 ## Phase 3: controlled case (May 31st 2017 done)
 
 * [ ] Hypothesis below the straight line to above possible, find a proof by example?
+* [ ] Controlled validation, the it is easier to explain what is happening in a real system
 
 ## Phase 4: application (June 6th 2017 done)
 
 * [ ] Formulate idea applying MI profile to ecology
+* [ ] Measurements over time
+* [ ] Resilience should be roughly known
 
 # Documentation
 
