@@ -1,1 +1,3 @@
-/jointpdf/*
+./jointpdf/*
+*.pyc
+__init__.py
