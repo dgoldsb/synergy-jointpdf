@@ -1,3 +1,10 @@
 ./jointpdf/*
 *.pyc
 __init__.py
+*.aux
+*.bbl
+*.blg
+*.log
+*.pdf
+*.gz
+*.toc

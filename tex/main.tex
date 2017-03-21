@@ -1,0 +1,60 @@
+\documentclass{article}
+
+% Packages
+\usepackage{lipsum}
+\usepackage{subfiles}
+\usepackage{natbib}
+\usepackage{geometry}
+
+% My name etc.
+\title{On the relation between resilience of complex systems and synergetic properties}
+\author{Dylan Goldsborough}
+\date{\today}
+
+% Formatting etc.
+\geometry{
+	a4paper,
+ 	total={170mm,257mm},
+ 	left=20mm,
+ 	top=20mm}
+
+% Get citing to work
+\providecommand{\main}{.}
+\def\biblio{\bibliographystyle{plainnat}\bibliography{\main/sources}}
+
+\begin{document}
+\def\biblio{}
+
+\maketitle
+
+\subfile{components/abstract.tex}
+
+\section{Introduction}
+
+\subsection{General background}
+
+\subfile{components/introduction_general.tex}
+
+\subsection{Quantifying complexity}
+
+\subfile{components/introduction_complexity.tex}
+
+\subsection{Synergy in the literature}
+
+\subfile{components/introduction_synergy.tex}
+
+\section{Methods}
+
+\subfile{components/methods.tex}
+
+\section{Results}
+
+\subfile{components/results.tex}
+
+\section{Discussion}
+
+\subfile{components/discussion.tex}
+
+\bibliographystyle{plain}
+\bibliography{sources}
+\end{document}
