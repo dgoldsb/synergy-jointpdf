@@ -2,7 +2,8 @@
 
 # Workflow
 
-* Every day, take a paper to read on the train
+* Do a standup Trello meeting with myself in the morning
+* Make sure I end each day on a cliffhanger, in the middle of something, makes it easier to start again
 * Read papers without a PC, enter it after in the wiki
 * Go through sources in inbox from newest to oldest
 * Go into the rabbit hole in good sources, read their sources
