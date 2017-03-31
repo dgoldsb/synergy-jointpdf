@@ -10,7 +10,7 @@
 
 # Phases of the project
 
-## Phase 0: literature (April 6th 2017 done)
+## Phase 0: literature
 
 * [ ] Read papers, make notes in the Wiki
 * [ ] For a 7+, have a focused literature study that shows the knowledge gaps
@@ -43,6 +43,16 @@
 * [ ] Resilience should be roughly known
 
 # Documentation
+
+# Miscellaneous notes
+
+* MI profile plots the average I(x_{subset}:y) for all subsets of size n, as a function of n
+* Experimentele subset concreet maken: ik kan twee kanten op werken, of beginnen bij bijv. netwerk motieven uit de echte wereld, en hier synergy in vinden, of kijken of ik op basis van simulaties waarin ik resilience en memory maximaliseer ook zowel synergy als die motieven vind
+* Output van een biologisch systeem is het beste het systeem in de volgende tijdstap, want relaties tussen soort hebben pas een werking in t+dt
+* Belangrijk om een paar voorbeelden uit te werken met MI profielen, laat zien dat een compleet redundant variable een rechte lijn is, maar overlap erboven zit, reken in bits
+* Je kan geen verschil zien tussen MI en synergy, maar je weet wel of een van de twee er is als de lijn er boven/er onder gaat, en op basis van de lijn kan je er een bound aan geven (als hij direct naar het max MI met y gaat weet je dat er geen synergy is, want dat is de max MI, en synergy zou die lijn naar beneden trekken)
+* Mijn stappen zijn nog steeds altijd discreet, mogelijk continu, dan echt systeem  (of ik continu doe hangt ervan af of het model van werkelijkheid dat is, genregulatie is dat bijv. niet meestal) (**idee is nu alleen discreet en dan gen regulatie netwerk**)
+* Praten over Rick zijn pertubation: is het in dit geval niet de output entropy? En is een wijziging hierin een goede measure van resilience?
 
 # Encouraging words
 
