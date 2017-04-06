@@ -18,7 +18,7 @@ We will investigate if this system is indeed synergetic, and if the motifs found
 * [ ] Find a reference gene regulation system to start with several (>2) parameters (**Sunday 23rd of April**)
 * [ ] Add a method to nudge the system/introduce error (**Sunday 23rd of April**)
 * [ ] Add a training method to the model, that can optimize the ODE parameters (**Sunday 30th of April**)
-* [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho) (**Sunday 30th of April**)
+* [ ] Pick a 4+ variable system that has known redundancy and synergy (Griffith and Ho) (**Sunday 30th of April**)
 * [ ] Write code to make MI profiles using Rick's framework (**Sunday 30th of April**)
 * [ ] Make MI profiles (both the regular plot and the derivative) for analysis (**Sunday 30th of April**)
 * [ ] Show that the MI profile shows motifs that correspond to what we know of the system (**Sunday 7th of May**)
