@@ -1,63 +1,135 @@
 # Introduction
 
-# Workflow
+This project investigates synergy in biological networks.
+Biological networks have the characteristics of both a long memory (states/oscillations are remembered over time) and resilience to pertubations (shocks are forgotten).
+We hypothesize that this is possible due to an abundance of synergy in biological systems.
+This will be tested in gene regulation networks, using a simulation study.
+In this study, we will build a gene regulation-like model, and optimize the updating rules to maximize memory and minimize resilience.
+We will investigate if this system is indeed synergetic, and if the motifs found in the resulting model resemble gene regulation network motifs.
 
-* Do a standup Trello meeting with myself in the morning
-* Make sure I end each day on a cliffhanger, in the middle of something, makes it easier to start again
-* Read papers without a PC, enter it after in the wiki
-* Go through sources in inbox from newest to oldest
-* Go into the rabbit hole in good sources, read their sources
+# Timeline of milestones (in order)
+
+* [ ] Find a small gene regulation network (2 variables) with differential equations (**Saturday 8th of April**)
+* [ ] Find an application of kNN mutual information (**Saturday 8th of April**)
+* [ ] Build a sampling framework (**Tuesday 11th of April**)
+* [ ] Write the update rule (**Friday 14th of April**)
+* [ ] Do experiments, varying with the size of dt (**Friday Sunday of April**)
+* [ ] Determine the amount of synergy in the system (**Tuesday 18th of April**)
+* [ ] Find a reference gene regulation system to start with several (>2) parameters (**Sunday 23rd of April**)
+* [ ] Add a method to nudge the system/introduce error (**Sunday 23rd of April**)
+* [ ] Add a training method to the model, that can optimize the ODE parameters (**Sunday 30th of April**)
+* [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho) (**Sunday 30th of April**)
+* [ ] Write code to make MI profiles using Rick's framework (**Sunday 30th of April**)
+* [ ] Make MI profiles (both the regular plot and the derivative) for analysis (**Sunday 30th of April**)
+* [ ] Show that the MI profile shows motifs that correspond to what we know of the system (**Sunday 7th of May**)
+* [ ] Write code to make MI profiles using the kNN entropy (**Sunday 7th of May**)
+* [ ] Do experiments with the improved model (**Sunday 14th of May**)
+* [ ] Reevaluate life and see what is left/where I stand (**Sunday 14th of May**)
 
 # Phases of the project
 
-## Phase 0: literature
+## Phase 1: bivariate gene regulation network study
 
-* [ ] Read papers, make notes in the Wiki
-* [ ] For a 7+, have a focused literature study that shows the knowledge gaps
-* [ ] Include following
-    * X-or is perfect synergistic
-    * Addition is straight line in profile, if the ratios are similar (also when they are not I think)
-    * If the average profile is above the line, it means redundancy
-* [ ] Give meaning to what synergy is
+### Description
 
-## Phase 1: discrete simulation study with nudges (May 6th 2017 done)
+The bivariate case of a gene regulation network has the advantage that the redundancy can be calculated exactly, preferably with integer-values only.
+As such, we can do a small simulation study on an existing gene regulation model, without doing any kind of optimization where we alter the variables.
+Because we can easily find the redundancy, we can calculate the synergy exactly.
+Putting a number on the amount of synergy in the system allows us to show how important synergy is in biological systems.
+This justifies the rest of the paper, and is useful information to apply for research funding in the future.
 
-* [ ] Make an envelope of several random types of MI profiles, and record properties
-* [ ] Come up with a research design
-* [ ] Make hypothesis maximum vs. average different
-* [ ] Discuss what has been done already
+### Milestones
 
-## Phase 2: continuous (KNN) simulation study (May 31st 2017 done)
+* Find a small gene regulation network (2 variables) with differential equations
+* Find an application of kNN mutual information
+* Build a sampling framework, that draws initial values from normal distributions and does repeated experiments
+* Write the update rule, which uses the ODE system with parameters to integrate to time 0 + dt
+* Do experiments, varying with the size of dt
+* Determine the amount of synergy in the system 
 
-* [ ] Find how I will do nudges in KNN simulation study
+## Phase 2: study of MI profiles with controlled PDF systems
 
-## Phase 3: controlled case (May 31st 2017 done)
+### Description
 
-* [ ] Hypothesis below the straight line to above possible, find a proof by example?
-* [ ] Controlled validation, the it is easier to explain what is happening in a real system
+I plan to identify synergy in multivariate systems using the derivative of a MI plot.
+This plot shows the average MI of all subsets of variable set X of size n with the output variable Y.
+This MI profile is a not previously used measure, and thus a proof-of-concept should be included.
 
-## Phase 4: application (June 6th 2017 done)
+I want to work out a nice example system, preferably one used by Griffith and Ho (2015).
+The important features of this profile are the 'base slope', positive spikes, and negative spikes.
+The base slope is the average MI between all individual variables in X with Y.
+This slope defines the line you expect when there would be zero synergy and zero redundancy.
+Spikes can be used to identify that redundancy or synergy happens at that level.
 
-* [ ] Formulate idea applying MI profile to ecology
-* [ ] Measurements over time
-* [ ] Resilience should be roughly known
+### Milestones
 
-# Documentation
+* Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
+* Write code to make MI profiles using Rick's framework
+* Make MI profiles (both the regular plot and the derivative) for analysis
+* Show that the MI profile shows motifs that correspond to what we know of the system
 
-# Miscellaneous notes
+## Phase 3: multivariate gene regulation network simulation
 
-* MI profile plots the average I(x_{subset}:y) for all subsets of size n, as a function of n
-* Experimentele subset concreet maken: ik kan twee kanten op werken, of beginnen bij bijv. netwerk motieven uit de echte wereld, en hier synergy in vinden, of kijken of ik op basis van simulaties waarin ik resilience en memory maximaliseer ook zowel synergy als die motieven vind
-* Output van een biologisch systeem is het beste het systeem in de volgende tijdstap, want relaties tussen soort hebben pas een werking in t+dt
-* Belangrijk om een paar voorbeelden uit te werken met MI profielen, laat zien dat een compleet redundant variable een rechte lijn is, maar overlap erboven zit, reken in bits
-* Je kan geen verschil zien tussen MI en synergy, maar je weet wel of een van de twee er is als de lijn er boven/er onder gaat, en op basis van de lijn kan je er een bound aan geven (als hij direct naar het max MI met y gaat weet je dat er geen synergy is, want dat is de max MI, en synergy zou die lijn naar beneden trekken)
-* Mijn stappen zijn nog steeds altijd discreet, mogelijk continu, dan echt systeem  (of ik continu doe hangt ervan af of het model van werkelijkheid dat is, genregulatie is dat bijv. niet meestal) (**idee is nu alleen discreet en dan gen regulatie netwerk**)
-* Praten over Rick zijn pertubation: is het in dit geval niet de output entropy? En is een wijziging hierin een goede measure van resilience?
+### Description
 
-# Encouraging words
+I want to build a gene regulation model that starts with a reasonable guess (based on a real gene regulation system), and then optimizes the parameters of the ODE system.
+It should maximize the memory of the system over time, while minimizing the impact of disturbances.
+An example would be a neural network: no single misfire should mess up the entire network.
 
-## Rebecca advice on writing a thesis
+Start with a vector of continuous scalar numbers, which all are drawn from a normal distribution.
+Define a set of starting parameters, and define an ODE system with said parameters (for example: dA/dt = gamma * A + delta * B).
+Later we can work with stochastic ODE systems, where an error term is added.
+Apply a pertubation to one (or several perhaps in later experiments) of the variables.
+Use a method such as Runge-Kutta 4 to find the state of the system at a later point in time.
+Train the system to maximize the memory of the system, while minimizing the effect of pertubations.
+An initial measure for memory would be the mutual information between the initial state, and the later state.
+Later, the halftime of the mutual information could be used as an improved measure.
+Training can be done using, for example, a genetic algorithm.
 
-And I just started reading a bunch of different papers... you need to sort of get a large overview of all the sub topics with your main topic. But don't go for more then 5 or else it gets way to overwhelming... If you have at least one good paper you can start by read thier literature review, and see what kind of info they focused on and then go from there... Also look up the sources used by the literature you have
-It sort of helps to make a big mind map and to see what you need to know about in order to answer your question... It's probably really different for your topic, but for me I couldn't make conclusion on my research unless I knew about the current theories in copyright research, piracy, success of other online product that use freemium pricing, and different online distribution models...
-So I had a sort of wires mind map, connection all of those topics together in different ways and also listing the different paper I could find for each sub topic. Then I would also make a small summary of each paper and write down the main conclusion of the paper. And then I just those main conclusion guide me... Sometimes a conclusion would lead to more questions so I'd do more research. I'm trying to finish my list of references today and I think I have around 40ish sources for the literature review alone
+We can repeat the simulation many times with different starting points, to generate enough data to determine MIs and entropies.
+The kNN method should be used for determining entropies and mutual informations.
+For relevant drawings, see the screenshots of the whiteboard in the binaries directory.
+
+### Milestones
+
+* Find a reference gene regulation system to start with several (>2) parameters
+* Add a method to nudge the system/introduce error
+* Add a training method to the model, that can optimize the ODE parameters
+* Write code to make MI profiles using the kNN entropy
+* Do experiments with the improved model
+* Generate MI profiles, and compare to what we know of the smaller gene regulation network, larger networks, and what we learned from the controlled MI profile application
+
+## Phase 4: writing of the paper
+
+### Description
+
+Nothing out of the ordinary, I want to write a paper suited for a master's thesis project.
+Optionally, I want to edit this down later for publication.
+
+### Milestones
+
+* Make a framework of loose tex files that are combined in a main project
+* Writing a detailed outline
+* Fitting already written text in the outline
+* Finishing the long version of the paper
+* Consider possibility of publication
+
+# Workflow
+
+* Do a standup Trello meeting with myself in the morning
+* Every day I want to work for at least on hour, to stay in the writing flow
+* At least three times a week I want to sit down with one (any) paper, read it, and write in my Tex files based on its contents
+* I make notes in my notebook, this should be enough: I don't need to summarize meetings again, parts that should be in the paper I will put in the appropriate section
+* The wiki only contains brief summaries of what is in a paper, the detailed stuff should go straight as references into my Tex files
+* Go into the rabbit hole in good sources, read their sources
+* Make sure I end each day on a cliffhanger, in the middle of something, makes it easier to start again
+
+# General notes/questions for the paper
+
+* How do I train the network on the MI between the first and later state, if to determine this I need to do many reruns?
+* For a 7+, have a focused literature study that shows the knowledge gaps
+* Talk to Rick about his pertubation: is this not the entropy of Y? Is a measurement of the change in this a good measure for resilience?
+* I can work in two directions
+    * I can start with real gene networks and find synergy in these
+    * I can generate systems that satisfy a high system memory and low impact of pertubations and see if these develop synergy (these are important characteristics of biological systems)
+* How do I define the memory for a system if it is not static, but oscillating?
