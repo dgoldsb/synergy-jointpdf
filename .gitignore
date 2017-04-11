@@ -1,4 +1,5 @@
 ./jointpdf/*
+./NPEET/*
 *.pyc
 __init__.py
 *.aux
