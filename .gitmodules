@@ -1,3 +1,6 @@
 [submodule "jointpdf"]
 	path = jointpdf
 	url = https://bitbucket.org/rquax/jointpdf.git
+[submodule "scripts/NPEET"]
+	path = scripts/NPEET
+	url = https://github.com/gregversteeg/NPEET
