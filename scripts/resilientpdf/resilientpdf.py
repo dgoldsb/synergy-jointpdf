@@ -9,8 +9,7 @@ It can be optimized to minimize nudge effect, and maximize memory.
 from __future__ import print_function
 import numpy as np
 import random
-# from deap import creator, base, tools, algorithms
-from scipy.optimize import basinhopping
+from scipy import optimize
 from scipy.integrate import ode as integrator
 import NPEET.entropy_estimators as entr
 
@@ -38,7 +37,7 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=100, error_mean=0, error_sd=1, num_nudged=1, delta_t=1):
+    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.01, num_nudged=1, delta_t=1):
         self.size = 0
         self.components = []
         self.ode_params = []
@@ -47,6 +46,7 @@ class System(object):
         self.error_mean = error_mean
         self.error_sd = error_sd
         self.delta_t = delta_t
+        self.iteration = 0
 
     def generate_ode_params(self):
         """
@@ -64,7 +64,7 @@ class System(object):
         self.ode_params = []
         for _ in range(0, num_parameters):
             # For now going for a set error distribution
-            self.ode_params.append(np.random.normal(0, 1))
+            self.ode_params.append(np.random.normal(0, 0.01))
         return 0
 
     def add_component(self, mean, stdev):
@@ -116,18 +116,19 @@ class System(object):
             for j in range(0, self.size):
                 dy_dt = dy_dt + a[j+1] * ys[j]
             derivatives.append(dy_dt)
-        return dy_dt
+        return derivatives
 
     def evolve_system(self, state, delta_t, parameters):
         """
         Evolve the system, usually t = 0 after a nudge.
         """
+        print(parameters)
         # Transpose the thing to get a list of components per sample, instead of
         # samples per component
         state_now = state[:]
         state_now_t = np.asarray(state_now).T.tolist()
         # Create an empty list to fill with future components per sample
-        evolver = integrator(f=f_linear).set_integrator('dop853')
+        evolver = integrator(f=self.f_linear).set_integrator('dop853')
         evolver.set_f_params(parameters)
         state_future_t = []
 
@@ -148,40 +149,58 @@ class System(object):
         """
         state_initial = self.sample_system(self.sample_size)
         state_nudged = self.nudge_system(state_initial, self.error_mean, self.error_sd)
-        state_end = self.evolve_system(state_nudged, self.delta_t, parameters)
+        _, state_end = self.evolve_system(state_nudged, self.delta_t, parameters)
 
         # Cost is the average difference between the entropy of the outcome
         # and the MI between the unnudged start and the end-state
         costs = []
-        for component_initial, component_end in state_initial, state_end:
-            entropy = entr.entropy(x=component_end)
-            mutual_info = entr.mi(x=component_initial, y=component_end)
-            costs.append(entropy-mutual_info)
+        for i in range(0, self.size):
+            component_initial = [[elem] for elem in state_initial[i]]
+            component_end = [[elem] for elem in state_end[i]]
+            entropy = entr.entropy(x=component_end, k=3)
+            mutual_info = entr.mi(x=component_initial, y=component_end, k=3)
+            # costs.append(entropy-mutual_info)
+            costs.append(1/mutual_info)
+            print(mutual_info)
         cost = np.average(costs)
+        self.iteration = self.iteration + 1
+        print('Cost at iteration '+str(self.iteration)+' is '+str(cost))
 
         return cost
 
-    def train(self, method='basinhopping'):
+    def train(self, method='evolutionary'):
         """
         Train the parameters using the deap library (genetic algorithm) or scipy (annealing)
         """
         # Start with the ODE params
         # Check if there is a previous result, if not do a guess
+        if len(self.ode_params) != self.size**2 + self.size:
+            self.generate_ode_params()
+
+        # TODO: the cost landscape is changing too quickly, I think I should train on one sammple with 
+        # set nudges, then continue training a few times with new data
+        # if this does not work, the cost function is the problem
         if method == 'evolutionary':
             # Add noise to guess to create a population
-            # TODO: follow the example of https://pypi.python.org/pypi/deap
+            func = self.cost
+            bounds = [[-2, 2] for _ in range(0, len(self.ode_params))]
+            self.ode_params = optimize.differential_evolution(func=func, bounds=bounds)
             outcome = []
             self.ode_params = outcome
-        if method == 'basinhopping':
+        if method == 'minimize':
             func = self.cost
             guess = self.ode_params
-            self.ode_params = basinhopping(func, guess)
+            bounds = [[-2, 2] for _ in range(0, len(guess))]
+            self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds)
         return 0
 
 def main():
-    system = System()
-    system.add_component(4,1)
-    system.add_component(2,1)
+    """
+    For basic testing purposes.
+    """
+    system = System(num_nudged=0)
+    system.add_component(4, 1)
+    system.add_component(2, 1)
     system.train()
     print(system.ode_params)
 
