@@ -1,5 +1,5 @@
-./jointpdf/*
-./NPEET/*
+./scripts/jointpdf/*
+./scripts/resilientpdf/NPEET/*
 *.pyc
 __init__.py
 *.aux
@@ -9,3 +9,4 @@ __init__.py
 *.pdf
 *.gz
 *.toc
+__init__.py
