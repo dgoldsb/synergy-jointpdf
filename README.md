@@ -132,6 +132,7 @@ Optionally, I want to edit this down later for publication.
 
 # General notes/questions for the paper
 
+* In tex: plot drawn in meeting with Quax on relationship memory, nudge resilience and synergy
 * In tex: cycle is highly synergetic, the continuous version of the X-OR; make this case in my paper, first explain X-OR, then why a cycle is similar
 * In tex: useful measure is the halflife of the MI of a shock with the future state
 * In tex: make clear what the difference is between redundancy (2+1) and MI (2)

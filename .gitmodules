@@ -2,7 +2,7 @@
 	path = scripts/jointpdf
 	url = https://bitbucket.org/rquax/jointpdf.git
 [submodule "scripts/NPEET"]
-	path = scripts/NPEET
+	path = scripts/resilientpdf/NPEET
 	url = https://github.com/gregversteeg/NPEET
 [submodule "scripts/jointpdf"]
 	path = scripts/jointpdf
