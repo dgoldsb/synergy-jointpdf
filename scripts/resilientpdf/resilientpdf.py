@@ -8,8 +8,10 @@ It can be optimized to minimize nudge effect, and maximize memory.
 
 from __future__ import print_function
 import numpy as np
-from deap import creator, base, tools, algorithms
+import random
+# from deap import creator, base, tools, algorithms
 from scipy.optimize import basinhopping
+from scipy.integrate import ode as integrator
 import NPEET.entropy_estimators as entr
 
 __author__ = 'dgoldsb'
@@ -36,12 +38,12 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=100, error_mean=0, error_sd=1, num_affected=1, delta_t=1):
+    def __init__(self, sample_size=100, error_mean=0, error_sd=1, num_nudged=1, delta_t=1):
         self.size = 0
         self.components = []
         self.ode_params = []
         self.sample_size = sample_size
-        self.num_affected = num_affected
+        self.num_nudged = num_nudged
         self.error_mean = error_mean
         self.error_sd = error_sd
         self.delta_t = delta_t
@@ -82,18 +84,61 @@ class System(object):
             state.append(component.sample(sample_size))
         return state
 
-    def nudge_system(self, state, error_mean, error_sd, num_affected):
+    def nudge_system(self, state, error_mean, error_sd):
         """
         Nudges a state of the system, usually at t = 0.
+        Each sample is nudged with a new draw from the same random normal distribution.
         """
+        state_nudged = state[:]
+        nudges_left = self.num_nudged
+        nudge_candidates = [i for i in range(0, self.size)]
+        while len(nudge_candidates) > 0 and nudges_left > 0:
+            # Do a nudge
+            target = random.choice(nudge_candidates)
+            nudge_candidates.pop(target)
+            nudges_left = nudges_left - 1
+            for i in range(0, len(state_nudged[target])):
+                state_nudged[target][i] = state_nudged[target][i] \
+                                          + np.random.normal(error_mean, error_sd)
         return state
+
+    def f_linear(self, t, ys, parameters):
+        """
+        Gives derivatives for a generic linear ODE system.
+        The parameters are given in one long string, for compatibility with other libs.
+        """
+        derivatives = []
+        for i in range(0, self.size):
+            start = (self.size + 1) * i
+            end = (self.size + 1) + (self.size + 1) * i
+            a = parameters[start:end]
+            dy_dt = a[0]
+            for j in range(0, self.size):
+                dy_dt = dy_dt + a[j+1] * ys[j]
+            derivatives.append(dy_dt)
+        return dy_dt
 
     def evolve_system(self, state, delta_t, parameters):
         """
         Evolve the system, usually t = 0 after a nudge.
         """
-        state_now = state
-        state_future = state
+        # Transpose the thing to get a list of components per sample, instead of
+        # samples per component
+        state_now = state[:]
+        state_now_t = np.asarray(state_now).T.tolist()
+        # Create an empty list to fill with future components per sample
+        evolver = integrator(f=f_linear).set_integrator('dop853')
+        evolver.set_f_params(parameters)
+        state_future_t = []
+
+        # Use RK5 to integrate the ODE system
+        for sample_now in state_now_t:
+            evolver.set_initial_value(sample_now)
+            t_zero = 0
+            sample_future = evolver.integrate(t_zero+delta_t)
+            state_future_t.append(sample_future)
+
+        state_future = np.asarray(state_future_t).T.tolist()
         return state_now, state_future
 
     def cost(self, parameters):
@@ -102,8 +147,7 @@ class System(object):
         Done by calculating the MI between the unnudged state, and the final state.
         """
         state_initial = self.sample_system(self.sample_size)
-        state_nudged = self.nudge_system(state_initial, self.error_mean,
-                                         self.error_sd, self.num_affected)
+        state_nudged = self.nudge_system(state_initial, self.error_mean, self.error_sd)
         state_end = self.evolve_system(state_nudged, self.delta_t, parameters)
 
         # Cost is the average difference between the entropy of the outcome
@@ -117,7 +161,7 @@ class System(object):
 
         return cost
 
-    def train(self, method):
+    def train(self, method='basinhopping'):
         """
         Train the parameters using the deap library (genetic algorithm) or scipy (annealing)
         """
@@ -128,8 +172,18 @@ class System(object):
             # TODO: follow the example of https://pypi.python.org/pypi/deap
             outcome = []
             self.ode_params = outcome
-        if method == 'annealing':
+        if method == 'basinhopping':
             func = self.cost
             guess = self.ode_params
             self.ode_params = basinhopping(func, guess)
         return 0
+
+def main():
+    system = System()
+    system.add_component(4,1)
+    system.add_component(2,1)
+    system.train()
+    print(system.ode_params)
+
+if __name__ == '__main__':
+    main()
