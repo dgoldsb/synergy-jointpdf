@@ -6,6 +6,25 @@ This script provides a class to define a simple system with ODEs.
 It can be optimized to minimize nudge effect, and maximize memory.
 '''
 
+# TODO: put all below in a research logbook
+# TODO: something like the Jaccard distance?
+# TODO: store the cost over time with training
+# TODO: the cost landscape is changing too quickly, 
+# I think I should train on one sample with
+# set nudges, then continue training a few times with new data
+# if this does not work, the cost function is the problem
+# TODO: the cost function does stuff it should not do: 
+# the mutual information becomes negative and small
+# TODO: de nudge moet wel altijd hetzelfde blijven?
+# TODO: because of convergence, we cannot resample every time
+# TODO: minimize converges nicely for trivial example (one variable, good starting guess)
+# TODO: minimize converges nicely for trivial example (one variable, bad starting guess)
+# TODO: should the nudge be done once? JUSTIFY
+# TODO: should I nudge all samples the same? ANSWER HERE IS YES, ALL NUDGED WITH THE SAME
+# TODO: implement logging with debug levels
+# TODO: problem of doing the nudge only once is that the nudge will just be compensated for
+# So it will learn to counter that specific nudge, not nd arbitrary nudge
+
 from __future__ import print_function
 import numpy as np
 import random
@@ -37,7 +56,7 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.01, num_nudged=1, delta_t=10):
+    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.1, num_nudged=1, delta_t=1, verbose=True):
         self.size = 0
         self.components = []
         self.ode_params = []
@@ -47,6 +66,9 @@ class System(object):
         self.error_sd = error_sd
         self.delta_t = delta_t
         self.iteration = 0
+        self.verbose = verbose
+        self.current_sample = None
+        self.state_nudged = None
 
     def generate_ode_params(self):
         """
@@ -60,11 +82,14 @@ class System(object):
         # Add size parameters for the constants
         # The pattern is as follows:
         # a, a>a, b>a, c>a, b, a>b, b>b, c>b, c etc.
+        # For now going for a set error distribution
         num_parameters = self.size**2 + self.size
         self.ode_params = []
         for _ in range(0, num_parameters):
-            # For now going for a set error distribution
-            self.ode_params.append(np.random.normal(0, 0.01))
+            self.ode_params.append(np.random.normal(0, 1))
+        if self.verbose:
+            print("Making an initial guess for the ODE parameter vector:")
+            #print(self.ode_params)
         return 0
 
     def add_component(self, mean, stdev):
@@ -73,6 +98,8 @@ class System(object):
         """
         self.components.append(Component(mean, stdev))
         self.size = len(self.components)
+        if self.verbose:
+            print("Added component: mean "+str(mean)+" and SD "+str(stdev))
         return 0
 
     def sample_system(self, sample_size):
@@ -82,12 +109,15 @@ class System(object):
         state = []
         for component in self.components:
             state.append(component.sample(sample_size))
+        if self.verbose:
+            print("Drawn a sample of size "+str(sample_size)+" from the system")
         return state
 
     def nudge_system(self, state, error_mean, error_sd):
         """
         Nudges a state of the system, usually at t = 0.
-        Each sample is nudged with a new draw from the same random normal distribution.
+        Each sample is nudged with the same draw from the same random normal distribution.
+        This shifts the mean of the distribution the samples are drawn from
         """
         state_nudged = state[:]
         nudges_left = self.num_nudged
@@ -97,10 +127,12 @@ class System(object):
             target = random.choice(nudge_candidates)
             nudge_candidates.pop(target)
             nudges_left = nudges_left - 1
-            for i in range(0, len(state_nudged[target])):
-                state_nudged[target][i] = state_nudged[target][i] \
-                                          + np.random.normal(error_mean, error_sd)
-        return state
+            state_nudged[target] = state_nudged[target] + np.random.normal(error_mean, error_sd)
+        if self.verbose:
+            print("Nudged the initial sample (before/after):")
+            print([np.average(a) for a in state])
+            print([np.average(a) for a in state_nudged])
+        return state_nudged
 
     def f_linear(self, t, ys, parameters):
         """
@@ -122,7 +154,6 @@ class System(object):
         """
         Evolve the system, usually t = 0 after a nudge.
         """
-        print(parameters)
         # Transpose the thing to get a list of components per sample, instead of
         # samples per component
         state_now = state[:]
@@ -140,6 +171,12 @@ class System(object):
             state_future_t.append(sample_future)
 
         state_future = np.asarray(state_future_t).T.tolist()
+        if self.verbose:
+            print("Evolved the system from t = 0 to t = "+str(delta_t)+" (before/end)")
+            print([np.average(a) for a in state_now])
+            print([np.average(a) for a in state_future])
+            print("The parameters used are:")
+            print(parameters)
         return state_now, state_future
 
     def cost(self, parameters):
@@ -147,29 +184,27 @@ class System(object):
         Generally is used to compare the unnudged state with the outcome.
         Done by calculating the MI between the unnudged state, and the final state.
         """
-        state_initial = self.sample_system(self.sample_size)
-        state_nudged = self.nudge_system(state_initial, self.error_mean, self.error_sd)
-        _, state_end = self.evolve_system(state_nudged, self.delta_t, parameters)
+        _, state_end = self.evolve_system(self.state_nudged[:], self.delta_t, parameters)
 
         # Cost is the average difference between the entropy of the outcome
         # and the MI between the unnudged start and the end-state
         costs = []
         for i in range(0, self.size):
-            component_initial = [[elem] for elem in state_initial[i]]
+            component_initial = [[elem] for elem in self.current_sample[i]]
             component_end = [[elem] for elem in state_end[i]]
-            entropy = entr.entropy(x=component_end, k=3)
-            mutual_info = entr.mi(x=component_initial, y=component_end, k=3)
-            # TODO: something like the Jaccard distance?
-            # costs.append(entropy-mutual_info)
+            #entropy = entr.entropy(x=component_end, k=100)
+            mutual_info = entr.mi(x=component_initial, y=component_end, k=100)
+            if mutual_info < 0:
+                mutual_info = 1e-15
             costs.append(1/mutual_info)
             print(mutual_info)
         cost = np.average(costs)
         self.iteration = self.iteration + 1
-        print('Cost at iteration '+str(self.iteration)+' is '+str(cost))
-
+        if self.verbose:
+            print('Cost at iteration '+str(self.iteration)+' is '+str(cost))
         return cost
 
-    def train(self, method='evolutionary'):
+    def train(self, method='minimize', cycles=10):
         """
         Train the parameters using the deap library (genetic algorithm) or scipy (annealing)
         """
@@ -178,34 +213,35 @@ class System(object):
         if len(self.ode_params) != self.size**2 + self.size:
             self.generate_ode_params()
 
-        # TODO: the cost landscape is changing too quickly, I think I should train on one sample with
-        # set nudges, then continue training a few times with new data
-        # if this does not work, the cost function is the problem
-        # TODO: the cost function does stuff it should not do: the mutual information becomes negative and small
-        if method == 'evolutionary':
-            # Add noise to guess to create a population
-            func = self.cost
-            bounds = [[-2, 2] for _ in range(0, len(self.ode_params))]
-            self.ode_params = optimize.differential_evolution(func=func, bounds=bounds)
-            outcome = []
-            self.ode_params = outcome
-        if method == 'minimize':
-            func = self.cost
-            guess = self.ode_params
-            bounds = [[-2, 2] for _ in range(0, len(guess))]
-            self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds)
+        # Preperatory things for any optimizer
+        func = self.cost
+        bounds = [[-2, 2] for _ in range(0, len(self.ode_params))]
+
+        for i in range(0, cycles):
+            print("Starting cycle "+str(i+1)+" of "+str(cycles))
+            self.iteration = 1
+            self.current_sample = self.sample_system(self.sample_size)
+            self.state_nudged = self.nudge_system(self.current_sample[:], self.error_mean, self.error_sd)
+            if method == 'evolutionary':
+                if self.verbose:
+                    print("Training the ODE parameters using scipy.optimize.differential_evolution")
+                self.ode_params = optimize.differential_evolution(func=func, bounds=bounds)
+            if method == 'minimize':
+                if self.verbose:
+                    print("Training the ODE parameters using scipy.optimize.minimize")
+                guess = self.ode_params
+                self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds
+                                                    , method="Nelder-Mead")
         return 0
 
 def main():
     """
     For basic testing purposes.
     """
-    # TODO: add debug info in every part, add verbose qualifier and logfile
-    # TODO: store the cost over time with training
-    system = System(num_nudged=0)
-    system.add_component(4, 1)
-    system.add_component(2, 1)
-    system.train()
+    system = System(num_nudged=1)
+    system.add_component(10, 1)
+    #system.add_component(5, 1)
+    system.train(method='minimize', cycles=1)
     print(system.ode_params)
 
 if __name__ == '__main__':
