@@ -37,7 +37,7 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.01, num_nudged=1, delta_t=1):
+    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.01, num_nudged=1, delta_t=10):
         self.size = 0
         self.components = []
         self.ode_params = []
@@ -159,6 +159,7 @@ class System(object):
             component_end = [[elem] for elem in state_end[i]]
             entropy = entr.entropy(x=component_end, k=3)
             mutual_info = entr.mi(x=component_initial, y=component_end, k=3)
+            # TODO: something like the Jaccard distance?
             # costs.append(entropy-mutual_info)
             costs.append(1/mutual_info)
             print(mutual_info)
@@ -177,9 +178,10 @@ class System(object):
         if len(self.ode_params) != self.size**2 + self.size:
             self.generate_ode_params()
 
-        # TODO: the cost landscape is changing too quickly, I think I should train on one sammple with 
+        # TODO: the cost landscape is changing too quickly, I think I should train on one sample with
         # set nudges, then continue training a few times with new data
         # if this does not work, the cost function is the problem
+        # TODO: the cost function does stuff it should not do: the mutual information becomes negative and small
         if method == 'evolutionary':
             # Add noise to guess to create a population
             func = self.cost
@@ -198,6 +200,8 @@ def main():
     """
     For basic testing purposes.
     """
+    # TODO: add debug info in every part, add verbose qualifier and logfile
+    # TODO: store the cost over time with training
     system = System(num_nudged=0)
     system.add_component(4, 1)
     system.add_component(2, 1)
