@@ -6,25 +6,6 @@ This script provides a class to define a simple system with ODEs.
 It can be optimized to minimize nudge effect, and maximize memory.
 '''
 
-# TODO: put all below in a research logbook
-# TODO: something like the Jaccard distance?
-# TODO: store the cost over time with training
-# TODO: the cost landscape is changing too quickly, 
-# I think I should train on one sample with
-# set nudges, then continue training a few times with new data
-# if this does not work, the cost function is the problem
-# TODO: the cost function does stuff it should not do: 
-# the mutual information becomes negative and small
-# TODO: de nudge moet wel altijd hetzelfde blijven?
-# TODO: because of convergence, we cannot resample every time
-# TODO: minimize converges nicely for trivial example (one variable, good starting guess)
-# TODO: minimize converges nicely for trivial example (one variable, bad starting guess)
-# TODO: should the nudge be done once? JUSTIFY
-# TODO: should I nudge all samples the same? ANSWER HERE IS YES, ALL NUDGED WITH THE SAME
-# TODO: implement logging with debug levels
-# TODO: problem of doing the nudge only once is that the nudge will just be compensated for
-# So it will learn to counter that specific nudge, not nd arbitrary nudge
-
 from __future__ import print_function
 import numpy as np
 import random
@@ -221,7 +202,8 @@ class System(object):
             print("Starting cycle "+str(i+1)+" of "+str(cycles))
             self.iteration = 1
             self.current_sample = self.sample_system(self.sample_size)
-            self.state_nudged = self.nudge_system(self.current_sample[:], self.error_mean, self.error_sd)
+            self.state_nudged = self.nudge_system(self.current_sample[:],
+                                                  self.error_mean, self.error_sd)
             if method == 'evolutionary':
                 if self.verbose:
                     print("Training the ODE parameters using scipy.optimize.differential_evolution")
