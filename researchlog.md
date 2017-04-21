@@ -52,4 +52,4 @@
 
 * Logging to debug file
 * Pickling resulting system with a good dataset generated with these params
-* 
+* Store optimization results over time in a log pickle
