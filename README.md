@@ -147,3 +147,16 @@ Optionally, I want to edit this down later for publication.
     * I can start with real gene networks and find synergy in these
     * I can generate systems that satisfy a high system memory and low impact of pertubations and see if these develop synergy (these are important characteristics of biological systems)
 * How do I define the memory for a system if it is not static, but oscillating?
+
+# Digital notes from meetings
+
+## Call with Gokhan
+
+Paar uitkomsten:
+
+- hij zoekt een netwerk van gist op (meest basic en compleet) en wat pointers voor motieven;
+- hij zoekt ook een paper met genregulatiemodel die hij realistisch vindt;
+- als we een aantal motieven weten dan kunnen we beter 'zoeken' naar de informatie constraints die daarop uitkomen, en de bijbehorende parameters en keuzes, zie verdere punten;
+- keuze: model eerst laten equilibreren en dan pas meten? Maar leidt waarschijnlijk tot fixed points en cycles. Dus dan noise generator op iedere node zetten om 'rest van netwerk/cel' te representeren? (kijken wat werkt) 
+- selfloops zijn beetje vreemd biologisch gezien, hoewel het weldegelijk voorkomt, is het voor nu beter om die weg te laten (scheelt ook zoekruimte);
+- netwerken van 2 zijn beetje vreemd biologisch gezien, omdat die zichzelf heel moeilijk stabiel kan houden (expressie levels dus). Dus vanaf drie kunnen we pas iets zinnigs zeggen.
