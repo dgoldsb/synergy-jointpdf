@@ -1,6 +1,8 @@
 [submodule "scripts/jointpdf"]
 	path = scripts/jointpdf
-	url = https://bitbucket.org/rquax/jointpdf.git
+    url = https://bitbucket.org/rquax/jointpdf.git
+    ignore = dirty
 [submodule "scripts/resilientpdf/NPEET"]
 	path = scripts/resilientpdf/NPEET
-	url = https://github.com/gregversteeg/NPEET.git
+    url = https://github.com/gregversteeg/NPEET.git
+    ignore = dirty
