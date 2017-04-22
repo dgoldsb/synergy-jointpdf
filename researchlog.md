@@ -41,16 +41,15 @@
 
 ### resilientpdf.py
 
-* Altered the nudging technique: instead of shifting the mean, we just add a normal distribution, making sure that we don't train with a bias
+* X Altered the nudging technique: instead of shifting the mean, we just add a normal distribution, making sure that we don't train with a bias
     * Now we train to resist a nudge, not to compensate one specific nudge (which would not result in resilience)
     * Essentially we now sample from a different, noisier normal distribution (adding two normal distributions)
 * Jaccard
-* Option to take out self-loop
+* x Option to take out self-loop
 * Changed cost function
-    * Take Max instead of Avg of all variables
     * Compare MI nudged and unnudged in $t + \delta t$
-* Toch basinhopping als optie toevoege
-* Geef list of lists aan KNNN
+* X Toch basinhopping als optie toevoegen
+* x Geef list of lists aan KNN
 * Add MSE term
 
 ## Saturday 2017/04/22

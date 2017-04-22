@@ -7,6 +7,7 @@ It can be optimized to minimize nudge effect, and maximize memory.
 '''
 
 from __future__ import print_function
+import sys
 import numpy as np
 import random
 from scipy import optimize
@@ -37,7 +38,8 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.1, num_nudged=1, delta_t=1, verbose=True):
+    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.1,
+                 num_nudged=1, delta_t=1, verbose=True, self_loop=False):
         self.size = 0
         self.components = []
         self.ode_params = []
@@ -50,6 +52,7 @@ class System(object):
         self.verbose = verbose
         self.current_sample = None
         self.state_nudged = None
+        self.self_loop = self_loop
 
     def generate_ode_params(self):
         """
@@ -59,12 +62,15 @@ class System(object):
         Basically centered around zero with some noise slapped on.
         """
         # We throw the parameters in a single list
-        # Total size**2 for all component interactions
+        # Total size**2 for all component interactions with self-loop
+        # Without
         # Add size parameters for the constants
         # The pattern is as follows:
         # a, a>a, b>a, c>a, b, a>b, b>b, c>b, c etc.
         # For now going for a set error distribution
-        num_parameters = self.size**2 + self.size
+        num_parameters = self.size**2
+        if self.self_loop:
+            num_parameters = num_parameters + self.size
         self.ode_params = []
         for _ in range(0, num_parameters):
             self.ode_params.append(np.random.normal(0, 1))
@@ -108,7 +114,9 @@ class System(object):
             target = random.choice(nudge_candidates)
             nudge_candidates.pop(target)
             nudges_left = nudges_left - 1
-            state_nudged[target] = state_nudged[target] + np.random.normal(error_mean, error_sd)
+            for i in range(0, len(state_nudged[target])):
+                state_nudged[target][i] = state_nudged[target][i] +\
+                                          np.random.normal(error_mean, error_sd)
         if self.verbose:
             print("Nudged the initial sample (before/after):")
             print([np.average(a) for a in state])
@@ -122,13 +130,24 @@ class System(object):
         """
         derivatives = []
         for i in range(0, self.size):
-            start = (self.size + 1) * i
-            end = (self.size + 1) + (self.size + 1) * i
-            a = parameters[start:end]
-            dy_dt = a[0]
-            for j in range(0, self.size):
-                dy_dt = dy_dt + a[j+1] * ys[j]
-            derivatives.append(dy_dt)
+            if self.self_loop:
+                start = (self.size + 1) * i
+                end = (self.size + 1) + (self.size + 1) * i
+                a = parameters[start:end]
+                dy_dt = a[0]
+                for j in range(0, self.size):
+                    dy_dt = dy_dt + a[j+1] * ys[j]
+                derivatives.append(dy_dt)
+            else:
+                start = (self.size) * i
+                end = (self.size) + (self.size) * i
+                a = parameters[start:end]
+                dy_dt = a[0]
+                ys_popped = ys[:]
+                ys_popped.pop(index=i)
+                for j in range(0, self.size-1):
+                    dy_dt = dy_dt + a[j+1] * ys_popped[j]
+                derivatives.append(dy_dt)
         return derivatives
 
     def evolve_system(self, state, delta_t, parameters):
@@ -139,6 +158,7 @@ class System(object):
         # samples per component
         state_now = state[:]
         state_now_t = np.asarray(state_now).T.tolist()
+
         # Create an empty list to fill with future components per sample
         evolver = integrator(f=self.f_linear).set_integrator('dop853')
         evolver.set_f_params(parameters)
@@ -165,21 +185,16 @@ class System(object):
         Generally is used to compare the unnudged state with the outcome.
         Done by calculating the MI between the unnudged state, and the final state.
         """
-        _, state_end = self.evolve_system(self.state_nudged[:], self.delta_t, parameters)
+        _, state_end_nudged = self.evolve_system(self.state_nudged[:], self.delta_t, parameters)
+        _, state_end_unnudged = self.evolve_system(self.current_sample[:], self.delta_t, parameters)
 
         # Cost is the average difference between the entropy of the outcome
         # and the MI between the unnudged start and the end-state
-        costs = []
-        for i in range(0, self.size):
-            component_initial = [[elem] for elem in self.current_sample[i]]
-            component_end = [[elem] for elem in state_end[i]]
-            #entropy = entr.entropy(x=component_end, k=100)
-            mutual_info = entr.mi(x=component_initial, y=component_end, k=100)
-            if mutual_info < 0:
-                mutual_info = 1e-15
-            costs.append(1/mutual_info)
-            print(mutual_info)
-        cost = np.average(costs)
+        mutual_info = entr.mi(x=state_end_nudged, y=state_end_unnudged, k=100)
+        if mutual_info < 0:
+            mutual_info = 1e-15
+        cost = 1/mutual_info
+        print(mutual_info)
         self.iteration = self.iteration + 1
         if self.verbose:
             print('Cost at iteration '+str(self.iteration)+' is '+str(cost))
@@ -208,12 +223,20 @@ class System(object):
                 if self.verbose:
                     print("Training the ODE parameters using scipy.optimize.differential_evolution")
                 self.ode_params = optimize.differential_evolution(func=func, bounds=bounds)
-            if method == 'minimize':
+            elif method == 'minimize':
                 if self.verbose:
                     print("Training the ODE parameters using scipy.optimize.minimize")
                 guess = self.ode_params
                 self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds
                                                     , method="Nelder-Mead")
+            elif method == 'basinhopping':
+                if self.verbose:
+                    print("Training the ODE parameters using scipy.optimize.basinhopping")
+                guess = self.ode_params
+                self.ode_params = optimize.basinhopping(func=func, x0=guess)
+            else:
+                print("No optimizer selected, exiting...")
+                sys.exit(1)
         return 0
 
 def main():
@@ -223,7 +246,7 @@ def main():
     system = System(num_nudged=1)
     system.add_component(10, 1)
     #system.add_component(5, 1)
-    system.train(method='minimize', cycles=1)
+    system.train(method='basinhopping', cycles=1)
     print(system.ode_params)
 
 if __name__ == '__main__':

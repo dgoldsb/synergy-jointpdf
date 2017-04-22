@@ -9,26 +9,27 @@ We will investigate if this system is indeed synergetic, and if the motifs found
 
 # Timeline of milestones (in order)
 
-* [x] Find a small gene regulation network (2 variables) with differential equations (**Saturday 8th of April**)
+* [x] Find a small gene regulation network (2 variables) with differential equations
     * Literature
-* [x] Find an application of kNN mutual information (**Saturday 8th of April**)
-* [ ] Build a sampling framework (**Friday 14th of April**)
-* [ ] Write the update rule (**Friday 14th of April**)
+* [x] Find an application of kNN mutual information
+* [x] Build a sampling framework
+* [x] Write the update rule
     * Implement a 2-gene network model
-* [ ] Add a training method to the model, that can optimize the ODE parameters (**Thursday 20th of April**)
-* [ ] Train a bivariate network (**Thursday 20th of April**)
-* [ ] Do experiments, varying with the size of dt (**Friday 21st of April**)
+* [x] Add a training method to the model, that can optimize the ODE parameters
+* [ ] Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
+* [ ] Train a bivariate network
+* [ ] Do experiments, varying with the size of dt
     * Estimate kNN MI between the two genes
-* [ ] Determine the amount of synergy in the system (**Friday 21st of April**)
-* [ ] Find a reference gene regulation system to start with several (>2) parameters (**Sunday 23rd of April**)
-* [ ] Add a method to nudge the system/introduce error (**Sunday 23rd of April**)
-* [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho) (**Sunday 30th of April**)
-* [ ] Write code to make MI profiles using Rick's framework (**Sunday 30th of April**)
-* [ ] Make MI profiles (both the regular plot and the derivative) for analysis (**Sunday 30th of April**)
-* [ ] Show that the MI profile shows motifs that correspond to what we know of the system (**Sunday 7th of May**)
-* [ ] Write code to make MI profiles using the kNN entropy (**Sunday 7th of May**)
-* [ ] Do experiments with the improved model (**Sunday 14th of May**)
-* [ ] Reevaluate life and see what is left/where I stand (**Sunday 14th of May**)
+* [ ] Determine the amount of synergy in the system
+* [ ] Find a reference gene regulation system to start with several (>2) parameters
+* [x] Add a method to nudge the system/introduce error
+* [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
+* [ ] Write code to make MI profiles using Rick's framework
+* [ ] Make MI profiles (both the regular plot and the derivative) for analysis
+* [ ] Show that the MI profile shows motifs that correspond to what we know of the system
+* [ ] Write code to make MI profiles using the kNN entropy
+* [ ] Do experiments with the improved model
+* [ ] Reevaluate life and see what is left/where I stand
 
 # Phases of the project
 
@@ -49,6 +50,7 @@ I decided with Rick to first train a simple version, with a linear ODE system, a
 * Find an application of kNN mutual information
 * Build a sampling framework, that draws initial values from normal distributions and does repeated experiments
 * Write the update rule, which uses the ODE system with parameters to integrate to time 0 + dt
+* Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
 * Train a small network
 * Do experiments, varying with the size of dt
 * Determine the amount of synergy in the 2-gene system
