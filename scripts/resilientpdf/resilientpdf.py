@@ -110,7 +110,7 @@ class System(object):
         nudges_left = self.num_nudged
         nudge_candidates = [i for i in range(0, self.size)]
         while len(nudge_candidates) > 0 and nudges_left > 0:
-            # Do a nudge
+            # Do a nudge, addition of a noise normal distribution, effectively increases sigma
             target = random.choice(nudge_candidates)
             nudge_candidates.pop(target)
             nudges_left = nudges_left - 1

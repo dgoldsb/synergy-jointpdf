@@ -22,6 +22,7 @@ We will investigate if this system is indeed synergetic, and if the motifs found
     * Estimate kNN MI between the two genes
 * [ ] Determine the amount of synergy in the system
 * [ ] Find a reference gene regulation system to start with several (>2) parameters
+* [ ] Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
 * [x] Add a method to nudge the system/introduce error
 * [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
 * [ ] Write code to make MI profiles using Rick's framework
@@ -104,6 +105,7 @@ For relevant drawings, see the screenshots of the whiteboard in the binaries dir
 * Add a method to nudge the system/introduce error
 * Add a training method to the model, that can optimize the ODE parameters
 * Write code to make MI profiles using the kNN entropy
+* Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
 * Do experiments with the trained
 * Generate MI profiles, and compare to what we know of the smaller gene regulation network, larger networks, and what we learned from the controlled MI profile application
 
@@ -134,6 +136,8 @@ Optionally, I want to edit this down later for publication.
 
 # General notes/questions for the paper
 
+* In tex: nudge (noise) is addition of two normal distributions (after all)
+* Expand the model to include complex triggers, such as the combination of smoke and seeing birds flying in one direction: do these triggers result in synergy if they are trained into the network? (see email Rick on his original research proposal)
 * Discuss the difficulty of finding a good optimizer, too quickly changing cost space when I resample every time, KNN problems
 * In tex: plot drawn in meeting with Quax on relationship memory, nudge resilience and synergy
 * In tex: cycle is highly synergetic, the continuous version of the X-OR; make this case in my paper, first explain X-OR, then why a cycle is similar
