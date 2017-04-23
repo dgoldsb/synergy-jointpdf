@@ -41,21 +41,30 @@
 
 ### resilientpdf.py
 
-* X Altered the nudging technique: instead of shifting the mean, we just add a normal distribution, making sure that we don't train with a bias
+* Altered the nudging technique: instead of shifting the mean, we just add a normal distribution, making sure that we don't train with a bias
     * Now we train to resist a nudge, not to compensate one specific nudge (which would not result in resilience)
     * Essentially we now sample from a different, noisier normal distribution (adding two normal distributions)
-* Jaccard
-* x Option to take out self-loop
+* Added option to take out self-loop
 * Changed cost function
     * Compare MI nudged and unnudged in $t + \delta t$
-* X Toch basinhopping als optie toevoegen
-* x Geef list of lists aan KNN
-* Add MSE term
+* Added basinhopping after all (untested)
+* I give KNN a list of lists now, so it evaluates the entire system at once
 
-## Saturday 2017/04/22
+## Sunday 2017/04/23
 
 ### resilientpdf.py
 
-* Logging to debug file
+* Added improved logging to a debug file
+
+### setup.sh
+
+* Created a setup script
+    * Pulls latest commit in master from submodules
+    * Touches the \_\_init\_\_.py files where necessarry
+
+## Up next
+
+* Jaccard
+* Add MSE term
 * Pickling resulting system with a good dataset generated with these params
 * Store optimization results over time in a log pickle

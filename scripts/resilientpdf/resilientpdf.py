@@ -8,13 +8,18 @@ It can be optimized to minimize nudge effect, and maximize memory.
 
 from __future__ import print_function
 import sys
-import numpy as np
 import random
+import os
+import logging
+import numpy as np
 from scipy import optimize
 from scipy.integrate import ode as integrator
 import NPEET.entropy_estimators as entr
-
 __author__ = 'dgoldsb'
+
+ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
+logging.basicConfig(filename=os.path.join(ROOT, 'log/resilientpdf.log'),
+                    level=logging.INFO, format='%(asctime)s %(message)s')
 
 class Component(object):
     """
@@ -39,7 +44,7 @@ class System(object):
     """
 
     def __init__(self, sample_size=1000, error_mean=0, error_sd=0.1,
-                 num_nudged=1, delta_t=1, verbose=True, self_loop=False):
+                 num_nudged=1, delta_t=1, self_loop=False):
         self.size = 0
         self.components = []
         self.ode_params = []
@@ -49,7 +54,6 @@ class System(object):
         self.error_sd = error_sd
         self.delta_t = delta_t
         self.iteration = 0
-        self.verbose = verbose
         self.current_sample = None
         self.state_nudged = None
         self.self_loop = self_loop
@@ -74,9 +78,8 @@ class System(object):
         self.ode_params = []
         for _ in range(0, num_parameters):
             self.ode_params.append(np.random.normal(0, 1))
-        if self.verbose:
-            print("Making an initial guess for the ODE parameter vector:")
-            #print(self.ode_params)
+        logging.info("Making an initial guess for the ODE parameter vector: "\
+                     +str(self.ode_params))
         return 0
 
     def add_component(self, mean, stdev):
@@ -85,8 +88,7 @@ class System(object):
         """
         self.components.append(Component(mean, stdev))
         self.size = len(self.components)
-        if self.verbose:
-            print("Added component: mean "+str(mean)+" and SD "+str(stdev))
+        logging.info("Added component: mean "+str(mean)+" and SD "+str(stdev))
         return 0
 
     def sample_system(self, sample_size):
@@ -96,8 +98,7 @@ class System(object):
         state = []
         for component in self.components:
             state.append(component.sample(sample_size))
-        if self.verbose:
-            print("Drawn a sample of size "+str(sample_size)+" from the system")
+        logging.info("Drawn a sample of size "+str(sample_size)+" from the system")
         return state
 
     def nudge_system(self, state, error_mean, error_sd):
@@ -117,10 +118,9 @@ class System(object):
             for i in range(0, len(state_nudged[target])):
                 state_nudged[target][i] = state_nudged[target][i] +\
                                           np.random.normal(error_mean, error_sd)
-        if self.verbose:
-            print("Nudged the initial sample (before/after):")
-            print([np.average(a) for a in state])
-            print([np.average(a) for a in state_nudged])
+        logging.info("Nudged the initial sample (avg before/after):")
+        logging.debug([np.average(a) for a in state])
+        logging.debug([np.average(a) for a in state_nudged])
         return state_nudged
 
     def f_linear(self, t, ys, parameters):
@@ -172,12 +172,11 @@ class System(object):
             state_future_t.append(sample_future)
 
         state_future = np.asarray(state_future_t).T.tolist()
-        if self.verbose:
-            print("Evolved the system from t = 0 to t = "+str(delta_t)+" (before/end)")
-            print([np.average(a) for a in state_now])
-            print([np.average(a) for a in state_future])
-            print("The parameters used are:")
-            print(parameters)
+        logging.info("Evolved the system from t = 0 to t = "+str(delta_t)+" (avg before/end)")
+        logging.debug([np.average(a) for a in state_now])
+        logging.debug([np.average(a) for a in state_future])
+        logging.info("The parameters used are:")
+        logging.debug(parameters)
         return state_now, state_future
 
     def cost(self, parameters):
@@ -194,10 +193,9 @@ class System(object):
         if mutual_info < 0:
             mutual_info = 1e-15
         cost = 1/mutual_info
-        print(mutual_info)
+        logging.debug(mutual_info)
         self.iteration = self.iteration + 1
-        if self.verbose:
-            print('Cost at iteration '+str(self.iteration)+' is '+str(cost))
+        logging.info('Cost at iteration '+str(self.iteration)+' is '+str(cost))
         return cost
 
     def train(self, method='minimize', cycles=10):
@@ -214,28 +212,25 @@ class System(object):
         bounds = [[-2, 2] for _ in range(0, len(self.ode_params))]
 
         for i in range(0, cycles):
-            print("Starting cycle "+str(i+1)+" of "+str(cycles))
+            logging.info("Starting cycle "+str(i+1)+" of "+str(cycles))
             self.iteration = 1
             self.current_sample = self.sample_system(self.sample_size)
             self.state_nudged = self.nudge_system(self.current_sample[:],
                                                   self.error_mean, self.error_sd)
             if method == 'evolutionary':
-                if self.verbose:
-                    print("Training the ODE parameters using scipy.optimize.differential_evolution")
+                logging.info("Training the ODE pars using scipy.optimize.differential_evolution")
                 self.ode_params = optimize.differential_evolution(func=func, bounds=bounds)
             elif method == 'minimize':
-                if self.verbose:
-                    print("Training the ODE parameters using scipy.optimize.minimize")
+                logging.info("Training the ODE pars using scipy.optimize.minimize")
                 guess = self.ode_params
                 self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds
                                                     , method="Nelder-Mead")
             elif method == 'basinhopping':
-                if self.verbose:
-                    print("Training the ODE parameters using scipy.optimize.basinhopping")
+                logging.info("Training the ODE pars using scipy.optimize.basinhopping")
                 guess = self.ode_params
                 self.ode_params = optimize.basinhopping(func=func, x0=guess)
             else:
-                print("No optimizer selected, exiting...")
+                logging.error("No optimizer selected, exiting...")
                 sys.exit(1)
         return 0
 
