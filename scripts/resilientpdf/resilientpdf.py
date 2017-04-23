@@ -14,12 +14,14 @@ import logging
 import numpy as np
 from scipy import optimize
 from scipy.integrate import ode as integrator
-import NPEET.entropy_estimators as entr
+import NPEET.entropy_estimators as npeet
 __author__ = 'dgoldsb'
 
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
 logging.basicConfig(filename=os.path.join(ROOT, 'log/resilientpdf.log'),
-                    level=logging.INFO, format='%(asctime)s %(message)s')
+                    level=logging.INFO, format='%(asctime)s '+\
+                    '[%(levelname)s] %(message)s', filemode='w')
+logging.getLogger().addHandler(logging.StreamHandler())
 
 class Component(object):
     """
@@ -43,7 +45,7 @@ class System(object):
     It has a build in KNN-based cost function.
     """
 
-    def __init__(self, sample_size=1000, error_mean=0, error_sd=0.1,
+    def __init__(self, sample_size=1000, error_mean=0, error_sd=1,
                  num_nudged=1, delta_t=1, self_loop=False):
         self.size = 0
         self.components = []
@@ -113,14 +115,14 @@ class System(object):
         while len(nudge_candidates) > 0 and nudges_left > 0:
             # Do a nudge, addition of a noise normal distribution, effectively increases sigma
             target = random.choice(nudge_candidates)
-            nudge_candidates.pop(target)
+            nudge_candidates = np.delete(nudge_candidates, target)
             nudges_left = nudges_left - 1
             for i in range(0, len(state_nudged[target])):
                 state_nudged[target][i] = state_nudged[target][i] +\
                                           np.random.normal(error_mean, error_sd)
         logging.info("Nudged the initial sample (avg before/after):")
-        logging.debug([np.average(a) for a in state])
-        logging.debug([np.average(a) for a in state_nudged])
+        logging.info([np.average(a) for a in state])
+        logging.info([np.average(a) for a in state_nudged])
         return state_nudged
 
     def f_linear(self, t, ys, parameters):
@@ -144,7 +146,7 @@ class System(object):
                 a = parameters[start:end]
                 dy_dt = a[0]
                 ys_popped = ys[:]
-                ys_popped.pop(index=i)
+                ys_popped = np.delete(ys_popped, i)
                 for j in range(0, self.size-1):
                     dy_dt = dy_dt + a[j+1] * ys_popped[j]
                 derivatives.append(dy_dt)
@@ -173,10 +175,10 @@ class System(object):
 
         state_future = np.asarray(state_future_t).T.tolist()
         logging.info("Evolved the system from t = 0 to t = "+str(delta_t)+" (avg before/end)")
-        logging.debug([np.average(a) for a in state_now])
-        logging.debug([np.average(a) for a in state_future])
+        logging.info([np.average(a) for a in state_now])
+        logging.info([np.average(a) for a in state_future])
         logging.info("The parameters used are:")
-        logging.debug(parameters)
+        logging.info(parameters)
         return state_now, state_future
 
     def cost(self, parameters):
@@ -189,18 +191,27 @@ class System(object):
 
         # Cost is the average difference between the entropy of the outcome
         # and the MI between the unnudged start and the end-state
-        mutual_info = entr.mi(x=state_end_nudged, y=state_end_unnudged, k=100)
-        if mutual_info < 0:
-            mutual_info = 1e-15
-        cost = 1/mutual_info
-        logging.debug(mutual_info)
+        costs = []
+        for i in range(0, self.size):
+            try:
+                nudged_set = [[j] for j in state_end_nudged[i]]
+                unnudged_set = [[j] for j in state_end_unnudged[i]]
+                mutual_info = npeet.mi(x=nudged_set, y=unnudged_set, k=10)
+            except AssertionError as a:
+                logging.critical('NPEET failed: '+str(a))
+                sys.exit(1)
+            if mutual_info < 0:
+                mutual_info = 1e-15
+            logging.info('Mutual information for '+str(i)+': '+str(mutual_info))
+            costs.append(1/mutual_info)
+        cost = np.max(costs)
         self.iteration = self.iteration + 1
         logging.info('Cost at iteration '+str(self.iteration)+' is '+str(cost))
         return cost
 
     def train(self, method='minimize', cycles=10):
         """
-        Train the parameters using the deap library (genetic algorithm) or scipy (annealing)
+        Train the parameters using scipy
         """
         # Start with the ODE params
         # Check if there is a previous result, if not do a guess
@@ -240,8 +251,9 @@ def main():
     """
     system = System(num_nudged=1)
     system.add_component(10, 1)
-    #system.add_component(5, 1)
-    system.train(method='basinhopping', cycles=1)
+    system.add_component(5, 1)
+    system.add_component(3, 1)
+    system.train(method='minimize', cycles=1)
     print(system.ode_params)
 
 if __name__ == '__main__':

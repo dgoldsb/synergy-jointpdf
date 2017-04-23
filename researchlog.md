@@ -55,6 +55,13 @@
 ### resilientpdf.py
 
 * Added improved logging to a debug file
+* Undid KNN list of lists changed, I now take the max of the costs
+    * The problem was that with 2 variables the maximum k is 0
+* The results are pretty bad after these changes: the cost function is not performing at all
+    * Makes sense: memory is thrown out as is, and resilience is done wrong
+    * I should do memory with the MI between t and t + dt of the unnudged state
+    * I should do resilience with the MSE of the t + dt nudged and unnudged state
+    * The problem is: how do I normalize?
 
 ### setup.sh
 
@@ -64,7 +71,7 @@
 
 ## Up next
 
-* Jaccard
-* Add MSE term
+* Add MSE term, do MI properly, normalize both
+* Consider Jaccard
 * Pickling resulting system with a good dataset generated with these params
 * Store optimization results over time in a log pickle
