@@ -85,6 +85,11 @@
 * Finished histogram plotting functions
 * Added visual debugging mode, with levels 0 (none), 1 (regular output) and 2 (every iteration)
 * Fixed NPEET implementation of KL-divergence (I was copying by reference)
-* For training, the MI does not seem to be the completely correct way to tackle memory
-    * It ignores the principle of homeostasis
 * Improved logger: I now have a stream with everything to the file, and display only INFO and above
+* I think MI is not great for memory, as it ignores that biological systems return to the same state. I think I need to make the following changes:
+    1. Use the KL-divergence to determine memory
+        1. This assumes that dt is in arbitrary time units
+        2. This assumes that a natural system always returns to a value at some point
+    2. Discuss with Jaap Kaandorp what induces limit cycles
+    3. Brainstorm about the definition of memory: the KL-divergence seems to ignore the possibility off limit cycles
+* Replaced Nelder-Mead with BFGS (recommendation Robert Hana)

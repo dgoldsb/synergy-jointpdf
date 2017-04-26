@@ -298,21 +298,21 @@ class System(object):
                 sets.append([state_end_nudged[i], state_end_unnudged[i]])
             self.plot_pdfs(sets, title)
 
-        # Use NPEET to find the mutual information
+        # Use NPEET to find the KL-divergence
         # This is used to measure memory
         try:
             if self.visualmode == 2:
-                self.plot_mi(self.current_sample, state_end_unnudged)
+                self.plot_kld(self.current_sample, state_end_unnudged)
             start_set = np.asarray(self.current_sample).T.tolist()
             end_set = np.asarray(state_end_unnudged).T.tolist()
-            mutual_info = npeet.mi(x=start_set, y=end_set, k=10)
-            if mutual_info < 0:
-                mutual_info = 1e-15
-                mylogger.error('MI below zero encountered')
+            kl_div_mem = npeet.kldiv(x=start_set, xp=end_set, k=10)
+            if kl_div_mem < 0:
+                kl_div_mem = 1e-15
+                mylogger.error('KL-div below zero encountered')
         except AssertionError as error:
             mylogger.critical('NPEET failed: '+str(error))
             sys.exit(1)
-        mylogger.info('Mutual information for : '+str(mutual_info))
+        mylogger.info('KL divergence memory: '+str(kl_div_mem))
 
         # Use NPEET to find the Kullbar-Leibler divergence
         try:
@@ -320,16 +320,16 @@ class System(object):
                 self.plot_kld(state_end_nudged, state_end_unnudged)
             nudged_set = np.asarray(state_end_nudged).T.tolist()
             unnudged_set = np.asarray(state_end_unnudged).T.tolist()
-            kl_div = npeet.kldiv(x=nudged_set, xp=unnudged_set, k=10)
-            if kl_div < 0:
-                kl_div = 0
+            kl_div_res = npeet.kldiv(x=nudged_set, xp=unnudged_set, k=10)
+            if kl_div_res < 0:
+                kl_div_res = 1e-15
                 mylogger.error('KL-div below zero encountered')
         except AssertionError as error:
             mylogger.critical('NPEET failed: '+str(error))
             sys.exit(1)
-        mylogger.info('KL divergence: '+str(kl_div))
+        mylogger.info('KL divergence resilience: '+str(kl_div_res))
 
-        cost = - mutual_info + kl_div
+        cost = kl_div_mem + kl_div_res
         self.iteration = self.iteration + 1
         mylogger.info('Cost at iteration '+str(self.iteration)+' is '+str(cost))
         return cost
@@ -360,7 +360,7 @@ class System(object):
                 mylogger.info("Training the ODE pars using scipy.optimize.minimize")
                 guess = self.ode_params
                 self.ode_params = optimize.minimize(fun=func, x0=guess, bounds=bounds
-                                                    , method="Nelder-Mead")
+                                                    , method="BFGS")
             elif method == 'basinhopping':
                 mylogger.info("Training the ODE pars using scipy.optimize.basinhopping")
                 guess = self.ode_params
@@ -374,8 +374,9 @@ def main():
     """
     For basic testing purposes.
     """
-    system = System(num_nudged=0, error_mean=0, error_sd=1, visualmode=1)
+    system = System(num_nudged=1, error_mean=0, error_sd=1, visualmode=1)
     system.add_component(10, 1)
+    system.add_component(5, 1)
     system.train(method='evolutionary', cycles=1)
     print(system.ode_params)
 
