@@ -69,9 +69,22 @@
     * Pulls latest commit in master from submodules
     * Touches the \_\_init\_\_.py files where necessarry
 
-## Up next
+## Tuesday 2017/04/25
 
-* Add MSE term, do MI properly, normalize both
-* Consider Jaccard
-* Pickling resulting system with a good dataset generated with these params
-* Store optimization results over time in a log pickle
+### resilientpdf.py
+
+* Worked on cost function
+    * Added Kullback-Leibler divergence to measure nudge impact
+    * Went back to the list-of-lists approach, but now properly (transposed the sampleset)
+    * I now take the mutual information of the starting state and the unnudged endstate for memory measurement
+
+## Wednesday 2017/04/26
+
+### resilientpdf.py
+
+* Finished histogram plotting functions
+* Added visual debugging mode, with levels 0 (none), 1 (regular output) and 2 (every iteration)
+* Fixed NPEET implementation of KL-divergence (I was copying by reference)
+* For training, the MI does not seem to be the completely correct way to tackle memory
+    * It ignores the principle of homeostasis
+* Improved logger: I now have a stream with everything to the file, and display only INFO and above

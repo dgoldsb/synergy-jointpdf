@@ -143,6 +143,7 @@ Optionally, I want to edit this down later for publication.
 * In tex: cycle is highly synergetic, the continuous version of the X-OR; make this case in my paper, first explain X-OR, then why a cycle is similar
 * In tex: useful measure is the halflife of the MI of a shock with the future state
 * In tex: make clear what the difference is between redundancy (2+1) and MI (2)
+* In tex: defend if normalization is still necessary if I use the KL-divergence and the MI (I do need to somehow invert the MI, as this should be high, and the divergence small)
 * Later in scriptie voor motieven >3 andere redundancy measure, testen of er dezelfde motieven uitkomen
 * Transcriptional bursting (periodic) or the plasmid case (steady state) might be interesting bivariate cases
 * Periodicity is fine, the MI measure still works

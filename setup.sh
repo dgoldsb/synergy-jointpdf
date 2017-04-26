@@ -2,3 +2,5 @@
 git submodule update --init --recursive
 touch scripts/jointpdf/__init__.py
 touch scripts/resilientpdf/NPEET/__init__.py
+mkdir log
+touch log/resilientpdf.log
