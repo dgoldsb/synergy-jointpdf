@@ -18,6 +18,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import optimize
 from scipy.integrate import ode as integrator
+from mpl_toolkits.mplot3d import Axes3D
 import NPEET.entropy_estimators as npeet
 
 __author__ = 'dgoldsb'
@@ -76,34 +77,68 @@ class System(object):
         self.self_loop = self_loop
         self.visualmode = visualmode # 0 nothing, 1 before/after, 2 every training iter
 
-    def plot_ode(self, parameters):
+    def plot_ode(self, parameters=None):
         """
         Plots the ODE system over time from the current initial values.
         Uses current parameter setup.
         Supports 3D plot for 3-dimensional system.
         Should go to 3 times the normal time
         """
+        # Set up the integrator
+        if parameters is None:
+            parameters = self.ode_params
+        if len(self.ode_params) < self.size**2:
+            self.generate_ode_params()
+            parameters = self.ode_params
+        evolver = integrator(f=self.f_linear).set_integrator('dop853')
+        evolver.set_f_params(parameters)
+
+        # Set up the initial sample
+        t_zero = 0
+        y_current = [i.mean for i in self.components]
+        evolver.set_initial_value(y_current)
+
+        # Set up the final sets
         timesteps = 1000
+        set_x = [i * ((float(self.delta_t) * 3)/timesteps) for i in range(0, timesteps+1)]
+        delta_t = (float(self.delta_t) * 3)/timesteps
+        set_y_t = [y_current]
+
+        # Evolve so many times
+        for i in range(0, timesteps):
+            sample_future = evolver.integrate(t_zero+i*delta_t)
+            set_y_t.append(sample_future)
+
+        # Transpose
+        set_y = np.asarray(set_y_t).T.tolist()
+
         if self.size == 3:
             mylogger.info('Do with 3D phase spaceplot')
+            axis = sns.plt.axes(projection='3d')
+            cm_div = sns.diverging_palette(250, 15, s=75, l=40,
+                                           center="dark", n=len(set_x))
+            axis.scatter(set_y[0], set_y[1], set_y[2], s=20,
+                         color=cm_div, depthshade=False)
+            sns.plt.show()
             return 0
         elif self.size == 2:
             mylogger.info('Do a 2D phase space plot')
+            cm_div = sns.diverging_palette(250, 15, s=75, l=40,
+                                           center="dark", n=len(set_x))
+            axis = sns.plt.scatter(set_y[0], set_y[1], s=20,
+                                   color=cm_div)
+            sns.plt.show()
+
         # Always do a nice plot per parameter
         mylogger.info('Produce a series of plots over time')
-        set_x = [i * (3/timesteps) for i in range(0, timesteps)]
-        set_y = [] # Moet initial values wel in, true values, dus means
-        for i in range(0, timesteps):
-            # Evolve met dt*3/1000
-            # Append
-            print('Todo')
         fig, axs = plt.subplots(self.size, 1, figsize=(10, 20), facecolor='w', edgecolor='k')
         fig.suptitle('Behavior of the system over time', fontsize=16)
         fig.subplots_adjust(hspace=.5, wspace=.2)
         axs = axs.ravel()
         for i in range(0, self.size):
-            axs[i].linear(set_x[i], set_y[i])
+            axs[i].plot(set_x, set_y[i])
             axs[i].set_title(str(i+1))
+            axs[i].set_xlim(0, 3*self.delta_t)
         plt.show()
         return 0
 
@@ -358,7 +393,7 @@ class System(object):
         """
         # Start with the ODE params
         # Check if there is a previous result, if not do a guess
-        if len(self.ode_params) != self.size**2 + self.size:
+        if len(self.ode_params) < self.size**2:
             self.generate_ode_params()
 
         # Preperatory things for any optimizer
@@ -394,7 +429,8 @@ def main():
     """
     system = System(num_nudged=1, error_mean=0, error_sd=1, visualmode=1)
     system.add_component(10, 1)
-    system.add_component(5, 1)
+    system.add_component(8, 1)
+    system.plot_ode()
     system.train(method='minimize', cycles=1)
     print(system.ode_params)
 

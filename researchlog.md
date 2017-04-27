@@ -95,6 +95,11 @@
 * Replaced Nelder-Mead with BFGS (recommendation Robert Hana)
 * Preliminary BFGS results are amazing, it even went from 0.5 with a weird parameter (outlier) to 16, only to go to 0.08 with better parameters
 
+## Thursday 2017/04/27
+
+* Added ODE plotting library
+* Marked annotate (pyplot) for plotting the system
+
 ## Next time
 
 * Write email on the memory measure & the driving forces behind limit cycles (should I get MI involved here?)
