@@ -120,7 +120,6 @@ class System(object):
             axis.scatter(set_y[0], set_y[1], set_y[2], s=20,
                          color=cm_div, depthshade=False)
             sns.plt.show()
-            return 0
         elif self.size == 2:
             mylogger.info('Do a 2D phase space plot')
             cm_div = sns.diverging_palette(250, 15, s=75, l=40,
@@ -207,6 +206,9 @@ class System(object):
             axs[i].hist(set_plot, alpha=0.5)
             axs[i].set_title(str(i+1))
             i = i + 1
+        return 0
+
+    def plot_system(self, parameters):
         return 0
 
     def generate_ode_params(self):
@@ -427,11 +429,13 @@ def main():
     """
     For basic testing purposes.
     """
-    system = System(num_nudged=1, error_mean=0, error_sd=1, visualmode=1)
+    system = System(num_nudged=1, error_mean=0, error_sd=1, visualmode=2)
     system.add_component(10, 1)
     system.add_component(8, 1)
+    system.add_component(15, 1)
+    system.ode_params = [-0.61382026, -0.2755128, 0.18177906, 0.45833228, -0.05770112, -0.00642294, -2.15232659, 0.22986959, -0.01803709]
     system.plot_ode()
-    system.train(method='minimize', cycles=1)
+    system.train(method='minimize', cycles=3)
     print(system.ode_params)
 
 if __name__ == '__main__':

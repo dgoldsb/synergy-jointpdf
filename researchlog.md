@@ -97,12 +97,15 @@
 
 ## Thursday 2017/04/27
 
+### resilientpdf.py
+
 * Added ODE plotting library
 * Marked annotate (pyplot) for plotting the system
+    * Tried to apply this, found something to use: arrow.py
+* Plotting the results shows training does not have the intended effect, using a BFGS run with good convergence
 
 ## Next time
 
+* Apply arrow.py
 * Write email on the memory measure & the driving forces behind limit cycles (should I get MI involved here?)
-* Make plotting function of final ODE system
-* Make representation tool of the final parameter system (arrows)
-* Do a long run until convergence with BFGS
+* Run a converged system at the highest visualization level
