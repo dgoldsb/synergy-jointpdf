@@ -93,3 +93,11 @@
     2. Discuss with Jaap Kaandorp what induces limit cycles
     3. Brainstorm about the definition of memory: the KL-divergence seems to ignore the possibility off limit cycles
 * Replaced Nelder-Mead with BFGS (recommendation Robert Hana)
+* Preliminary BFGS results are amazing, it even went from 0.5 with a weird parameter (outlier) to 16, only to go to 0.08 with better parameters
+
+## Next time
+
+* Write email on the memory measure & the driving forces behind limit cycles (should I get MI involved here?)
+* Make plotting function of final ODE system
+* Make representation tool of the final parameter system (arrows)
+* Do a long run until convergence with BFGS

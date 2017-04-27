@@ -20,11 +20,9 @@ from scipy import optimize
 from scipy.integrate import ode as integrator
 import NPEET.entropy_estimators as npeet
 
-
 __author__ = 'dgoldsb'
 sns.set(color_codes=True)
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
-
 
 mylogger = logging.getLogger('mylogger')
 handler1 = logging.FileHandler(filename=os.path.join(ROOT, 'log/resilientpdf.log'),\
@@ -78,16 +76,36 @@ class System(object):
         self.self_loop = self_loop
         self.visualmode = visualmode # 0 nothing, 1 before/after, 2 every training iter
 
-    def plot_ode(self):
+    def plot_ode(self, parameters):
         """
         Plots the ODE system over time from the current initial values.
         Uses current parameter setup.
         Supports 3D plot for 3-dimensional system.
+        Should go to 3 times the normal time
         """
+        timesteps = 1000
         if self.size == 3:
+            mylogger.info('Do with 3D phase spaceplot')
             return 0
-        else:
-            return 0
+        elif self.size == 2:
+            mylogger.info('Do a 2D phase space plot')
+        # Always do a nice plot per parameter
+        mylogger.info('Produce a series of plots over time')
+        set_x = [i * (3/timesteps) for i in range(0, timesteps)]
+        set_y = [] # Moet initial values wel in, true values, dus means
+        for i in range(0, timesteps):
+            # Evolve met dt*3/1000
+            # Append
+            print('Todo')
+        fig, axs = plt.subplots(self.size, 1, figsize=(10, 20), facecolor='w', edgecolor='k')
+        fig.suptitle('Behavior of the system over time', fontsize=16)
+        fig.subplots_adjust(hspace=.5, wspace=.2)
+        axs = axs.ravel()
+        for i in range(0, self.size):
+            axs[i].linear(set_x[i], set_y[i])
+            axs[i].set_title(str(i+1))
+        plt.show()
+        return 0
 
     def plot_kld(self, set_x, set_xp):
         """
@@ -377,7 +395,7 @@ def main():
     system = System(num_nudged=1, error_mean=0, error_sd=1, visualmode=1)
     system.add_component(10, 1)
     system.add_component(5, 1)
-    system.train(method='evolutionary', cycles=1)
+    system.train(method='minimize', cycles=1)
     print(system.ode_params)
 
 if __name__ == '__main__':
