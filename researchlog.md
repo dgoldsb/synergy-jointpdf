@@ -104,8 +104,23 @@
     * Tried to apply this, found something to use: arrow.py
 * Plotting the results shows training does not have the intended effect, using a BFGS run with good convergence
 
+## Tuesday 2017/05/02
+
+### resilientpdf.py
+
+* Not doing arrow.py, because a linear ODE is too simple to approximate over time anyway (it is a linear, local in time approximation)
+* Back to MI for memory, it is the correct way to do it, and linear ODEs cannot have steady states
+* Added scatterplot for MI
+
 ## Next time
 
-* Apply arrow.py
-* Write email on the memory measure & the driving forces behind limit cycles (should I get MI involved here?)
-* Run a converged system at the highest visualization level
+* Follow the advice (glucose is a good place to start)
+    1. Start from MatLab files from the paper
+    2. See if I can build a config to enter these simple systems in my framework
+    3. Enter and answer: is the M and R significantly better than a random system (**make this experiment one in my experiments.py**)
+    4. See if it can be further optimized
+    5. Make a plot of 3, preferably a 2D/3D plot if it has 2/3 dimensions with a dot for our hopefully outlier
+* Plot and pickle training process
+* Add training curve, with both components and a cumulative
+* Add MI profile
+* Add numerical synergy analysis, exact for the case with 2 systems
