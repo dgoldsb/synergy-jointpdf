@@ -157,7 +157,7 @@ Optionally, I want to edit this down later for publication.
 
 # Digital notes from meetings
 
-## Call with Gokhan
+## Call with Gokhan 2017-04-25
 
 Paar uitkomsten:
 
