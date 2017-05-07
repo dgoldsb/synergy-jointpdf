@@ -16,10 +16,11 @@ We will investigate if this system is indeed synergetic, and if the motifs found
 * [x] Write the update rule
     * Implement a 2-gene network model
 * [x] Add a training method to the model, that can optimize the ODE parameters
-* [ ] Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
-* [ ] Train a bivariate network
-* [ ] Do experiments, varying with the size of dt
+* [x] Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
+* [x] Train a bivariate network
+* [x] Do experiments, varying with the size of dt
     * Estimate kNN MI between the two genes
+* [ ] Add stochasticity to the model to make it non-Markovian (comment)
 * [ ] Determine the amount of synergy in the system
 * [ ] Find a reference gene regulation system to start with several (>2) parameters
 * [ ] Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
@@ -54,6 +55,7 @@ I decided with Rick to first train a simple version, with a linear ODE system, a
 * Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
 * Train a small network
 * Do experiments, varying with the size of dt
+* Add stochasticity to the model to make it non-Markovian (comment)
 * Determine the amount of synergy in the 2-gene system
 
 ## Phase 2: study of MI profiles with controlled PDF systems
@@ -81,7 +83,8 @@ Spikes can be used to identify that redundancy or synergy happens at that level.
 
 ### Description
 
-I want to build a gene regulation model that starts with a reasonable guess (based on a real gene regulation system), and then optimizes the parameters of the ODE system.
+I want to build a gene regulation model that starts with a real network (based on a real gene regulation system), and then optimizes the parameters of the ODE system.
+The goal is (as discussed with Gorkhan) to see if the real network is more optimized for memory and resilience than a random system, and if it has more synergy than a random system.
 It should maximize the memory of the system over time, while minimizing the impact of disturbances.
 An example would be a neural network: no single misfire should mess up the entire network.
 
@@ -93,6 +96,7 @@ Use a method such as Runge-Kutta 4 to find the state of the system at a later po
 Train the system to maximize the memory of the system, while minimizing the effect of pertubations.
 An initial measure for memory would be the mutual information between the initial state, and the later state.
 Later, the halftime of the mutual information could be used as an improved measure.
+The Kullback-Leibler divergence can be used for disturbance impact.
 Training can be done using, for example, a genetic algorithm.
 
 We can repeat the simulation many times with different starting points, to generate enough data to determine MIs and entropies.
@@ -106,7 +110,8 @@ For relevant drawings, see the screenshots of the whiteboard in the binaries dir
 * Add a training method to the model, that can optimize the ODE parameters
 * Write code to make MI profiles using the kNN entropy
 * Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
-* Do experiments with the trained
+* Do experiments with the trained network
+* Test the hypotheses on a real network
 * Generate MI profiles, and compare to what we know of the smaller gene regulation network, larger networks, and what we learned from the controlled MI profile application
 
 ## Phase 4: writing of the paper
