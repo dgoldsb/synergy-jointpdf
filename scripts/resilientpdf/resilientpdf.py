@@ -194,6 +194,8 @@ class System(object):
         for i in range(0, self.size):
             axs[i].scatter(set_x[i], set_y[i])
             axs[i].set_title(str(i+1))
+            axs[i].set_xlabel("X at t=0")
+            axs[i].set_ylabel("X at t=dt")
         plt.show()
         return 0
 
@@ -452,7 +454,7 @@ def main():
     """
 
     # For actual run
-    system = System(num_nudged=3, error_mean=0, error_sd=0.2, visualmode=1)
+    system = System(num_nudged=3, error_mean=0, error_sd=0.2, visualmode=2)
     system.add_component(10, 0.5)
     system.add_component(5, 0.2)
     system.ode_params = [-1.38566526, 0.30316272, 0.20758156, -1.12657536]
