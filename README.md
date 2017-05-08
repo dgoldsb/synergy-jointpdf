@@ -1,11 +1,12 @@
 # Introduction
 
 This project investigates synergy in biological networks.
-Biological networks have the characteristics of both a long memory (states/oscillations are remembered over time) and resilience to pertubations (shocks are forgotten).
+Biological networks have the characteristics of both a long memory (states/oscillations are remembered over time) and resilience to pertubations (disturbances are forgotten).
 We hypothesize that these two constraints lead to an abundance of synergy in biological systems.
 This will be tested in gene regulation networks, using a simulation study.
 In this study, we will build a gene regulation-like model, and optimize the updating rules to maximize memory and minimize resilience.
 We will investigate if this system is indeed synergetic, and if the motifs found in the resulting model resemble gene regulation network motifs.
+We will also test the hypothesis that a real network has more synergy than a random network, and that it has more memory and resilience than a random network.
 
 # Timeline of milestones (in order)
 
@@ -21,8 +22,9 @@ We will investigate if this system is indeed synergetic, and if the motifs found
 * [x] Do experiments, varying with the size of dt
     * Estimate kNN MI between the two genes
 * [ ] Add stochasticity to the model to make it non-Markovian (comment)
-* [ ] Determine the amount of synergy in the system
-* [ ] Find a reference gene regulation system to start with several (>2) parameters
+* [ ] Pick up a real network (yeast) and make a configuration file for this network
+* [ ] Start a configuration file library
+* [ ] Determine the amount of synergy in a 2-gene system
 * [ ] Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
 * [x] Add a method to nudge the system/introduce error
 * [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
@@ -94,6 +96,7 @@ Later we can work with stochastic ODE systems, where an error term is added.
 Apply a pertubation to one (or several perhaps in later experiments) of the variables.
 Use a method such as Runge-Kutta 4 to find the state of the system at a later point in time.
 Train the system to maximize the memory of the system, while minimizing the effect of pertubations.
+There should be an element of stochasticity, as taking the MI before and after of a deterministic system makes little sense.
 An initial measure for memory would be the mutual information between the initial state, and the later state.
 Later, the halftime of the mutual information could be used as an improved measure.
 The Kullback-Leibler divergence can be used for disturbance impact.
@@ -105,7 +108,8 @@ For relevant drawings, see the screenshots of the whiteboard in the binaries dir
 
 ### Milestones
 
-* Find a reference gene regulation system to start with several (>2) parameters
+* Pick up a real network (yeast) and make a configuration file for this network
+* Add a way to load and store configuration files (JSON)
 * Add a method to nudge the system/introduce error
 * Add a training method to the model, that can optimize the ODE parameters
 * Write code to make MI profiles using the kNN entropy

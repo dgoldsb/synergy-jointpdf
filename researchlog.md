@@ -114,6 +114,7 @@
 
 ## Next time
 
+* Add configuration file library (JSON), add a save/load function
 * Follow the advice (glucose is a good place to start)
     1. Start from MatLab files from the paper
     2. See if I can build a config to enter these simple systems in my framework
