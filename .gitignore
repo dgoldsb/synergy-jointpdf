@@ -10,4 +10,6 @@ __init__.py
 *.gz
 *.toc
 __init__.py
-./bin/MatLab/*
+bin/MatLab/
+*.mat
+*.m
