@@ -8,5 +8,8 @@ touch ./log/resilientpdf.log
 # Unzip matlab files
 mkdir ./bin/MatLab
 unzip ./bin/journal.pcbi.1004530.s004.ZIP -d ./bin/MatLab/
-
-# Build config files from MatLab files
+# Extract config files from MatLab files
+mkdir ./config
+mv ./bin/MatLab/S1_File/models/models_as_used/*.mat ./config
+# Remove matlab files
+rm -r ./bin/MatLab

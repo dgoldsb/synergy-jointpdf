@@ -112,6 +112,12 @@
 * Back to MI for memory, it is the correct way to do it, and linear ODEs cannot have steady states
 * Added scatterplot for MI
 
+## Thursday 2017/05/11
+
+### setup.sh
+
+* Added .mat file extraction from the Yeast model
+
 ## Next time
 
 * Add configuration file library (JSON), add a save/load function

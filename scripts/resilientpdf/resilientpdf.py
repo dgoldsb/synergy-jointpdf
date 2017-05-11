@@ -16,6 +16,7 @@ import logging
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy import io
 from scipy import optimize
 from scipy.integrate import ode as integrator
 from mpl_toolkits.mplot3d import Axes3D
@@ -452,6 +453,14 @@ def main():
     print(npeet.mi(dist2, dist3))
     sys.exit()
     """
+
+    # For .mat file
+    #"""
+    config_file = os.path.join(ROOT,'config/bio_bh.mat')
+    obj = io.loadmat(config_file)
+    print(obj["bio"])
+    sys.exit()
+    #"""
 
     # For actual run
     system = System(num_nudged=3, error_mean=0, error_sd=0.2, visualmode=2)
