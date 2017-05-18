@@ -112,11 +112,26 @@
 * Back to MI for memory, it is the correct way to do it, and linear ODEs cannot have steady states
 * Added scatterplot for MI
 
+<<<<<<< HEAD
 ## Thursday 2017/05/11
 
 ### setup.sh
 
 * Added .mat file extraction from the Yeast model
+=======
+## Thursday 2017/05/18
+
+(Had a short hiatus due to personal problems)
+
+### resilientpdf.py
+
+* Follow the advice (glucose is a good place to start)
+    1. Start from MatLab files from the paper
+    2. See if I can build a config to enter these simple systems in my framework
+    3. Enter and answer: is the M and R significantly better than a random system (**make this experiment one in my experiments.py**)
+    4. See if it can be further optimized
+    5. Make a plot of 3, preferably a 2D/3D plot if it has 2/3 dimensions with a dot for our hopefully outlier
+>>>>>>> Forgotten commit
 
 ## Next time
 
@@ -131,3 +146,6 @@
 * Add training curve, with both components and a cumulative
 * Add MI profile
 * Add numerical synergy analysis, exact for the case with 2 systems
+* Verken CUDA just in time versie van NPEET
+* Ook amount syn met random vergelijken
+* Markov systeem deterministic, mutual information meten nu en later is dan wat gek
