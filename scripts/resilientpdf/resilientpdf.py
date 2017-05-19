@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from scipy import io
 from scipy import optimize
 from scipy.integrate import ode as integrator
+import json
 from mpl_toolkits.mplot3d import Axes3D
 import NPEET.entropy_estimators as npeet
 
@@ -441,6 +442,31 @@ class System(object):
                 sys.exit(1)
         return 0
 
+def save_dict(filename, dictionary):
+    """
+    Saves to a JSON.
+    """
+    dirpath = os.path.join(ROOT, 'config')
+    filepath = os.path.join(dirpath, filename)
+    if filepath.endswith('.json') == False:
+        filepath = filepath + '.json'
+    with open('data.json', '') as fp:
+        json.dump(dictionary, fp)
+    return 0
+
+
+def load_dict(filename):
+    """
+    Loads a JSON.
+    """
+    dirpath = os.path.join(ROOT, 'config')
+    filepath = os.path.join(dirpath, filename)
+    if filepath.endswith('.json') == False:
+        filepath = filepath + '.json'
+    with open('data.json', '') as fp:
+        dictionary = json.load(fp)
+    return dictionary
+
 def main():
     """
     For basic testing purposes.
@@ -458,7 +484,7 @@ def main():
     #"""
     config_file = os.path.join(ROOT,'config/bio_bh.mat')
     obj = io.loadmat(config_file)
-    print(obj["bio"])
+    print(obj["bio"][0][0][0])
     sys.exit()
     #"""
 
