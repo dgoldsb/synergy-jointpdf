@@ -457,6 +457,31 @@ class System(object):
             i = i + 1
         return 0
 
+    def plot_training(self):
+        """
+        Plots the training cost of the different repetitions.
+        """
+        # Select colors for the cycles
+        cycles = np.max(self.training['cycle']) + 1
+        cmap = plt.get_cmap('gist_rainbow')
+        colors = [cmap(1.*i/cycles) for i in range(cycles)]
+
+        # Produce a plot
+        plt.title('Training visualization')
+        for _cycle in range(0, cycles):
+            iteration = [val for cycle, val in zip(self.training['cycle'],
+                                                   self.training['iteration']) if cycle == _cycle]
+            memory = [val for cycle, val in zip(self.training['cycle'],
+                                                self.training['memory']) if cycle == _cycle]
+            resilience = [val for cycle, val in zip(self.training['cycle'],
+                                                    self.training['resilience']) if cycle == _cycle]
+            cost = resilience - memory
+            plt.plot(iteration, memory, ls="--", color=colors[_cycle])
+            plt.plot(iteration, resilience, ls=":", color=colors[_cycle])
+            plt.plot(iteration, cost, ls="-", color=colors[_cycle])
+        plt.show()
+        return 0
+
     def plot_profile(self, mode='maximum'):
         """
         Plots the MI profile of the system.
