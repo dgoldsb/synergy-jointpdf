@@ -120,10 +120,18 @@
 
 ## Thursday 2017/05/18
 
-(Had a short hiatus due to personal problems)
+* (Had a short hiatus due to personal problems)
+* Send email to my supervisor
+    * How the MI is redundant for deterministic systems
+    * I can't open with MatLab
+    * Proposal: sit with Gorkhan to address the issue, find a more concrete network I can work with?
 
 ## Friday 2017/05/19
 
+## Friday 2017/05/19
+
+* Add configuration file library (JSON), add a save/load function
+* Plot and pickle training process
 * Meeting met Manon was goed, er kwam best veel naar boven uit mezelf qua ideeeen!
     * Afgesproken om op vaste dagen te werken aan mijn thesis, die dagen verder vrij van klussen te houden
     * Aan het einde van die dag stuur ik haar een update
@@ -133,6 +141,7 @@
 
 ## Next time
 
+* Work out the Gorkhan example (meeting 19th May) as far as I can
 * Add configuration file library (JSON), add a save/load function
 * Follow the advice (glucose is a good place to start)
     1. Start from MatLab files from the paper
