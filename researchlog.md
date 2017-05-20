@@ -128,10 +128,6 @@
 
 ## Friday 2017/05/19
 
-## Friday 2017/05/19
-
-* Add configuration file library (JSON), add a save/load function
-* Plot and pickle training process
 * Meeting met Manon was goed, er kwam best veel naar boven uit mezelf qua ideeeen!
     * Afgesproken om op vaste dagen te werken aan mijn thesis, die dagen verder vrij van klussen te houden
     * Aan het einde van die dag stuur ik haar een update
@@ -139,20 +135,24 @@
 * Meeting met Rick: gebruik van MI op deterministische systemen is geen probleem
     * Wel aangeven waarom dit OK is in het paper
 
-## Next time
+## resilientpdf.py
 
-* Work out the Gorkhan example (meeting 19th May) as far as I can
 * Add configuration file library (JSON), add a save/load function
-* Follow the advice (glucose is a good place to start)
-    1. Start from MatLab files from the paper
-    2. See if I can build a config to enter these simple systems in my framework
-    3. Enter and answer: is the M and R significantly better than a random system (**make this experiment one in my experiments.py**)
-    4. See if it can be further optimized
-    5. Make a plot of 3, preferably a 2D/3D plot if it has 2/3 dimensions with a dot for our hopefully outlier
 * Plot and pickle training process
-* Add training curve, with both components and a cumulative
-* Add MI profile
-* Add numerical synergy analysis, exact for the case with 2 systems
-* Verken CUDA just in time versie van NPEET
-* Ook amount syn met random vergelijken
-* Markov systeem deterministic, mutual information meten nu en later is dan wat gek
+
+# Saturday 2017/05/20
+
+* Put on Godspeed You! Black Emperor
+* Did my standup, kicked some ass
+* Added a MI profile visualization
+
+## hypothesis_testing.py
+
+* Created for later, when I can start testing things
+* Thought of a logical way to store results
+
+## resilientpdf.py
+
+* Finished the JSON configuration saving and loading
+* Optimized the variables in the System object
+* Rearranged the order to make more sense
