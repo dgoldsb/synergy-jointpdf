@@ -144,7 +144,6 @@
 
 * Put on Godspeed You! Black Emperor
 * Did my standup, kicked some ass
-* Added a MI profile visualization
 
 ## hypothesis_testing.py
 
@@ -156,3 +155,5 @@
 * Finished the JSON configuration saving and loading
 * Optimized the variables in the System object
 * Rearranged the order to make more sense
+* Added a MI profile visualization
+* Added a plotting function for the training process, with a distinct color for each cycle
