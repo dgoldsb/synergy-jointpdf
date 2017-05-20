@@ -112,26 +112,24 @@
 * Back to MI for memory, it is the correct way to do it, and linear ODEs cannot have steady states
 * Added scatterplot for MI
 
-<<<<<<< HEAD
 ## Thursday 2017/05/11
 
 ### setup.sh
 
 * Added .mat file extraction from the Yeast model
-=======
+
 ## Thursday 2017/05/18
 
 (Had a short hiatus due to personal problems)
 
-### resilientpdf.py
+## Friday 2017/05/19
 
-* Follow the advice (glucose is a good place to start)
-    1. Start from MatLab files from the paper
-    2. See if I can build a config to enter these simple systems in my framework
-    3. Enter and answer: is the M and R significantly better than a random system (**make this experiment one in my experiments.py**)
-    4. See if it can be further optimized
-    5. Make a plot of 3, preferably a 2D/3D plot if it has 2/3 dimensions with a dot for our hopefully outlier
->>>>>>> Forgotten commit
+* Meeting met Manon was goed, er kwam best veel naar boven uit mezelf qua ideeeen!
+    * Afgesproken om op vaste dagen te werken aan mijn thesis, die dagen verder vrij van klussen te houden
+    * Aan het einde van die dag stuur ik haar een update
+    * Ik houd de planning op SCRUM, dus vrij korte termijn, als ik een lange termijn planning heb komt het niet goed zodra er iets wegvalt
+* Meeting met Rick: gebruik van MI op deterministische systemen is geen probleem
+    * Wel aangeven waarom dit OK is in het paper
 
 ## Next time
 

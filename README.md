@@ -147,6 +147,7 @@ Optionally, I want to edit this down later for publication.
 
 * In tex: nudge (noise) is addition of two normal distributions (after all)
 * In tex: Som positief en negatief info
+* In tex: de wiskunde bespreken waarom MI op een deterministisch systeem kan
 * Expand the model to include complex triggers, such as the combination of smoke and seeing birds flying in one direction: do these triggers result in synergy if they are trained into the network? (see email Rick on his original research proposal)
 * Discuss the difficulty of finding a good optimizer, too quickly changing cost space when I resample every time, KNN problems
 * In tex: plot drawn in meeting with Quax on relationship memory, nudge resilience and synergy

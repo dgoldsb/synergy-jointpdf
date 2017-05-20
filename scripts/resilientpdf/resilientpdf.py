@@ -484,7 +484,7 @@ def main():
     #"""
     config_file = os.path.join(ROOT,'config/bio_bh.mat')
     obj = io.loadmat(config_file)
-    print(obj["bio"][0][0][0])
+    print(obj["bio"].length)
     sys.exit()
     #"""
 
