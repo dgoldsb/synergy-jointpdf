@@ -157,3 +157,20 @@
 * Rearranged the order to make more sense
 * Added a MI profile visualization
 * Added a plotting function for the training process, with a distinct color for each cycle
+
+# Thursday 2017/05/25
+
+* Read the paper by Peixoto, as suggested by Rick
+    * Quite depressing how much smarter the approach of this paper is
+    * See my notes, it uses Boolean networks instead of my continuous approach
+    * I should look at the yeast network, and then discuss with Rick
+* Got a message from Gokhan, see issue #11
+* Synergy is still my focus, which is different from the Peixoto paper, I give myself 2 weeks to see if continuous gives me the results I need, otherwise I will discuss a switch to discrete Boolean systems with Rick
+
+# Friday 2017/05/25
+
+* Made the project for the writing part, added the todos as notes
+
+# Next time
+
+* Do some writing
