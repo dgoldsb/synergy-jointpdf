@@ -21,10 +21,11 @@ We will also test the hypothesis that a real network has more synergy than a ran
 * [x] Train a bivariate network
 * [x] Do experiments, varying with the size of dt
     * Estimate kNN MI between the two genes
-* [ ] Add stochasticity to the model to make it non-Markovian (comment)
+* [x] Add stochasticity to the model to make it non-Markovian (comment) NO AN ISSUE
 * [ ] Pick up a real network (yeast) and make a configuration file for this network
 * [ ] Start a configuration file library
 * [ ] Determine the amount of synergy in a 2-gene system
+* [ ] Consider moving to a RBN
 * [ ] Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
 * [x] Add a method to nudge the system/introduce error
 * [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
@@ -145,16 +146,8 @@ Optionally, I want to edit this down later for publication.
 
 # General notes/questions for the paper
 
-* In tex: nudge (noise) is addition of two normal distributions (after all)
-* In tex: Som positief en negatief info
-* In tex: de wiskunde bespreken waarom MI op een deterministisch systeem kan
 * Expand the model to include complex triggers, such as the combination of smoke and seeing birds flying in one direction: do these triggers result in synergy if they are trained into the network? (see email Rick on his original research proposal)
 * Discuss the difficulty of finding a good optimizer, too quickly changing cost space when I resample every time, KNN problems
-* In tex: plot drawn in meeting with Quax on relationship memory, nudge resilience and synergy
-* In tex: cycle is highly synergetic, the continuous version of the X-OR; make this case in my paper, first explain X-OR, then why a cycle is similar
-* In tex: useful measure is the halflife of the MI of a shock with the future state
-* In tex: make clear what the difference is between redundancy (2+1) and MI (2)
-* In tex: defend if normalization is still necessary if I use the KL-divergence and the MI (I do need to somehow invert the MI, as this should be high, and the divergence small)
 * Later in scriptie voor motieven >3 andere redundancy measure, testen of er dezelfde motieven uitkomen
 * Transcriptional bursting (periodic) or the plasmid case (steady state) might be interesting bivariate cases
 * Periodicity is fine, the MI measure still works
