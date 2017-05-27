@@ -170,6 +170,20 @@
 # Friday 2017/05/25
 
 * Made the project for the writing part, added the todos as notes
+* I am so fucking lost in this MatLab model
+
+# Saturday 2017/05/25
+
+* Email Gokhan
+    * I don't really get the structure
+    * I don't know what to look for
+    * MatLab is infuriating
+    * Explain more what I had in mind, is this in there?
+    * Should I adapt my model? What is the standard?
+    * RBN better?
+* CC to Rick, ask him more about if RBN is better suited
+* CC both to Manon, explain how badly it went
+* Write on my fucking thesis and fuck programming for today
 
 # Next time
 
