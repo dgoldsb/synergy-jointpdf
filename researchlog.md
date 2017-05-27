@@ -181,9 +181,9 @@
     * Explain more what I had in mind, is this in there?
     * Should I adapt my model? What is the standard?
     * RBN better?
-* CC to Rick, ask him more about if RBN is better suited
+* Slack to Rick, ask him more about if RBN is better suited
 * CC both to Manon, explain how badly it went
-* Write on my fucking thesis and fuck programming for today
+* Wrote on my fucking thesis and fuck programming for today
 
 # Next time
 
