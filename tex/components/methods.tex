@@ -4,11 +4,24 @@
 
 \begin{document}
 
+% More on synergy profile
+A synergy profile can be considered as a plot of the fraction of mutual information captured, versus the number of variables. 
+When considering zero variables, you have no information on the system, so here the mutual information is 0.
+When considering all variables everything is known, so here the mutual information is
+1. 
+The shape of the curve inbetween tells us something about the synergies within the system.
+For instance, if the curve stays low for a long time and then shoots up we can conclude that the system contains a lot of high-level synergy. As there are many ways to order the variables, we can make the decision to at each position take the variable that adds the maximum amount of information, or to take the mean of all possible curves.
+% Some information on nudges (methods)
+A nudge is defined as a small change in the probabilities for the the different states of one variable. To maintain normalization, the overall nudge summed should equal zero.
+First of all we focus on local nudges, those that only affect one variable in the system, but in the depending on research progress we can expand this to pertubations that affect multiple variables. 
+The impact of the nudge we measure with the difference in the output squared, first of all.
+
 % Methods for the discrete simulation
 * Output van een biologisch systeem is het beste het systeem in de volgende tijdstap, want relaties tussen soort hebben pas een werking in t+dt
 
 Here comes some text.
 
-\bibliographystyle{plain}
-\biblio
+% Hypotheses (move to end introduction)
+Make hypothesis maximum vs. average different.
+
 \end{document}

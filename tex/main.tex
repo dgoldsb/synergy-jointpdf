@@ -3,8 +3,12 @@
 % Packages
 \usepackage{lipsum}
 \usepackage{subfiles}
-\usepackage{natbib}
 \usepackage{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% Citations
+\bibliographystyle{plain}
 
 % Formatting etc.
 \geometry{
@@ -13,16 +17,12 @@
  	left=20mm,
  	top=20mm}
 
-% Get citing to work
-\providecommand{\main}{.}
-\def\biblio{\bibliographystyle{plainnat} \bibliography{\main/sources}}
-
 % My name etc.
 \title{On the relation between memory and resilience in complex systems and synergetic properties}
 \author{Dylan Goldsborough}
 \date{\today}
+
 \begin{document}
-\def\biblio{}
 
 \maketitle
 
@@ -34,29 +34,21 @@
 
 \section{Theoretical background}
 
-% In later part
-Resilience is a hot topic in gene regulation, has been done discrete without synergy\cite{peixoto2012emergence}.
-% Hypotheses (move to end introduction)
-Make hypothesis maximum vs. average different.
-% More on synergy profile
-A synergy profile can be considered as a plot of the fraction of mutual information captured, versus the number of variables. 
-When considering zero variables, you have no information on the system, so here the mutual information is 0.
-When considering all variables everything is known, so here the mutual information is
-1. 
-The shape of the curve inbetween tells us something about the synergies within the system.
-For instance, if the curve stays low for a long time and then shoots up we can conclude that the system contains a lot of high-level synergy. As there are many ways to order the variables, we can make the decision to at each position take the variable that adds the maximum amount of information, or to take the mean of all possible curves.
-% Some information on nudges (methods)
-A nudge is defined as a small change in the probabilities for the the different states of one variable. To maintain normalization, the overall nudge summed should equal zero.
-First of all we focus on local nudges, those that only affect one variable in the system, but in the depending on research progress we can expand this to pertubations that affect multiple variables. 
-The impact of the nudge we measure with the difference in the output squared, first of all.
-
-\subsection{Complexity}
-
-\subfile{components/introduction_complexity.tex}
-
 \subsection{Synergy}
 
 \subfile{components/introduction_synergy.tex}
+
+\subsection{Mutual Information Profiles}
+
+\subfile{components/introduction_MI_profile.tex}
+
+continuous reason, just motif not enough, need ODE
+motif has vastly different functions
+more elaborate model, binding constants
+
+\subsection{Complexity and Gene Regulatory Networks}
+
+\subfile{components/introduction_complexity_GRN.tex}
 
 \section{Methods}
 
@@ -70,6 +62,5 @@ The impact of the nudge we measure with the difference in the output squared, fi
 
 \subfile{components/discussion.tex}
 
-\bibliographystyle{plain}
 \bibliography{sources}
 \end{document}

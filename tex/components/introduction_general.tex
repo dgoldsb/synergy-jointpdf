@@ -3,13 +3,12 @@
 \documentclass[../main.tex]{subfiles}
 
 \begin{document}
-
 % General context
 %% Put synergy, a term from information theory, at home in the computational science mindset
-In complex systems, elementary properties of many individuals lead to a large scale mergent behavior.
-We can view this emergence as a form of of ’synergy’ together which is a vital part of the dynamics of the system as a whole. 
-Synergy as a quantifiable property of a system is a relatively new idea in information theory, and can be seen as an addition to the system entropy and mutual information.
-The method of quantification is amongst the open problems in the field, but multiple measurements have been proposed \cite{}.
+In complex systems, elementary properties of many individuals lead to emergent behavior on a system-size scale.
+We can view this emergence as a ’synergy’ of system elements together, which is a vital part of the dynamics of the system as a whole.
+In information theory, synergy as a quantifiable property of a system is a relatively new idea, and can be seen as an addition to system properties like entropy and mutual information.
+The method of quantification for systems larger than the trivial case of 2 random variables is amongst the open problems in the field, but multiple measurements have been proposed \cite{}.
 Synergy and mutual information are closely related properties, as synergy can be seen as negative mutual information; it is additional information on a random variable that is given by a combination of other random variables, yet not a part of the information captured in any of the individual random variables.
 As such, visualizations of the mutual information in a system of dependent random variables can sketch an image of the synergy in a system.
 One method of visualization is through mutual information profiles.
@@ -19,35 +18,33 @@ This is hypothesized that it would allow for the identification whether synergy 
 
 %% Link to gene regulatory networks/biology
 %% Talk about pertubation resistance
-Many natural systems are complex in their nature, such as gene regulatory networks \cite{}.
+Many natural systems are complex in their nature, such as gene regulatory networks, bird flocking patterns, and pattern formation in banks of bivalves \cite{}.
 These networks are relatively simple in their building blocks, but show complicated patterns on a global scale.
 In gene regulation, the expression of genes is spatially regulated from the conception of the organism onwards.
-The presence of this complexity seems to suggest a level of synergy.
-This amount has, to our best knowledge, not been quantified or explained.
-A possible angle to the question "why do we expect synergy in biological complex systems" is from the perspective of resilience and memory.
-This is a natural line of enquiry, as the relationship between system complexity and resilience is one of the primary unanswered questions of ecology \cite{}.
+A possible angle to the question "why do we see  complexity in biological complex systems" is from the perspective of resilience and memory.
 Biological systems require a level of memory, a relation between the current state of the system and previous states of the system. 
 They also require a level of noise resilience, as biological systems tend to experience shocks from external sources \cite{peixoto2012emergence}.
 Maximizing one is not always in the best interest of the other; noise resilience is maximized when the system automatically defaults to a hard-coded state, but this leaves no room for system memory.
 A maximized system memory, on the other hand, will never forget noise, causing noise to never die out over time.
-It has been hypothesized by Quax et al. that synergy increases the resilience of a system against pertubation in a single input variable \cite{quax2017quantifying}. 
-This means that synergy can be utilized to make a system resistant to nudges, while retaining the ability to memorize previous states. 
+It has been hypothesized by Quax et al. that synergy increases the resilience of a system against pertubation in a single input variable \cite{quax2017quantifying}.
+This means that synergy can be utilized to make a system resistant to nudges, while retaining the ability to memorize previous states.
 The realization of a middle way, that maximizes the combination of both resilience and memory, might be through synergy.
+As such, complex synergistic relationships in the system could contribute to its functioning in a noisy environment.
+This potential relationship between synergy and resilience makes it very interesting to determine the amount of synergy in a biological network, especially considering that the relationship between system complexity and resilience is one of the primary unanswered questions of ecology \cite{}.
+This amount has, to our best knowledge, not been quantified or explained.
 
 % In this study, we want to...
 In this work we aim to examine the links between the complexity of a complex system its resilience, and the memory of the system.
 In particular, we are interested in the role of synergy in these networks, which is used in this study as a quantification of the system complexity.
-This problem is recurrent in many other disciplines, such as systems biology.
+This problem is recurrent in many other disciplines, as principles from information theory are broadly applied.
 As a first step, we aim to quantify the amount of synergy in a biological complex system.
 This should allow us to put a meaning to how present synergy is in real-world systems.
 We focus on gene regulation networks, as small, elementary motifs are readily available in these networks.
+Resilience is a hot topic in gene regulation, has been done discrete without synergy \cite{peixoto2012emergence}.
 The small size helps both in the quantification of synergy, and in followup investigation.
 Secondly, we test the hypothesis that a gene regulation motif has more synergy than a random motif of a similar size. 
 We investigate this through a simulation study in continuous space, where motifs are approximated locally in time through an ODE system.
 In addition, we also measure whether real-world motifs score better in terms of system memory and resilience than random networks, and whether these motifs are Pareto optimal in these two properties.
 Finally, we take a more detailed look at the level at which synergy occurs using full mutual information profiles.
 With this, we provide insight into larger gene regulation motifs, as well as a case for the use of these profiles in the analysis of synergy in complex systems.
-
-\bibliographystyle{plain}
-\def\biblio{}
 \end{document}
