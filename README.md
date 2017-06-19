@@ -8,34 +8,6 @@ In this study, we will build a gene regulation-like model, and optimize the upda
 We will investigate if this system is indeed synergetic, and if the motifs found in the resulting model resemble gene regulation network motifs.
 We will also test the hypothesis that a real network has more synergy than a random network, and that it has more memory and resilience than a random network.
 
-# Timeline of milestones (in order)
-
-* [x] Find a small gene regulation network (2 variables) with differential equations
-    * Literature
-* [x] Find an application of kNN mutual information
-* [x] Build a sampling framework
-* [x] Write the update rule
-    * Implement a 2-gene network model
-* [x] Add a training method to the model, that can optimize the ODE parameters
-* [x] Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
-* [x] Train a bivariate network
-* [x] Do experiments, varying with the size of dt
-    * Estimate kNN MI between the two genes
-* [x] Add stochasticity to the model to make it non-Markovian (comment) NO AN ISSUE
-* [ ] Pick up a real network (yeast) and make a configuration file for this network
-* [ ] Start a configuration file library
-* [ ] Determine the amount of synergy in a 2-gene system
-* [ ] Consider moving to a RBN
-* [ ] Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
-* [x] Add a method to nudge the system/introduce error
-* [ ] Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
-* [ ] Write code to make MI profiles using Rick's framework
-* [ ] Make MI profiles (both the regular plot and the derivative) for analysis
-* [ ] Show that the MI profile shows motifs that correspond to what we know of the system
-* [ ] Write code to make MI profiles using the kNN entropy
-* [ ] Do experiments with the improved model
-* [ ] Reevaluate life and see what is left/where I stand
-
 # Phases of the project
 
 ## Phase 1: bivariate gene regulation network study
@@ -48,18 +20,6 @@ Because we can easily find the redundancy, we can calculate the synergy exactly.
 Putting a number on the amount of synergy in the system allows us to show how important synergy is in biological systems.
 This justifies the rest of the paper, and is useful information to apply for research funding in the future.
 I decided with Rick to first train a simple version, with a linear ODE system, and show the outcome to the gene regulatory network researcher from Maastricht.
-
-### Milestones
-
-* Find a small gene regulation network (2 variables) with differential equations
-* Find an application of kNN mutual information
-* Build a sampling framework, that draws initial values from normal distributions and does repeated experiments
-* Write the update rule, which uses the ODE system with parameters to integrate to time 0 + dt
-* Improve the cost function and nudge method until training is fully functional (find a setting on the Pareto frontier)
-* Train a small network
-* Do experiments, varying with the size of dt
-* Add stochasticity to the model to make it non-Markovian (comment)
-* Determine the amount of synergy in the 2-gene system
 
 ## Phase 2: study of MI profiles with controlled PDF systems
 
@@ -74,13 +34,6 @@ The important features of this profile are the 'base slope', positive spikes, an
 The base slope is the average MI between all individual variables in X with Y.
 This slope defines the line you expect when there would be zero synergy and zero redundancy.
 Spikes can be used to identify that redundancy or synergy happens at that level.
-
-### Milestones
-
-* Pick a system with a sufficient number of variables (4+) that has known redundancy and synergy (Griffith and Ho)
-* (Optional) Write code to make MI profiles using Rick's framework
-* Make MI profiles (both the regular plot and the derivative) for analysis
-* Show that the trained model shows motifs that correspond to what we know of the system
 
 ## Phase 3: multivariate gene regulation network simulation
 
@@ -107,32 +60,12 @@ We can repeat the simulation many times with different starting points, to gener
 The kNN method should be used for determining entropies and mutual informations.
 For relevant drawings, see the screenshots of the whiteboard in the binaries directory.
 
-### Milestones
-
-* Pick up a real network (yeast) and make a configuration file for this network
-* Add a way to load and store configuration files (JSON)
-* Add a method to nudge the system/introduce error
-* Add a training method to the model, that can optimize the ODE parameters
-* Write code to make MI profiles using the kNN entropy
-* Expand the code from the previous phase to include complex triggers (birds + smoke = deviation from norm as more fit response)
-* Do experiments with the trained network
-* Test the hypotheses on a real network
-* Generate MI profiles, and compare to what we know of the smaller gene regulation network, larger networks, and what we learned from the controlled MI profile application
-
 ## Phase 4: writing of the paper
 
 ### Description
 
 Nothing out of the ordinary, I want to write a paper suited for a master's thesis project.
 Optionally, I want to edit this down later for publication.
-
-### Milestones
-
-* Make a framework of loose tex files that are combined in a main project
-* Writing a detailed outline
-* Fitting already written text in the outline
-* Finishing the long version of the paper
-* Consider possibility of publication
 
 # Workflow
 
