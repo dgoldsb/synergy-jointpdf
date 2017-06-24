@@ -8,40 +8,107 @@
 % Something about complexity
 In the analysis of complex system, it is helpful to have a quantification of how 'complex' a system is.
 Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.
-Information has grown to be a staple tool in many fields that work with complex systems \cite{williams2010nonnegative}. % Referenced to later (a)
-Originally, the primary used concepts where mutual information and entropy.
-Not super useful.
-Another concept is the Langton parameter, which can be used to find cellular automata's that exihibit complex behavior (separating from chaos and regularity) \cite{langton1990computation}.
-Expansion of IT in later years with synergy.
-Synergy is a better predictor than the Langton parameter \cite{9999QuaxChli}
+Information theory has grown to be a staple tool in many fields that work with complex systems \cite{williams2010nonnegative}. % Referenced to later (a)
+Originally, the primarily used concepts where mutual information and entropy.
+These properties are not always useful in assessing system complexity; in ecology, entropy has been proposed and since gone out of favor as a quantification of system complexity.
+Another concept is the Langton parameter, which can be used to find cellular automatas that exihibit complex behavior, and separate complexity from chaos and regularity \cite{langton1990computation}.
+In more recent years, new quantities have been proposed in information theory, such as synergy.
+Synergy was found to be a better predictor than the Langton parameter for system complexity \cite{9999QuaxChli}
 
 % Give different IT ideas
-Basis is MI and conditional MI
-Two extensions originally.
-Total correlation \cite{watanabe1960information}. Nothing on the structure, a single number.
-Interaction information McGill \cite{mcgill1954multivariate}. Entropy is first order, MI second order, more lies beyond. Unfortunate is that this can be negative.
-No general consensus on which yet.
-Third proposal is the one we follow, a system of redundancy, synergy and entropy in multivariate cases \cite{williams2010nonnegative}.
-Decomposition scales to larger system, but explodes in terms of number of possible 'fields' in Venn diagram.
-Calculate.
+Basic principles in information theory are the entropy, mutual information and conditional entropy.
+The principles are widely accepted an applied, and operate at the single- and bivariate level.
+Originally, two extensions past the bivariate level were proposed.
+The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
+The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
+The second proposed measure was the interaction information \cite{mcgill1954multivariate}. This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
+Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
+There is no general consensus on which measure is superior as of yet\cite{williams2010nonnegative}.
+More recent approaches often build on on of these two ideas.
+For instance, recently a system was proposed in which the reduncdancy, synergy and entropy are broken down in multivariate cases \cite{williams2010nonnegative}.
+Here, a large system is essentially broken down in all possible redunancy, synergy and entropy pieces in a system (essentially all possible fields in a Venn diagram).
+These are all quantified to give an overall insight in the structure of the system.
+A weakness of this system is that beyond a few variables this system explodes computationally.
 
 % Level 1: entropy
-Shannon's entropy \cite{shannon1949mathematical}.
+As hinted, we can look at systems of random variables at varying levels.
+At the single variable level, we can examine the amount of entropy in random variable.
+This is usually one through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
+This is defined as 
+
+\begin{equation}
+\mathrm{H}(X) = -\sum^n_{i=1} P(x_i) log_b P(x_i)
+\end{equation}
+
+for a random variable $X$. 
+This measure is maximized if the PDF is as evenly spread out as possible, in the case of a discrete PDF when all probabilities are uniform.
 
 % Level 2: mutual information
-Shannon' MI \cite{shannon1949mathematical}.
+At the bivariate level, we can examine the overlap in information between the two random variables.
+This is quantified using the mutual information, which is defined as 
+
+\begin{equation}
+\mathrm{I}(X;Y) = \sum_{y \subset Y} \sum_{x \subset X} \log_b (\frac{p(x,y)}{p(x) p(y)})
+\end{equation}
+
+for random variables $X$ and $Y$ \cite{cover2012elements}.
+When dealing with continuous probability distributions, an integral is used instead of a summation.
 
 % Level 3: synergy/redundancy
 % Give meaning to what synergy is
-\cite{williams2010nonnegative}.
-Synergy (...).
-Make clear what the difference is between redundancy (2+1) and MI (2).
-The sum of positive and negative info, hard to distinguish when taking I(S;R1;R1)
+We can also consider a third variable in our system.
+In this case, usually the third variable is seen as an 'output' variable, and it is observed how much information the former two contain about the third.
+In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ into four categories \cite{williams2010nonnegative}:
 
-% Piece about synergistic function
+\begin{enumerate}
+\item Redundant information contained in both $X$ and $Y$, denoted $I_\mathrm{red}(Z;X,Y)$
+\item Information solely contained in $X$, denoted $I(Z; X) - I_\mathrm{red}(Z;X,Y)$
+\item Information solely contained in $X$, denoted $I(Z; Y) - I_\mathrm{red}(Z;X,Y)$
+\item Synergetic information contained in neither $X$ and $Y$, denoted $I_\mathrm{syn}(Z;X,Y)$
+\end{enumerate}
+
+Following this split, the synergy is defined as
+
+\begin{equation}
+I_\mathrm{syn}(Z;X,Y) = I(Z;X, Y) - I(Z; X) - I(Z; Y) + I_\mathrm{red}(Z;X,Y)
+\end{equation}
+
+The question is how to quantify either the synergetic information, or the redundant information; once one is found, the other follows.
+Some quantifications have been proposed, such as the minimal information\cite{harder2013bivariate}.
+The quantification of one of the two is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in three variable system.
+
+% Piece about synergistic function, intuition from discrete to continuous
+Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
+We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
+The mutual information $I(X;Z)$ and $I(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+$X$ & $Y$ & $Z$ \\
+\hline
+\hline
+1 & 1 & 0 \\
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+0 & 0 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Truth table of an X-OR gate.}
+\label{XOR}
+\end{table}
+
+And attractive example in the continuous realm is that of a limit cycle of two variables $X$ and $Y$ through time, as depicted in figure \ref{XOR_cont}.
+Let us say that $X$ and $Y$ are dependent variables, and that a cycle takes $2t$ time to complete.
+If we look at the mutual information between the state now, and the state at time $\delta t = t$ later, we find low mutual information $I{X;X^{t},Y^{t}}$ and $I{Y;X^{t},Y^{t}}$. After all, for all but the extreme values of $X$ and $Y$ on the circle, each value has two intersections. 
+If the intersections are a quarter circle apart for both $X$ and $Y$, we have a low individual mutual information, yet taken together we have full knowledge of the state of the system later in time.
+
 X-or is perfect synergistic.
 Explain..
-% Take it to continuous
 Cycle is highly synergetic, the continuous version of the X-OR; explain the similarity
+
+%% PICTURE %%
 
 \end{document}

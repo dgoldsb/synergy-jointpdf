@@ -4,53 +4,64 @@
 
 \begin{document}
 
+% The unanswered question
+A major unanswered question in ecology is the relationship between the stability and the complexity of ecosystems.
+This problem was posed around the time the field of information theory was founded, in the 1950s, but at the time no answer that was well-supported by emperical data was proposed.
+At the time, information theory was immediately picked up as a tool to analyze the complexity of ecosystems; the 'evenness variable' $H$, the Shannon-entropy, was used as a measuring device for complexity.
+The entropy was initially applied on stock measurements, to describe the proportional population sizes of different species in the ecosystem.
+
+Shortly after, the still popular point of view was formulated that with an increased complexity there are more pathways to reach a consumer in the food web, and thus a higher stability.
+After all, if one link between prey and predator in a food web would disappear, for instance due to a low prey population after a harsh winter, the predator population is relatively unaffected as they switch to a less-preferred yet viable prey.
+When first posed by Macarthur, information theory was used again to form a definition of complexity \cite{macarthur1955fluctuations},
+However, this time, it was used to describe the proportional sizes of biomass flows in the foodweb, not proportional stocks sizes.
+
+Nowadays, the question has solidified itself as a form of paradox.
+Theoretical studies generally conclude that smaller systems should be more stable, yet in nature we observe many big an complicated predator-prey networks \cite{kondoh2003foraging}.
+The preliminary answers to this question of stability and complexity in ecosystems since then have been conflicting, especially between emperical data and theoretical studies. \cite{pimm1984complexity}.
+In the past decade, computational studies have been added to the arsenal of ecologists in their attempt to answer this paradox.
+For instance, in a recent computational study the idea of stability through complexity due to an increased flexibility for predators has been reinvestigated, and found as a plausible explanation in the ecosystem model \cite{kondoh2003foraging}.
+
 % History of IT and biology
-While ecology does deal with complex systems at many different scales, information theory never took hold as the primary analytical method \cite{ulanowicz2001information}. % Reference to earlier (A)
-A large unanswered question inecology is the relationship between stability and complexity of ecosystems.
-Conflicting answers to question of stability in complex or non-complex \cite{pimm1984complexity}.
-The question was raised early, but no answer was found.
-The evenness H, the entropy, was used to quantify complexity of a system.
+Information theory has evidently had a place in ecological research.
+% Two different approaches
+However, while ecology does deal with complex systems at many different scales, information theory never took hold as the primary analytical method \cite{ulanowicz2001information}. % Reference to earlier (A)
+We can see this manifest itself in the movement away from theoretical studies that involve information theory definitions of complexity to computational studies.
+If we look at the applications of information theory in ecology, we see two general approaches to how information theory is applied \cite{ulanowicz2001information}.
 
-On point of view was that with complexity, there were more pathways to reach a consumer.
-Entropy over flows is used \cite{macarthur1955fluctuations},
+%% METE and Shannon entropy
+The first application is based on Shannon entropy applied to quasi-static stock numbers.
+In this paradigm, complexity is defined through the entropy on the PDF that defines the probability that a random individual pulled from the population is of one species.
+In many cases, the amount of biomass is used instead of the number of individuals, as the number of individuals can be a poor representation of the relative presence of a species.
+This primarily gives us an image of how evenly spread biomass is across all species in an ecosystem, and not necessarily of the complexity of this system.
+While monocultures are often systems of very low complexity, systems with a very even species distribution do not have to be.
+A food web with few nodes, of which one holds the majority of all biomass, is bound to have a relativily low number of edges, most of which are in contact with the most present species.
+A web with many nodes, on the other hand, does not per definition have a large number of edges and a high connectivity.
+As a result, this application of Shannon entropy did not prove very useful to explain complexity \cite{ulanowicz2001information}.
+It is notable that outside of the complexity-resilience question, the Shannon entropy is applied in the process of estimating the geographic distributions of species from limited data \cite{phillips2006maximum}. % maybe throw out
 
-In the past decade, computational studies have been done to answer the paradox. 
-In general ecological theory, smaller more stable, then why so many big complex food networks \cite{kondoh2003foraging}?
-One proposal is flexibility in structure of food webs.
-
-Clearly, information theory has had a place.
-However, we also see that we have moved away from the information theory complexity used from the 50s to 90s, to computational studies.
-Two general approaches, according to \citep{ulanowicz2001information}.
-
-% METE and Shannon entropy
-On is based on Shannon entropy, and the quasi-static stock numbers.
-This did not prove very useful to explain complexity.
-This is used in METE marquet2014theory, more a distribution kind of thing, but with implications to stability.
-elaborate mete, information theory application \cite{phillips2006maximum} % maybe throw out
-Stock itself failed according to \citep{ulanowicz2001information}.
-Because most ecologists think in stock, not flows, IT was written off.
-
-% Flows approach
-Second movement \cite{ulanowicz2009quantifying}.
-Continue from MacArthur, reactionary against Shannon.
-Applies H on flows, to contrast efficiency of pathways against robustness of a network.
-Speaks of reserves, uses entropy-related measure t quantify.
+%% Flows approach
+The second movement was reactionary against Shannon, and continued from the work of MacArthur on the complexity-resilience question \cite{ulanowicz2009quantifying}.
+Here, the Shannon-entropy is applied on biomass flows, not stock numbers, to determine if all edges in the food web are of similar importance, or if one is vastly more important than the rest.
+In recent years, this concept was elaborated on by Ulanowicz to contrast the efficiency of pathways against the robustness of a predator-prey network \cite{ulanowicz2009quantifying}.
+He adds an information theory-based measure for the efficiency of a system, measured against the conversion rate of energy in a system if all biomass where to travel through the most efficient channels, as well as the reserves, less efficient channels that can pick up slack when more efficient channels fail.
+While looking at the food web gets us a step closer to the stability of an ecosystem, as instabilities tend to cascade through the food web through edges, this is not necessarily a better definition for complexity.
+In the end, as most ecologists think in stock sizes, not in biomass flows, information theory was written off.
 
 % General biology link
-% End how we might be able to answer it now
-LINK THROUGH RESILIENCE, THIS IS THE QUESTION THAT ECOLOGISTS WANT ANSWERED IN THE END
-Quax thinks \cite{quax2017quantifying}
-Synergy might be interesting here
-Shift away from the low-level IT applied here (entropy), and start looking at relationships between stochastic variables.
-Don't treat a 'unit' as a random variable, which can be a specific species.
-Instead, consider the number of each species a random variable, subject to noise from outside of the model.
-As soon as we do that, we can start looking at interactions in the IT sense.
-If we want to examine redundancy and synergy in a biological network, we can use the time dimension as a way to establish relationships
-We can compare the system now with the system later
-Useful measure is the halflife of the MI of a shock with the future state \cite{QuaxPersonal}
-We cann see this is as memory
-Simultaneously we need resilience
-Can also be tested computationally with models
-Synergy can be derived from these systems
+% end how we might be able to answer it now
+It has been suggested that synergy in complex systems increases the resilience of this system against nudges \cite{quax2017quantifying}.
+As a result, synergy might be an interesting new approach to the complexity-resilience question.
+In all previous attempts at using information theory, it has been applied on a single ecosystem variable: the stochastic variable that defines the distribution of biomass or biomass flows within the ecosystem.
+This implies that no analysis is possible that involves interaction between stochastic variables, such as mutual information and synergy.
+We propose that we shift away from the low-level information theory principles applied in the past, and start looking at relationships between stochastic variables.
+This starts with a reimagination of how we look at an ecosystem.
+If we do not treat the species of a randomly drawn 'unit' as the random variable, we can consider the population size of each species individually.
+This is a very natural step; after all, the disturbances that an ecoystem has to deal with usually manifest itelf as an increase or decrease in the population size of one or several species due to outside forces.
+As soon as we model the system as a system of dependent random variables, we can start looking at interactions between random variables in order to examine redundancy and synergy in a biological network.
+We can use the time dimension as a way to establish relationships the state of the system now and later.
+This allows us to use the halflife of effect of a shock on the mutual information between the current and future state of the system \cite{QuaxPersonal}.
+In addition, by simply measuring mutual information between the system now and later we can quantify the amount of memory in a system.
+It should be noted that, for this analysis to be performed, time evolution of the system should be possible.
+This is the case, for instance, when a set of ODEs is defined for the changes in the system over time.
 
 \end{document}

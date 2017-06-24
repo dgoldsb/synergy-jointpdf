@@ -71,8 +71,8 @@ The set of flux rates can be trained, and is ultimately what defines synergy in 
 
 % Cost function
 As a measure for .. we used the relative entropy, the Kullback-Leibler divergence.
-We utilized a k-Nearest Neighboor based approximation, as described by \citep{wang2009divergence}.
-Estimation is done using k-Nearest Neighbor approximation for mutual information as described by \citep{kraskov2004estimating}.
+We utilized a k-Nearest Neighboor based approximation, as described by Wang \cite{wang2009divergence}.
+Estimation is done using k-Nearest Neighbor approximation for mutual information as described by Kraskov \cite{kraskov2004estimating}.
 We used the NPEET library implementation for both these properties \cite{versteeg2013NPEET}.
 De wiskunde bespreken waarom MI op een deterministisch systeem kan.
 Defend if normalization is still necessary if I use the KL-divergence and the MI (I do need to somehow invert the MI, as this should be high, and the divergence small)
@@ -81,6 +81,8 @@ Nudge (noise) is addition of two normal distributions (after all) (noise additio
 A nudge is defined as a small change in the probabilities for the the different states of one variable. To maintain normalization, the overall nudge summed should equal zero.
 First of all we focus on local nudges, those that only affect one variable in the system, but in the depending on research progress we can expand this to pertubations that affect multiple variables. 
 The impact of the nudge we measure with the difference in the output squared, first of all.
+
+% Generating a random GRN-like network
 
 % Training of free parameters
 Method used.
@@ -93,6 +95,10 @@ Several resamples are done, each time continuing training.
 \subsection{Hypotheses}
 
 % Hypotheses (move to end introduction)
-Make hypothesis maximum vs. average different.
+More synergy in biological versus random GRN-like network.
+Biological scores better in memory and single-nudge resilience.
+Strong decrease in resilience on multiple variable level.
+Synergy takes place at level (..)
+Make hypothesis maximum vs. average different in MI profile.
 
 \end{document}
