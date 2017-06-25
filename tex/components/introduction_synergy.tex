@@ -16,11 +16,11 @@ Another concept is the Langton parameter, which can be used to find cellular aut
 In more recent years, new quantities have been proposed in information theory, such as synergy.
 Synergy was found to be a better predictor than the Langton parameter for system complexity \cite{9999QuaxChli}
 Other proposals have been made to quantify complexity, such as the measure
-
+%
 \begin{equation}
 C(X) = \mathrm{H}(X) - \sum_{j=1}^n \mathrm{H}(X_j^1 | X - X_j^1)
 \end{equation}
-
+%
 proposed to identify the functional integration and specialization within a neural network \cite{tononi1999measures}. This measure is zero for a disconnected network, and high if much of the entropy of the system is accounted for by interactions among the system elements.
 The general consensus is that complexity is strongly dependent on scale 
 There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
@@ -45,22 +45,22 @@ As hinted, we can look at systems of random variables at varying levels.
 At the single variable level, we can examine the amount of entropy in random variable.
 This is usually one through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
 This is defined as 
-
+%
 \begin{equation}
 \mathrm{H}(X) = -\sum^n_{i=1} P(x_i) log_b P(x_i)
 \end{equation}
-
+%
 for a random variable $X$. 
 This measure is maximized if the PDF is as evenly spread out as possible, in the case of a discrete PDF when all probabilities are uniform.
 
 % Level 2: mutual information
 At the bivariate level, we can examine the overlap in information between the two random variables.
 This is quantified using the mutual information, which is defined as 
-
+%
 \begin{equation}
 \mathrm{I}(X;Y) = \sum_{y \subset Y} \sum_{x \subset X} \log_b (\frac{p(x,y)}{p(x) p(y)})
 \end{equation}
-
+%
 for random variables $X$ and $Y$ \cite{cover2012elements}.
 When dealing with continuous probability distributions, an integral is used instead of a summation.
 
@@ -69,7 +69,7 @@ When dealing with continuous probability distributions, an integral is used inst
 We can also consider a third variable in our system.
 In this case, usually the third variable is seen as an 'output' variable, and it is observed how much information the former two contain about the third.
 In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ into four categories \cite{williams2010nonnegative}:
-
+%
 \begin{enumerate}
 \item Redundant information contained in both $X$ and $Y$, denoted $I_\mathrm{red}(Z;X,Y)$
 \item Information solely contained in $X$, denoted $I(Z; X) - I_\mathrm{red}(Z;X,Y)$
@@ -78,18 +78,18 @@ In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ int
 \end{enumerate}
 
 Following this split, the synergy is defined as
-
+%
 \begin{equation}
 \mathrm{I}_\mathrm{syn}(Z;X,Y) = \mathrm{I}(Z;X, Y) - \mathrm{I}(Z; X) - \mathrm{I}(Z; Y) + \mathrm{I}_\mathrm{red}(Z;X,Y)
 \end{equation}
 
 The question is how to quantify either the synergetic information, or the redundant information; once one is found, the other follows.
 Some quantifications have been proposed, such as the relatively simple redundancy measure
-
+%
 \begin{equation}
 \mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}^\mathrm{P}(X_j;Y)] - \mathrm{I}^\mathrm{P}(X;Y)
 \end{equation}
-
+%
 where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$ after $X$ has been injected with a fixed amount of random noise, to turn the static system into a system of dependent PDFs \cite{tononi1999measures}.
 This quantifications measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, annd is paired with a degeneracy quantification by the author, designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size.
 In more recent years, redundancy measures have become more advanced, such as the minimal information, based on projections on probability distributions \cite{harder2013bivariate}.
@@ -98,11 +98,11 @@ The quantification of one of the two is critical, as without this it is not poss
 % Piece about synergistic function, intuition from discrete to continuous
 Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
 We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
-The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$
+The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
 
 \begin{table}
 \begin{center}
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c|c||c|}
 \hline
 $X$ & $Y$ & $Z$ \\
 \hline
@@ -114,15 +114,42 @@ $X$ & $Y$ & $Z$ \\
 \hline
 \end{tabular}
 \end{center}
-\caption{Truth table of an X-OR gate.}
+\caption{Truth table of an X-OR gate}
 \label{XOR}
 \end{table}
 
-And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted strongly (Figure \ref{bifan_syn}).
+And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure \ref{bifan_syn}).
 If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
 The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
 This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.
 
 %% PICTURE %%
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[node distance=2cm,>=stealth',bend angle=45,auto]
+
+  \tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=6mm]
+  \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+
+  \tikzstyle{every label}=[black]
+
+  \begin{scope}
+    % First net
+    \node [place,tokens=1]                  (r1) [label=above:$X$]             {};
+    \node [place,tokens=1]                  (r2) [right of=r1,label=above:$Y$] {};
+    \node [transition,tokens=1]             (p1) [below of=r1,label=below:$A$] {}
+      edge [pre, line width=0.5mm]          (r1)
+      edge [pre, line width=0.5mm]          (r2);
+    \node [transition]                      (p2) [below of=r2,label=below:$B$] {}
+      edge [pre]                            (r1)
+      edge [pre]                            (r2)
+      edge [post, dotted, line width=0.5mm] (p1);
+   \end{scope}
+\end{tikzpicture}
+\end{center}
+\caption{Bi-fan network with additional inhibition element, dots indicate variables captured in model}
+\label{bifan_syn}
+\end{figure}
 
 \end{document}

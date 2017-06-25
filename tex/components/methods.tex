@@ -4,34 +4,67 @@
 
 \begin{document}
 
-\subsection{Synergy Profile}
+\subsection{Complexity Profile}
 
 % Introduction to our synergy profile
 % Link to introduction
 In previous research, the mutual information within a system has been used to investigate complexity in systems of independent and dependent random variables.
-Quax et al. have proposed a multiple mutual information-based profile, that is able to give insights beyond pairwise relations \cite{quax2017quantifying}.
-A synergy profile can be considered as a plot of the fraction captured of the total mutual information between all input variables and all output variables, versus the number of variables taken into consideration.
-Mutual information can tell us something about synergy in the system, as this expresses itself as negative mutual information (as opposed to redundancy).
-When considering zero variables, you have no information on the system, so here the mutual information is 0.
-When considering all variables everything is known, so here the fraction of mutual information captured is 1. 
-The shape of the curve inbetween tells us something about the presence of synergy within the system.
-For instance, if the curve stays low for a long time and then shoots up we can conclude that the system contains a lot of high-level synergy.
-As there are many ways to order the variables, we can make the decision to at each position take the variable that adds the maximum amount of information, or to take the mean of all possible curves.
+A multiple mutual information-based profile has been proposed in the literature that is able to give insights beyond pairwise relations.
+A synergy profile can be considered as a plot of the fraction captured of the total mutual information between all input variables and all output variables versus the number of variables taken into consideration, or
+%
+\begin{equation}
+C_\mathrm{mult}(k) = \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [X]^k} [\mathrm{I}(X_i;Y)]}{\mathrm{I}(X;Y)}
+\end{equation}
+
+This profile has the property $C_\mathrm{mult}(0) = 0$, as for $k = 0$ there is only the empty set, which has zero mutual information with $Y$.
+In addition, we know that $C_\mathrm{mult}(n) = 1$, as this simply results in
+%
+\begin{align}
+C_\mathrm{mult}(k) 
+&= \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [X]^k} [\mathrm{I}(X_i;Y)]}{\mathrm{I}(X;Y)} \\
+&= \frac{\mathrm{I}(X;Y)}{\mathrm{I}(X;Y)} \\
+&= 1
+\end{align}
+
+Finally, we can show that this profile is non-decreasing.
+We can proof this by imagining an extreme case, where out of variable set $Z$ only $z_1$ provides direct information about the output variable, whereas the rest only provide information when all considered together.
+When considering a subset size $1 \le k < n $, the complexity will be
+%
+\begin{equation}
+C_\mathrm{mult}(k) = \frac{1}{\binom{k}{n}} \mathrm{I}(z_1;Y)
+\end{equation}
+%
+where $n_z$ is the size of set $Z$.
+As the mutual information term is constant for $k$, only the fraction determines the complexity value.
+As with increasing $k$ fewer and fewer subsets can be made, the function will always be increasing or stagnant, the latter of which is possible only if $C_\mathrm{mult}(0) = 0$.
+
+As there are many ways to take subsets when $1 < k < n$, we average the sum over all subsets.
+However, it is also possible to rewrite this to
+%
+\begin{equation}
+C_\mathrm{mult}(k) = \frac{\max_{X_i \in [X]^k} [\mathrm{I}(X_i;Y)]}{\mathrm{I}(X;Y)}
+\end{equation}
+%
+to focus on extreme values within the set of subsets of size $k$.
 
 % Go into the math behind it, using the NPEET library documentation
-Let us consider the synergy profile of a continuous system with a set of random input variables $A_i$, with input size $X$, and a set of random output variables $B_i$, with output size $Y$.
-First, we determine the amount of mutual information between the two sets $\mathrm{I}(A, B)$.
-This is estimated using the k-Nearest Neighbor method described by Kraskov, and implemented in Python by Ver Steeg et al. \cite{kraskov2004estimating, versteeg2013NPEET}.
-For this method, a total of $N$ of samples is drawn from the underlying distributions of both the input and the output system.
+We apply this complexity measure on continuous distributions, forcing us to use approximation methods for the mutual information term.
+we use the k-Nearest Neighbor method described by Kraskov, and implemented in Python by Ver Steeg et al. \cite{kraskov2004estimating, versteeg2013NPEET}.
+
+
+% TOT HIER GOED
+
+
+For this method, a set of $N$ of samples is drawn from the underlying distributions of both the input and the output system.
 This results in two matrices: an input sample matrix of size $N \times X$, and an output sample matrix of size $N \times Y$, filled with continuous values.
 In both matrices, the $N$-size dimension represents samples, and the $X$- or $Y$-sized dimension represents the variables of the respective system.
 These samples are used in the NPEET library for a multiple mutual information approximation.
 Let (...)
-
+%
 \begin{equation}
 \mathrm{Math of the NPEET code}
 \end{equation}
-
+%
 Then (...)
 
 % Subsets
@@ -83,6 +116,7 @@ First of all we focus on local nudges, those that only affect one variable in th
 The impact of the nudge we measure with the difference in the output squared, first of all.
 
 % Generating a random GRN-like network
+% Some networkx required
 
 % Training of free parameters
 Method used.
@@ -94,11 +128,16 @@ Several resamples are done, each time continuing training.
 
 \subsection{Hypotheses}
 
+We hypothesize that:
+
 % Hypotheses (move to end introduction)
-More synergy in biological versus random GRN-like network.
-Biological scores better in memory and single-nudge resilience.
-Strong decrease in resilience on multiple variable level.
-Synergy takes place at level (..)
-Make hypothesis maximum vs. average different in MI profile.
+\begin{itemize}
+\item There is significantly more synergy in a biological GRN motif versus a random GRN motif
+\item An actual GRN scores significantly better in memory and single-nudge resilience than a random GRN
+\item The is a stronger than linear decrease in resilience when increasing the number of variables nudged
+\item An actual GRN is at the Pareto boundary of the memory/resilience cost function
+\item Synergy is found at a low level in biological networks, the level of common network motifs 
+\item Synergy is found at a low level in trained random GRNs
+\end{itemize}
 
 \end{document}
