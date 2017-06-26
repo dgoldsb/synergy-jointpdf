@@ -50,27 +50,23 @@ to focus on extreme values within the set of subsets of size $k$.
 % Go into the math behind it, using the NPEET library documentation
 We apply this complexity measure on continuous distributions, forcing us to use approximation methods for the mutual information term.
 we use the k-Nearest Neighbor method described by Kraskov, and implemented in Python by Ver Steeg et al. \cite{kraskov2004estimating, versteeg2013NPEET}.
-
-
-% TOT HIER GOED
-
-
 For this method, a set of $N$ of samples is drawn from the underlying distributions of both the input and the output system.
 This results in two matrices: an input sample matrix of size $N \times X$, and an output sample matrix of size $N \times Y$, filled with continuous values.
 In both matrices, the $N$-size dimension represents samples, and the $X$- or $Y$-sized dimension represents the variables of the respective system.
 These samples are used in the NPEET library for a multiple mutual information approximation.
-Let (...)
+Specifically, Kraskov's first algorithm is used, with the addition of the division by a logarithm to report answers in bits.
+This is
 %
 \begin{equation}
-\mathrm{Math of the NPEET code}
+\mathrm{I}_\mathrm{kNN}(X;Y) = \frac{\psi(k) - < \psi(n_x + 1) + \psi(n_y + 1) > + \psi(N)}{\log(2)}
 \end{equation}
 %
-Then (...)
+where $\psi(x)$ is the digamma function, and $n_x(i)$ and $n_y(i)$ respectively are the number of points within $\epsilon(i)/2$ of $x_i$ an $y_i$. Here, $\epsilon(i)/2$ is the distance to the $k$-th nearest neighbor of the point in $(X,Y)$-space.
 
 % Subsets
-We have now approximated the total mutual information between the input- and the output system.
+We now can approximate the total mutual information between the input- and the output system.
 To produce a plot, we must obtain a mutual information estimate for subsets of each size $1 \le k \le X$, versus the entire output system.
-Too obtain this overall estimate for each subset size, we first find the set of mutual informations between every possible subset of $X$ of size $k$, versius the entire system $Y$.
+Too obtain this overall estimate for each subset size, we first find the set of mutual informations between every possible subset of $X$ of size $k$, versus the entire system $Y$.
 Then, we take the average of the set and divide by the total mutual information between the input- and output system to arrive at the value that corresponds to subset size $k$ in our synergy profile.
 We repeat this system for each possible subset size.
 Finally, the plot is produced by plotting the $k$ against the corresponding measure.
@@ -78,53 +74,67 @@ Finally, the plot is produced by plotting the $k$ against the corresponding meas
 \subsection{Synergy Quantification}
 
 % Analytical quantification for small systems
+%TODO
+For trivial systems, we use (method)...
 
 % Approximation for >3 size systems
+% Maybe look at Kraskov how to do a kNN approach?
+%TODO
+For larger system, we do an estimation using (method)...
 
 \subsection{Simulation Methodology}
+%NA EXPERIMENTEN
 
 % General idea
-In our simulation, we want to consider the synergetic properties, memory, and resilience of gene regulatory networks.
+In our simulation, we consider the synergetic properties, memory, and resilience of gene regulatory networks.
 In a biological system, there is no clear set of input- and output variables.
 However, we do have a development of the system through time.
 As such, we have chosen to consider the system $A_{t=0}$ as the input system, and system $A_{t=\delta t}$ as the output system.
 Here, $\delta t$ is an step in time. % in arbitrary units or in seconds, once we start using rates?
-Scalable. More than three needed.
+The size of the set $A$ is in theory arbitrarily big, but in reality limited by computational complexity of the evaluation of the model, which is in sections of the implementation $O(2^{c \dot n})$.
 
 % System definition
-We use a continuous model for a gene regulatory system.
-The system is defined through a set of independent initial distributions.
-For the sake of simplicity, we have assumed these distributions to be random.
-We development of the system over time is defined through a set of flux rates.
-These (...) % write once I rewrote the system definition to fit the MatLab model
-The set of flux rates can be trained, and is ultimately what defines synergy in the system
-
+%TODO
+We use a continuous model that describes a gene regulatory system.
+The system is defined through a set of independent initial distributions, which represent reactant concentrations.
+For the sake of simplicity, we have assumed these distributions to be Gaussian.
+The progression of the system over time is defined through a set of ODEs.
+This ODE system takes the form of (base this on the paper I get the dataset from)...
+The set of flux rates can be trained, and is ultimately what defines synergy in the system.
+The rate matrix is defined to be sparse, as biological networks tend to not be fully connected, nor strongly connected.
 % System development over time
-
+To evaluate the system development over time, we use the \texttt{dop853}-solver in SciPy \cite{scipy}.
+This is an explicit runge-kutta method of order 8(5,3).
 
 % Cost function
-As a measure for .. we used the relative entropy, the Kullback-Leibler divergence.
-We utilized a k-Nearest Neighboor based approximation, as described by Wang \cite{wang2009divergence}.
-Estimation is done using k-Nearest Neighbor approximation for mutual information as described by Kraskov \cite{kraskov2004estimating}.
-We used the NPEET library implementation for both these properties \cite{versteeg2013NPEET}.
-De wiskunde bespreken waarom MI op een deterministisch systeem kan.
-Defend if normalization is still necessary if I use the KL-divergence and the MI (I do need to somehow invert the MI, as this should be high, and the divergence small)
+As a measure for the impact of a nudge we use the relative entropy, the Kullback-Leibler divergence $D_\mathrm{KL}(A_i^\prime \| A_i)$.
+We utilize a k-Nearest Neighboor based approximation, as described by Wang \cite{wang2009divergence}.
 % Some information on nudges (methods)
-Nudge (noise) is addition of two normal distributions (after all) (noise addition to initial)
-A nudge is defined as a small change in the probabilities for the the different states of one variable. To maintain normalization, the overall nudge summed should equal zero.
-First of all we focus on local nudges, those that only affect one variable in the system, but in the depending on research progress we can expand this to pertubations that affect multiple variables. 
-The impact of the nudge we measure with the difference in the output squared, first of all.
+In order to nudge a variable, we add random Gaussian noise to this variable in the sample.
+As our initial distribution is also Gaussian, this yields a new Gaussian distribution with a higher variance.
+The memory between two states is defined as $\mathrm{I}(A^{t=0};A^{t = \delta t})$, and is estimated using k-Nearest Neighbor approximation for mutual information as described by Kraskov \cite{kraskov2004estimating}.
+We use the NPEET library implementation for both these properties \cite{versteeg2013NPEET}.
+
+%TODO
+%De wiskunde bespreken waarom MI op een deterministisch systeem kan.
+We can use the mutual information despite the fact that the ODE system is deterministic, because...
+%TODO
+%Defend if normalization is still necessary if I use the KL-divergence and the MI (I do need to somehow invert the MI, as this should be high, and the divergence small)
+Normalization is still necessary in the cost function, and is achieved by...
 
 % Generating a random GRN-like network
 % Some networkx required
+% Defines the sparsity
+%TODO
+We generate a random ODE system by first generating a network using the NetworkX library \cite{networkx}...
 
 % Training of free parameters
-Method used.
-Genetic algorithm option.
-Best performing BFGS.
-Reason is that the energy landscape is highly irregular.
-Training is performed on one sample.
-Several resamples are done, each time continuing training.
+% If I use/implement succesfully genetic algorithm: add appendix!
+We expect that our cost function is highly irregular, with many local minima that are not on the Pareto boundary.
+We found that the best performing optimizer was the Broyden–Fletcher–Goldfarb–Shanno (BFGS) algorithm, as implemented in the SciPy library \cite{fletcher2013practical, scipy}.
+The training is performed on a single sample of the initial distribibution.
+If we were to resample every training iteration, the cost landscape would be too prone to change to progress training.
+To ensure that the result is not biased by the sample, we resample several times, each time continuing training where the previous iteration left off.
 
 \subsection{Hypotheses}
 

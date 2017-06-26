@@ -50,7 +50,8 @@ This is defined as
 \mathrm{H}(X) = -\sum^n_{i=1} P(x_i) log_b P(x_i)
 \end{equation}
 %
-for a random variable $X$. 
+for a random variable $X$.
+For a continuous distribution this cannonical entropy is replaced by differential entropy, which integrates instead of using a summation.
 This measure is maximized if the PDF is as evenly spread out as possible, in the case of a discrete PDF when all probabilities are uniform.
 
 % Level 2: mutual information
@@ -65,6 +66,11 @@ for random variables $X$ and $Y$ \cite{cover2012elements}.
 When dealing with continuous probability distributions, an integral is used instead of a summation.
 
 % Level 3: synergy/redundancy
+
+%TODO
+information flow 5, 17
+griffith intrinsic conditional information 15 16
+
 % Give meaning to what synergy is
 We can also consider a third variable in our system.
 In this case, usually the third variable is seen as an 'output' variable, and it is observed how much information the former two contain about the third.
@@ -76,7 +82,57 @@ In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ int
 \item Information solely contained in $X$, denoted $I(Z; Y) - I_\mathrm{red}(Z;X,Y)$
 \item Synergetic information contained in neither $X$ and $Y$, denoted $I_\mathrm{syn}(Z;X,Y)$
 \end{enumerate}
+This partial information decomposition is also shown in Figure~\ref{venn}.
+The quantification of one of the synergy and redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a three variable system.
 
+%% PICTURE %%
+\def\firstcircle{(0:-0.9cm) circle (2cm)}
+\def\secondcircle{(0:0cm) circle (3cm)}
+\def\thirdcircle{(0:0.9cm) circle (2cm)}
+
+% Now we can draw the sets:
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+    \draw \firstcircle;
+    \draw \secondcircle;
+    \draw \thirdcircle;
+    
+    \begin{scope}[fill opacity=0.5]
+        \clip \firstcircle;
+        \fill[orange] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \thirdcircle (-3,-3) rectangle (3,3);
+        \fill[yellow] \firstcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \firstcircle (-3,-3) rectangle (3,3);
+        \fill[red] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.3]
+        \clip \firstcircle (-4,-4) rectangle (4,4);
+        \clip \thirdcircle (-4,-4) rectangle (4,4);
+        \fill[blue] \secondcircle;
+    \end{scope}
+    
+    \node (x) at (-2,0)  {$\mathrm{I}(Z;X)$};
+    \node (y) at (2,0)   {$\mathrm{I}(Z;Y)$};
+    \node (r) at (0,0)   {$\mathrm{I}_\mathrm{red}(Z;X,Y)$};
+    \node (s) at (0,2.3) {$\mathrm{I}_\mathrm{syn}(Z;X,Y)$};
+    \node (w) at (0,3.2) {$\mathrm{I}(Z;X,Y)$};
+    
+\end{tikzpicture}
+\end{center}
+\caption{Diagram showing a information decomposition of a 3-variable system}
+\label{venn}
+\end{figure}
+
+% REDUNDANCY: from old to new, see OLBRICH 2015
+% First Tononi, old
 Following this split, the synergy is defined as
 %
 \begin{equation}
@@ -92,10 +148,39 @@ Some quantifications have been proposed, such as the relatively simple redundanc
 %
 where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$ after $X$ has been injected with a fixed amount of random noise, to turn the static system into a system of dependent PDFs \cite{tononi1999measures}.
 This quantifications measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, annd is paired with a degeneracy quantification by the author, designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size.
-In more recent years, redundancy measures have become more advanced, such as the minimal information, based on projections on probability distributions \cite{harder2013bivariate}.
-The quantification of one of the two is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in three variable system.
 
-% Piece about synergistic function, intuition from discrete to continuous
+% Then minimal information
+A more recent proposal is the minimal information $\mathrm{I}_\mathrm{min}$ \cite{williams2010nonnegative}.
+This is defined as
+%
+\begin{equation}
+\mathrm{I}_\mathrm{min}(Y;{X_1, X_2,...,X_k}) = \sum_s [p(s) \min_{X_i} [\mathrm{I}(Y=y;X_i)]]
+\end{equation}
+%
+where $\mathrm{I}(Y = y;X)$ is the specific information.
+This quantifies information related to a specific outcome, and can be reduced through summation (or integration in the continuous case) over $y$ to the mutual information.
+In more recent years, this was still cited as the best redundancy measure, although it has its flaws and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
+
+% Finally bivariate redundancy
+Critics of the minimal informtion have proposed an alternative based on PDF projections \cite{harder2013bivariate}.
+This quantification meets all requirements posed by Williams and Beer, and meets an additional criterium that Harder et al. proposed.
+The bivariate redundancy is expressed as
+%
+\begin{equation}
+\mathrm{I}_\mathrm{biv}(Y;{X_1, X_2}) = \min [\mathrm{I}_Z^\pi (X \searrow Y), \mathrm{I}_Z^\pi (Y \searrow X)] 
+\end{equation}
+%
+where $\mathrm{I}_Z^\pi (Y \searrow X)$ is the projected information of $Y$ on $X$, defined through the Kullback-Leibler divergence as
+%
+\begin{equation}
+\mathrm{I}_Z^\pi (X \searrow Y) = \sum_x p(x) [D_\mathrm{KL} (p(z|x) \| p(z)) - D_\mathrm{KL} (p_{(x \searrow Y)}(z|x) \| p(z))]
+\end{equation}
+
+% SYNERGY: from old to new, see OLBRICH 2015
+%TODO
+olbrich2015information
+
+% EXAMPLE: Piece about synergistic function, intuition from discrete to continuous
 Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
 We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
 The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
@@ -118,7 +203,7 @@ $X$ & $Y$ & $Z$ \\
 \label{XOR}
 \end{table}
 
-And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure \ref{bifan_syn}).
+And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
 If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
 The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
 This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.

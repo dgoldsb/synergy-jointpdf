@@ -210,7 +210,7 @@ class System(object):
         evolver.set_f_params(parameters)
         state_future_t = []
 
-        # Use RK5 to integrate the ODE system
+        # Use RK8 to integrate the ODE system
         for sample_now in state_now_t:
             evolver.set_initial_value(sample_now)
             t_zero = 0
