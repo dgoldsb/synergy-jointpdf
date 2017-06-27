@@ -4,8 +4,10 @@
 
 \begin{document}
 
+\subsubsection{Quantifying complexity}
 % Set the stage
 % Something about complexity
+
 In the analysis of complex system, it is helpful to have a quantification of how 'complex' a system is.
 Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.
 There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
@@ -25,7 +27,9 @@ proposed to identify the functional integration and specialization within a neur
 The general consensus is that complexity is strongly dependent on scale 
 There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
 
+\subsubsection{Partial information decomposition}
 % Give different IT ideas
+
 Basic principles in information theory are the entropy, mutual information and conditional entropy.
 The principles are widely accepted an applied, and operate at the single- and bivariate level.
 Originally, two extensions past the bivariate level were proposed.
@@ -33,9 +37,9 @@ The first was the total correlation, a single number that quantifies the total a
 The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
 The second proposed measure was the interaction information \cite{mcgill1954multivariate}. This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
 Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
-There is no general consensus on which measure is superior as of yet\cite{williams2010nonnegative}.
+There is no general consensus on which measure is superior as of yet, or how to do a decomposition of partial information \cite{griffith2011quantifying, williams2010nonnegative}.
 More recent approaches often build on on of these two ideas.
-For instance, recently a system was proposed in which the reduncdancy, synergy and entropy are broken down in multivariate cases \cite{williams2010nonnegative}.
+For instance, recently a system was proposed in which the redundancy, synergy and entropy are broken down in multivariate cases \cite{williams2010nonnegative}.
 Here, a large system is essentially broken down in all possible redunancy, synergy and entropy pieces in a system (essentially all possible fields in a Venn diagram).
 These are all quantified to give an overall insight in the structure of the system.
 A weakness of this system is that beyond a few variables this system explodes computationally.
@@ -66,21 +70,17 @@ for random variables $X$ and $Y$ \cite{cover2012elements}.
 When dealing with continuous probability distributions, an integral is used instead of a summation.
 
 % Level 3: synergy/redundancy
-
-%TODO
-information flow 5, 17
-griffith intrinsic conditional information 15 16
-
+% FOCUS MORE ON THE PROS AND CONS OF EACH
 % Give meaning to what synergy is
 We can also consider a third variable in our system.
 In this case, usually the third variable is seen as an 'output' variable, and it is observed how much information the former two contain about the third.
 In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ into four categories \cite{williams2010nonnegative}:
 %
 \begin{enumerate}
-\item Redundant information contained in both $X$ and $Y$, denoted $I_\mathrm{red}(Z;X,Y)$
-\item Information solely contained in $X$, denoted $I(Z; X) - I_\mathrm{red}(Z;X,Y)$
-\item Information solely contained in $X$, denoted $I(Z; Y) - I_\mathrm{red}(Z;X,Y)$
-\item Synergetic information contained in neither $X$ and $Y$, denoted $I_\mathrm{syn}(Z;X,Y)$
+\item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red}(Z;X,Y)$
+\item Information solely contained in $X$, denoted $\mathrm{I}(Z; X) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
+\item Information solely contained in $X$, denoted $\mathrm{I}(Z; Y) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
+\item Synergetic information contained in neither $X$ and $Y$, denoted $\mathrm{I}_\mathrm{syn}(Z;X,Y)$
 \end{enumerate}
 This partial information decomposition is also shown in Figure~\ref{venn}.
 The quantification of one of the synergy and redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a three variable system.
@@ -91,7 +91,7 @@ The quantification of one of the synergy and redundancy is critical, as without 
 \def\thirdcircle{(0:0.9cm) circle (2cm)}
 
 % Now we can draw the sets:
-\begin{figure}
+\begin{figure}[ht]
 \begin{center}
 \begin{tikzpicture}
     \draw \firstcircle;
@@ -127,7 +127,7 @@ The quantification of one of the synergy and redundancy is critical, as without 
     
 \end{tikzpicture}
 \end{center}
-\caption{Diagram showing a information decomposition of a 3-variable system}
+\caption{Partial information-diagram showing a information decomposition of a 3-variable system}
 \label{venn}
 \end{figure}
 
@@ -136,8 +136,72 @@ The quantification of one of the synergy and redundancy is critical, as without 
 Following this split, the synergy is defined as
 %
 \begin{equation}
+\label{red_plus_syn_is_mi}
 \mathrm{I}_\mathrm{syn}(Z;X,Y) = \mathrm{I}(Z;X, Y) - \mathrm{I}(Z; X) - \mathrm{I}(Z; Y) + \mathrm{I}_\mathrm{red}(Z;X,Y)
 \end{equation}
+
+\subsubsection{Practical example of synergy}
+% EXAMPLE: Piece about synergistic function, intuition from discrete to continuous
+
+Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
+We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
+The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c||c|}
+\hline
+$X$ & $Y$ & $Z$ \\
+\hline
+\hline
+1 & 1 & 0 \\
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+0 & 0 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Truth table of an X-OR gate}
+\label{XOR}
+\end{table}
+
+And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
+If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
+The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
+This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.
+
+%% PICTURE %%
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}[node distance=2cm,>=stealth',bend angle=45,auto]
+
+  \tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=6mm]
+  \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+
+  \tikzstyle{every label}=[black]
+
+  \begin{scope}
+    % First net
+    \node [place,tokens=1]                  (r1) [label=above:$X$]             {};
+    \node [place,tokens=1]                  (r2) [right of=r1,label=above:$Y$] {};
+    \node [transition,tokens=1]             (p1) [below of=r1,label=below:$A$] {}
+      edge [pre, line width=0.5mm]          (r1)
+      edge [pre, line width=0.5mm]          (r2);
+    \node [transition]                      (p2) [below of=r2,label=below:$B$] {}
+      edge [pre]                            (r1)
+      edge [pre]                            (r2)
+      edge [post, dotted, line width=0.5mm] (p1);
+   \end{scope}
+\end{tikzpicture}
+\end{center}
+\caption{Bi-fan network with additional inhibition element, dots indicate variables captured in model}
+\label{bifan_syn}
+\end{figure}
+
+\subsubsection{Quantifying redundancy}
+% SHOULD I RESERVE I_red FOR REDUNDANCY IN GENERAL?
+% SHOULD I USE \mathcal{R}?
 
 The question is how to quantify either the synergetic information, or the redundant information; once one is found, the other follows.
 Some quantifications have been proposed, such as the relatively simple redundancy measure
@@ -176,65 +240,53 @@ where $\mathrm{I}_Z^\pi (Y \searrow X)$ is the projected information of $Y$ on $
 \mathrm{I}_Z^\pi (X \searrow Y) = \sum_x p(x) [D_\mathrm{KL} (p(z|x) \| p(z)) - D_\mathrm{KL} (p_{(x \searrow Y)}(z|x) \| p(z))]
 \end{equation}
 
-% SYNERGY: from old to new, see OLBRICH 2015
-%TODO
-olbrich2015information
+\subsubsection{Quantifying synergy}
+% SYNERGY: from old to new, see OLBRICH 2015 and GRIFFITH 2014
 
-% EXAMPLE: Piece about synergistic function, intuition from discrete to continuous
-Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
-We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
-The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
+For synergy, a number of measures have been proposed as well \cite{griffith2014quantifying, olbrich2015information}.
+An early synergy measure is the $\mathrm{I}_\mathrm{max}$-synergy, denoted $\mathcal{S}_\mathrm{max}$ \cite{williams2010nonnegative}.
+This quantity is closely related to the redundancy measure
+%
+\begin{equation}
+\mathrm{I}_\mathrm{max} (X; Y) = \sum_{y \in Y} [ p(Y = y) \max_i \mathrm{I} (X_i ; Y = y) ]
+\end{equation}
+%
+and is defined as 
+%
+\begin{equation}
+\mathcal{S}_\mathrm{max} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{max} (X;Y)
+\end{equation}
+%
+This measure is nice, as it per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi} \cite{griffith2014quantifying}.
+It is said to typically overestimate synergy, and can thus function as an upper bound of sorts.
 
-\begin{table}
-\begin{center}
-\begin{tabular}{|c|c||c|}
-\hline
-$X$ & $Y$ & $Z$ \\
-\hline
-\hline
-1 & 1 & 0 \\
-1 & 0 & 1 \\
-0 & 1 & 1 \\
-0 & 0 & 0 \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Truth table of an X-OR gate}
-\label{XOR}
-\end{table}
+% LOWER BOUND IS NICE TO IMPLEMENT REGARDLESS, EASY TO DO
+A second measure is the whole-minus-sum (WMS) synergy, a signed measure where a positive value
+signifies synergy.
+This can be expressed as
+%
+\begin{equation}
+\mathrm{WMS}(X;Y) = \mathrm{I}(X;Y) - \sum_i [\mathrm{I}(X_i;Y)]
+\end{equation}
+%
+As this is essentially the synergy minus the redundancy, the WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
 
-And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
-If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
-The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
-This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.
+For the bivariate case, the synergy from unique information can be used, $\mathcal{S}_\mathrm{vk}$ \cite{bertschinger2014quantifying, griffith2014quantifying, olbrich2015information}.
+This is expressed as
+\begin{equation}
+\mathcal{S}_\mathrm{vk} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{VK} (X;Y)
+\end{equation}
+%
+where $\mathrm{I}_\mathrm{VK}$ is the unique information, a measure based on the Kullback-Leibler divergence.
+This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
 
-%% PICTURE %%
-\begin{figure}
-\begin{center}
-\begin{tikzpicture}[node distance=2cm,>=stealth',bend angle=45,auto]
-
-  \tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=6mm]
-  \tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-
-  \tikzstyle{every label}=[black]
-
-  \begin{scope}
-    % First net
-    \node [place,tokens=1]                  (r1) [label=above:$X$]             {};
-    \node [place,tokens=1]                  (r2) [right of=r1,label=above:$Y$] {};
-    \node [transition,tokens=1]             (p1) [below of=r1,label=below:$A$] {}
-      edge [pre, line width=0.5mm]          (r1)
-      edge [pre, line width=0.5mm]          (r2);
-    \node [transition]                      (p2) [below of=r2,label=below:$B$] {}
-      edge [pre]                            (r1)
-      edge [pre]                            (r2)
-      edge [post, dotted, line width=0.5mm] (p1);
-   \end{scope}
-\end{tikzpicture}
-\end{center}
-\caption{Bi-fan network with additional inhibition element, dots indicate variables captured in model}
-\label{bifan_syn}
-\end{figure}
-
+% IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
+% SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
+Alltogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
+%
+\begin{equation}
+\max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S})\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
+\end{equation}
+%
+Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synerfy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}
 \end{document}
