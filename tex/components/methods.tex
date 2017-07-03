@@ -6,11 +6,8 @@
 
 \subsection{Dataset}
 
-We use an ODE-model for the sea urchin endomesoderm GRN, which is responsible for early development of the embryo \cite{kuhn2009monte, davidsonlab}.
-This GRN is well-studied, and manageable in size with a total of around 60 genes, depending on the model version.
-The reaction rate parameters were fitted using a Monte Carlo method, and the resulting system has a 48\% correspondence with empirical data \cite{kuhn2009monte}.
-The model contains of 54 genes, 140 variable species, 278 reactions and 287 parameters.
-The model is accessed in the form of an SBML-file, provided by the authors.
+We use the multi-valued Boolean model, as well as the reaction rate-type ODE model of (...).
+We also have correlational data between gene activities, measured in their mRNA expression level.
 
 \subsection{Complexity Profile}
 
@@ -122,6 +119,12 @@ In order to nudge a variable, we add random Gaussian noise to this variable in t
 As our initial distribution is also Gaussian, this yields a new Gaussian distribution with a higher variance.
 The memory between two states is defined as $\mathrm{I}(A^{t=0};A^{t = \delta t})$, and is estimated using k-Nearest Neighbor approximation for mutual information as described by Kraskov \cite{kraskov2004estimating}.
 We use the NPEET library implementation for both these properties \cite{versteeg2013NPEET}.
+All together, our costfunction is defined as
+%
+\begin{equation}
+\mathrm{cost} = \mathrm{I}(A^{t=0};A^{t = \delta t}) - D_\mathrm{KL}(A_i^\prime \| A_i)
+\end{equation}
+%
 
 %TODO
 %De wiskunde bespreken waarom MI op een deterministisch systeem kan.
@@ -156,6 +159,7 @@ We hypothesize that:
 \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
 \item Synergy is found at a low level in biological networks, the level of common network motifs 
 \item Synergy is found at a low level in trained random GRNs
+\item The (DJ graph) indicates a level of synergistic control that is greater than random
 \end{itemize}
 
 \end{document}

@@ -4,8 +4,28 @@
 
 \begin{document}
 
+tyson2003sniffers usually done using signal-response diagram, extra points reaction-like non linear diff eqs
+tyson2010functional I really really need to make signal-response curves, maybe, does not carry MI though, but not hard to make in addition... organize code well, some fundamental motives exist
+ferrell2011modeling LIST OF MODELS, use this summary and links for dataset, oscillation easy to model in Boolean
+aijo2009learning chemical master equations, sigmoidel or MM kinetics amongst others, points for master equation
+wu2013high confirms the pipeline, huzzah
+
+CORRELATION
+USEABLE TO ISOLATE MOTIFS
+
+% Boolean networks
+Peixoto so far
+bivariate 21, 22
+Justify continuous against RBN
+They work under strong assumptions (for example inhibition dominates etc) \cite{}
+We need an extension
+Shlitt
+Have to say, tononi1999measures suggest that robustness is due to degeneracy and redundancy, not due to synergy in neural networks
+GOOD REASON TO ALSO DO CONTINUOUS
+
+LOOK HOW ZHANG ISOLATES MOTIVES
+
 \subsubsection{Describing gene regulatory networks}
-%TODO
 % Refer to some nice sources for more information on sea urchin and GRN, bolouri is nice for latter, former [2] of kuhn
 
 % The state of network simulation
@@ -14,7 +34,7 @@ The developmental growth of complex animals is driven by the spatial and tempora
 This spatial and temporal sequence of states is determined in the genomic regulatory code of an animal \cite{bolouri2002modeling, kuhn2009monte}.
 This code specifies gene regulatory networks (GRNs), which are networks of activation- and suppression relationships between genes.
 Understanding the GRNs that drive processes in cells is key to understanding how a fertilized egg, a single cell, can grow out to an animal, a large and complex symbiosis of billions of cells.
-It can also help us understand the mechanisms behind some human diseases, such as cancer.
+It can also help us understand the mechanisms behind some human diseases, such as cancer \cite{qian2008inference}.
 
 %% How do we describe gene regulatory networks
 Constructing models that capture a GRN accurately is a complicated process.
@@ -28,33 +48,13 @@ Continuous rules are commonly captured in an ODE system or other algebraic forma
 An ODE system is typically preferred, as this mimics the reaction dynamics in the cell more closely, but is also more difficult to construct that a simpler continuous model.
 Fast reactions, such as protein-protein interactions, can still be modelled as Boolean switches in these models, as they occur at completely different timescale.
 A continuous model can be constructed  from the Boolean counterpart, when additional research is done through the measurement of kinetic data, followed by verification to measure the correspondence of the network with reality \cite{bolouri2002modeling}.
+It is preferable to use a non-linear ODE, as GRNs are non-linear in nature \cite{qian2008inference}.
 A proposed improvement upon the common ODE models is that of a sparse additive ODE model, able to capture nonlinear relationships \cite{wu2014sparse}.
 Other types of models exist, notably stochastic models, hidden Markov models and multi-values Boolean models, but these fall outside the scope of this research \cite{bolouri2002modeling, wu2014sparse}.
 
 The parameters in these models can be notoriously difficult to fit to emperical data, as this requires the search through multi-dimensional space for an optimum fit \cite{bolouri2002modeling, kuhn2009monte}.
-This challenge has been tackled with, for instance, Monte Carlo methods with some success \cite{kuhn2009monte}.
+This challenge has been tackled with some success using, amongst others, Monte Carlo methods and genetic programming paired with Kalman filtering \cite{qian2008inference, kuhn2009monte}.
 More elaborate statistical methods have been developed as well, such as the modified elastic net-method, LASSO-methods and the Bayesian best subset regression \cite{greenfield2013robust, wu2014sparse}.
-
-% Boolean networks
-Peixoto so far
-bivariate 21, 22
-Justify continuous against RBN
-They work under strong assumptions (for example inhibition dominates etc) \cite{}
-We need an extension
-Shlitt
-Have to say, tononi1999measures suggest that robustness is due to degeneracy and redundancy, not due to synergy in neural networks
-
-% ODE motifs
-ferrell2011modeling
-tyson2003sniffers
-tyson2010functional
-elowitz2000synthetic
-goldbeter2002computational
-hasty2001computational
-
-% Full ODE
-qian2008inference
-wu2013high
 
 \subsubsection{Information theory and GRNs}
 
@@ -73,14 +73,33 @@ One of the best captured and most researched GRNs is the endomesoderm GRN of the
 This network describes the activity of gene regulation in the early development of the sea urchin embryo, and is still in the proccess of being updated as new studies are done \cite{urchinmodel}.
 An attemt has been made to build a full ODE model based on the Boolean abstraction of this GRN using Monte Carlo methods.
 This was met with some success, as 65\% of the maximum possible correspondence with emperical data was achieved \cite{kuhn2009monte}.
+In this reaction rate-type ODE model, the mRNA concentration linked to a gene (a measure for gene activity) is expressed as
+%
+\begin{equation}
+frac{dX}{dt} = (\frac{k_A \dot A(t)}{c_A + A(t)} + \frac{k_B \dot B(t)}{c_B + B(T)}) \dot \frac{k_C \dot C(t)}{c_C + C(T)} - k_\mathrm{deg} X(t)
+\end{equation}
+%
+where $A$, $B$ and $C$ are protein concentrations, and the lower case letters denote kinetic constants.
+The model contains of 54 genes, 140 variable species, 278 reactions and 287 parameters.
 
-% P53 is SMALL
+A model that mimics real reaction rates less to capture GRNs is a system of continuous non-linear differential equations.
+This has been implemented by \cite{qian2008inference} as
+%
+\begin{equation}
+\frac{dx_i}{dt} = f_i(x_1,...,x_n) + v_i
+\end{equation}
+%
+where
+%
+\begin{equation}
+f_i = \sum_{j=1}^L_i [(w_{ij}+ \mu_{ij})\Omega_{ij}(x_1,...,x_n)]
+\end{equation}
+%
+and $\Omega(x_1,...,x_n)$ is a non-linear function, such as a sigmoid function.
+However, no dataset was freely available from this study.
 
-% What datasets are out there?
-%% ARTIFICIAL GRNs
-synnetgen
+% Yeast model
 
-ferrell2011modeling
-aijo2009learning
+% Skip the artificial NN for now, we are looking at motifs
 
 \end{document}
