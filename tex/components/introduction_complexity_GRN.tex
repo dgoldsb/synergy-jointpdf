@@ -4,27 +4,6 @@
 
 \begin{document}
 
-tyson2003sniffers usually done using signal-response diagram, extra points reaction-like non linear diff eqs
-tyson2010functional I really really need to make signal-response curves, maybe, does not carry MI though, but not hard to make in addition... organize code well, some fundamental motives exist
-ferrell2011modeling LIST OF MODELS, use this summary and links for dataset, oscillation easy to model in Boolean
-aijo2009learning chemical master equations, sigmoidel or MM kinetics amongst others, points for master equation
-wu2013high confirms the pipeline, huzzah
-
-CORRELATION
-USEABLE TO ISOLATE MOTIFS
-
-% Boolean networks
-Peixoto so far
-bivariate 21, 22
-Justify continuous against RBN
-They work under strong assumptions (for example inhibition dominates etc) \cite{}
-We need an extension
-Shlitt
-Have to say, tononi1999measures suggest that robustness is due to degeneracy and redundancy, not due to synergy in neural networks
-GOOD REASON TO ALSO DO CONTINUOUS
-
-LOOK HOW ZHANG ISOLATES MOTIVES
-
 \subsubsection{Describing gene regulatory networks}
 % Refer to some nice sources for more information on sea urchin and GRN, bolouri is nice for latter, former [2] of kuhn
 
@@ -41,14 +20,16 @@ Constructing models that capture a GRN accurately is a complicated process.
 It is experimentally difficult to measure kinetic parameteres associated with cellular processes in vivo \cite{bolouri2002modeling}.
 The most basic way to represent a network is by a full Boolean network \cite{bolouri2002modeling}.
 This network maps relationships between genes as instantaneous 'switches', allowing the production of a crude model without in-depth knowledge of reaction rates and delays in the real system.
-Boolean networks are constructed through arrayed gene expressions assays, which cluster related genes, followed by a regulatory linkage analysis, which disruptsthe activity of a gene to observe the impact on downstream genes in the network \cite{bolouri2002modeling}.
+Boolean networks are constructed through arrayed gene expressions assays, which cluster related genes, followed by a regulatory linkage analysis, which disruptsthe activity of a gene to observe the impact on downstream genes in the network \cite{bolouri2002modeling, wu2013high}.
 Typically, it is ideal to describe a GRN as a mixture of Boolean logic and continuous rules \cite{bolouri2002modeling}.
 This is for the reason that Boolean motifs can have vastly different functions based on kinetic properties \cite{ingram2006network}.
-Continuous rules are commonly captured in an ODE system or other algebraic formalism that describes the slow reactions involved in activators and surpressors binding to DNA, as well as transcription and translation \cite{\cite{ingram2006network}}.
+ferrell2011modeling LIST OF MODELS, use this summary and links for dataset, oscillation easy to model in Boolean
+They work under strong assumptions, for insstance that inhibition dominates over activation \cite{}.
+Continuous rules are commonly captured in an ODE system or other algebraic formalism that describes the slow reactions involved in activators and surpressors binding to DNA, as well as transcription and translation \cite{ingram2006network}.
 An ODE system is typically preferred, as this mimics the reaction dynamics in the cell more closely, but is also more difficult to construct that a simpler continuous model.
 Fast reactions, such as protein-protein interactions, can still be modelled as Boolean switches in these models, as they occur at completely different timescale.
 A continuous model can be constructed  from the Boolean counterpart, when additional research is done through the measurement of kinetic data, followed by verification to measure the correspondence of the network with reality \cite{bolouri2002modeling}.
-It is preferable to use a non-linear ODE, as GRNs are non-linear in nature \cite{qian2008inference}.
+It is preferable to use a non-linear ODE, as GRNs are non-linear in nature \cite{qian2008inference, tyson2003sniffers}.
 A proposed improvement upon the common ODE models is that of a sparse additive ODE model, able to capture nonlinear relationships \cite{wu2014sparse}.
 Other types of models exist, notably stochastic models, hidden Markov models and multi-values Boolean models, but these fall outside the scope of this research \cite{bolouri2002modeling, wu2014sparse}.
 
@@ -76,10 +57,11 @@ This was met with some success, as 65\% of the maximum possible correspondence w
 In this reaction rate-type ODE model, the mRNA concentration linked to a gene (a measure for gene activity) is expressed as
 %
 \begin{equation}
-frac{dX}{dt} = (\frac{k_A \dot A(t)}{c_A + A(t)} + \frac{k_B \dot B(t)}{c_B + B(T)}) \dot \frac{k_C \dot C(t)}{c_C + C(T)} - k_\mathrm{deg} X(t)
+\frac{dX}{dt} = (\frac{k_A \cdot A(t)}{c_A + A(t)} + \frac{k_B \cdot B(t)}{c_B + B(T)}) \cdot \frac{k_C \cdot C(t)}{c_C + C(T)} - k_\mathrm{deg} X(t)
 \end{equation}
 %
 where $A$, $B$ and $C$ are protein concentrations, and the lower case letters denote kinetic constants.
+Such a model of chemical master equations is popular, like sigmoidal and Michaelis-Menten models, as most limiting processes in gene regulation are chemical reactions \cite{aijo2009learning}.
 The model contains of 54 genes, 140 variable species, 278 reactions and 287 parameters.
 
 A model that mimics real reaction rates less to capture GRNs is a system of continuous non-linear differential equations.
@@ -92,14 +74,20 @@ This has been implemented by \cite{qian2008inference} as
 where
 %
 \begin{equation}
-f_i = \sum_{j=1}^L_i [(w_{ij}+ \mu_{ij})\Omega_{ij}(x_1,...,x_n)]
+f_i = \sum_{j=1}^{L_i} [(w_{ij}+ \mu_{ij})\Omega_{ij}(x_1,...,x_n)]
 \end{equation}
 %
 and $\Omega(x_1,...,x_n)$ is a non-linear function, such as a sigmoid function.
 However, no dataset was freely available from this study.
 
 % Yeast model
-
 % Skip the artificial NN for now, we are looking at motifs
+Most models, both ODE and Boolean types, have been made of the yeast \textit{S. cerevisiae}, and more recently also \textit{S. pombe} \cite{ferrell2011modeling}. As a result, using the \textit{S. cerevisiae} network is encouraged for most purposes, as this network is well validated, up-to-date with current technologies and widely accepted.
+
+% Looking at a subsection
+Due to the large size of GRNs, it is often not possible to apply computational methods on the network as a whole.
+To circumvent this limitation, we often look at motifs in the network, isolated from the rest.
+This can be donne simply by removing all nodes, save the nodes of interest \cite{zhang2012chaotic}.
+When using probability distributions instead of set initial conditions, it is possible to capture the influence of the rest of the network on the input variables by enforcing correlations between them, thus drawing from a joint PDF.
 
 \end{document}
