@@ -4,7 +4,8 @@ touch ./scripts/discrete_nudge/__init__.py
 touch ./scripts/continuous_nudge/NPEET/__init__.py
 mkdir log
 touch ./log/resilientpdf.log
-cd script/discrete_nudge/jointpdf_DJ
+cd script/discrete_nudge/jointpdf_DJ/code
+touch __init__.py
 ln -s ../../jointpdf ./jointpdf
 
 # Unzip matlab files
