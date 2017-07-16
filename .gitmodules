@@ -8,4 +8,5 @@
     ignore = dirty
 [submodule "scripts/discrete_nudge/jointpdf_DJ"]
 	path = scripts/discrete_nudge/jointpdf_DJ
-	url = https://dgoldsb@bitbucket.org/derkjan/master_thesis.git
+    url = https://dgoldsb@bitbucket.org/derkjan/master_thesis.git
+    ignore = dirty
