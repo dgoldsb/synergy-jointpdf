@@ -6,3 +6,6 @@
 	path = scripts/continuous_nudge/NPEET
     url = https://github.com/gregversteeg/NPEET.git
     ignore = dirty
+[submodule "scripts/discrete_nudge/jointpdf_DJ"]
+	path = scripts/discrete_nudge/jointpdf_DJ
+	url = https://dgoldsb@bitbucket.org/derkjan/master_thesis.git
