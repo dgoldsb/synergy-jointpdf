@@ -19,19 +19,27 @@ def main():
     motif = DiscreteGrnMotif()
 
     # add some variables
+    print("The state before appending the rest: ")
+    print(motif.state.joint_probabilities.joint_probabilities)
     for _ in range(1, motif_size):
         motif.append_gene()
     print("Size of motif: "+str(motif.numgenes))
     print("The state: ")
-    print(motif.state.)
+    print(motif.state.joint_probabilities.joint_probabilities)
 
     # add some rules
     motif.append_rule([0], [2], functions.plus)
     motif.append_rule([1], [3], functions.plus)
     motif.append_rule([0], [3], functions.minus)
-    motif.append_rule([1], [2], functions.minus)
+    #motif.append_rule([1], [2], functions.minus)
     print("The rules: ")
     print(motif.rules)
+
+    # test the rule
+    motif.evaluate_motif()
+    print("The state: ")
+    print(motif.state.joint_probabilities.joint_probabilities)
+
 
 if __name__ == '__main__':
     main()
