@@ -90,6 +90,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     def append_variables_correlation(self, num_added_variables, correlations_matrix):
         """
         Adds variables, enforcing set total correlations between them.
+
+        PARAMETERS
+        ---
+        num_added_variables: integer
+        correlations_matrix: n-times-n array of floats
         """
         print("Unimplemented...")
         sys.exit(0)
@@ -126,6 +131,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     def fetch_leafcode(self, leafcode, nested):
         """
         Fetches the value at the leafcode in the list.
+
+        PARAMETERS
+        ---
+        leafcode: list of integers (corresponding to Boolean values)
+        nested: a nested list, depth same as length of leafcode
         """
         if len(leafcode) > 1:
             return self.fetch_leafcode(leafcode[1:], nested[leafcode[0]])
@@ -135,6 +145,12 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     def add_leafcode(self, leafcode, nested, addition):
         """
         Alters the value at the leafcode in the list.
+
+        PARAMETERS
+        ---
+        leafcode: list of integers (corresponding to Boolean values)
+        nested: a nested list, depth same as length of leafcode
+        addition: float
         """
         if len(leafcode) > 1:
             new_branches = []
@@ -157,6 +173,39 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     new_branches.append(old_subbranch)
             return list(new_branches)
 
+    def deepen_leafcode(self, leafcode, nested):
+        """
+        Deepens a tree.
+        The leafcode we receive is 1 longer than the tree is deep.
+        Deepens in deterministic fashion: all probability goes to the last
+        leafcode digit.
+
+        PARAMETERS
+        ---
+        leafcode: list of integers (corresponding to Boolean values)
+        nested: a nested list, depth same as length of leafcode
+        """
+        if len(leafcode) > 1:
+            new_branches = []
+            for i in range(0, self.numvalues):
+                if i == leafcode[0]:
+                    new_subbranch = self.deepen_leafcode(leafcode[1:], nested[leafcode[0]])
+                    new_branches.append(new_subbranch)
+                else:
+                    old_subbranch = nested[i]
+                    new_branches.append(old_subbranch)
+            return list(new_branches)
+        else:
+            # we should have arrived at a single number
+            leaf_value = nested
+            new_branch = []
+            for i in range(0, self.numvalues):
+                if i == leafcode[0]:
+                    new_branch.append(leaf_value)
+                else:
+                    new_branch.append(0)
+            return list(new_branch)
+
     def check_normalization(self):
         """
         Tiny normalization check.
@@ -175,6 +224,10 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         FOR NOW, HOWEVER, I ASSUME THE CLOSEST TO INHIBITION DOMINATES.
         The original object at t+1 can be obtained by summing over all the
         trees that are appended to the old tree.
+
+        PARAMETERS
+        ---
+        genes: list of integers (correspond to gene indices)
         """
         # we don't need to update all genes, but the default is we do
         if genes is None:
@@ -203,8 +256,12 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     for index_input in _rule["inputs"]:
                         inputs.append(_leafcode[index_input])
 
+                    outputs = []
+                    for index_output in _rule["outputs"]:
+                        outputs.append(_leafcode[index_output])
+
                     # figure out the output state
-                    output_value_rule = _rule["rulefunction"](inputs)
+                    output_value_rule = _rule["rulefunction"](inputs, outputs[0])
 
                     # add to the tally
                     tally[output_value_rule] = tally[output_value_rule] + 1
@@ -217,9 +274,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     else:
                         output_value = output_value + 1
 
+                # update the leafcode
+                _leafcode.append(output_value)
+
                 # extend tree
-                print("Unimplemented...")
-                sys.exit(0)
+                self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
+
+                # add the variable
+                self.numvariables = self.numvariables + 1
 
             # validate everything is still normalized
             self.check_normalization()
