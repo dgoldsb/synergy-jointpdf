@@ -185,6 +185,4 @@
 * CC both to Manon, explain how badly it went
 * Wrote on my fucking thesis and fuck programming for today
 
-# Next time
-
-* Do some writing
+**From now on I just make my research notes on paper, more efficient for me...**
