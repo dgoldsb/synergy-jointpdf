@@ -7,6 +7,8 @@ from __future__ import print_function
 import sys
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
+import discrete_motif_operations as operations
+import discrete_motif_measures as measures
 
 
 def main():

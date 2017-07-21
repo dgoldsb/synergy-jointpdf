@@ -11,9 +11,7 @@ import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
 from jointpdf.jointpdf import FullNestedArrayOfProbabilities
-from jointpdf_DJ_code.nudge import nudge_distribution_non_local_non_causal as nudge
 import numpy as np
-from scipy.stats import entropy as KL_div
 
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
 CONFIG = os.path.join(ROOT, 'config')
