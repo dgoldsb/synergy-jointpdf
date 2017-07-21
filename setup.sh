@@ -2,8 +2,9 @@
 git submodule update --recursive
 touch ./scripts/discrete_nudge/__init__.py
 touch ./scripts/continuous_nudge/NPEET/__init__.py
-touch ./script/discrete_nudge/jointpdf_DJ/code/__init__.py
-ln -s ./script/discrete_nudge/jointpdf ./script/discrete_nudge/jointpdf_DJ/code/jointpdf
+touch ./scripts/discrete_nudge/jointpdf_DJ/code/__init__.py
+ln -s ./scripts/discrete_nudge/jointpdf ./scripts/discrete_nudge/jointpdf_DJ/code/jointpdf
+ln -s ./scripts/discrete_nudge/jointpdf_DJ/code ./scripts/discrete_nudge/jointpdf_DJ_code
 
 if [ ! -d "./log" ]; then
     mkdir log
