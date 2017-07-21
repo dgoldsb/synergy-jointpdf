@@ -10,6 +10,7 @@ import os
 import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
+from jointpdf.jointpdf import FullNestedArrayOfProbabilities
 import numpy as np
 
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
@@ -40,6 +41,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     ## correlation matrix for the dependent PDF of the initial conditions
     grn_vars["correlations"] = None
 
+    def __init__(self, numvalues = 2):
+        self.numvariables = 0
+        self.labels = []
+        self.numvalues = numvalues
+
+        # default case from original init
+        self.joint_probabilities = FullNestedArrayOfProbabilities()
+        self.generate_random_joint_probabilities()
+
     def setter_grn_to_file(self, filename):
         """
         Set the settings for the GRN from a json.
@@ -51,12 +61,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         filepath = os.path.join(CONFIG, filename)
         with open(filepath, 'w') as outfile:
             json.dump(self.grn_vars, outfile)
-
-    def getter_grn(self):
-        """
-        Get the settings for the GRN.
-        """
-        return self.grn_vars
 
     def getter_grn_from_file(self, filename):
         """
@@ -209,10 +213,101 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     def check_normalization(self):
         """
         Tiny normalization check.
+
+        RETURNS
+        ---
+        normalization: Boolean
         """
         total_probabilities = np.array(np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
                                        , dtype=np.float128)
         return np.testing.assert_almost_equal(np.sum(total_probabilities), 1.0)
+
+    def reduce_tree(self, tree_input, level):
+        """
+        Reduces the tree, by summing all subtrees at a set level together.
+        This makes the assumption that each subtree is the same shape, which is True
+        for the FullNestedArrayOfProbabilities object we look at.
+        This is useful if we want to isolate the new state of the gene activations,
+        to do another timestep for instance.
+        For example, if we have [A, B, A', B'], we can reduce at level 2 to get [A', B'].
+
+        PARAMETERS
+        ---
+        tree_input: FullNestedArrayOfProbabilities object
+        level: level of nested list object to reduce to (int)
+
+        RETURNS
+        ---
+        tree_reduced: FullNestedArrayOfProbabilities object
+        """
+        if level == 0:
+            tree_reduced = tree_input
+        else:
+            tree_reduced = self.reduce_tree(tree_input[0], level-1)
+            for i in range(1, self.numvalues):
+                tree_reduced = tree_reduced + self.reduce_tree(tree_input[i], level-1)
+
+        return tree_reduced
+
+    def append_variable_grn(self, gene_index):
+        """
+        Appends a GRN-ruled variable
+
+        PARAMETERS
+        ---
+        gene_index: index of the gene that should be added at the next timestep
+        """
+        # filter rules with this gene as the target
+        rules_applicable = []
+        for _rule in self.grn_vars["rules"]:
+            # check if gene_index is the target, if so add
+            if gene_index in _rule["outputs"]:
+                rules_applicable.append(_rule)
+
+        # construct the leafcodes
+        states = list(range(self.numvalues))
+        leafcodes = list(itertools.product(states, repeat=self.numvariables))
+        for _leafcode in leafcodes:
+            # tally over all rules what state this should be
+            # this is always deterministic
+            tally = [0] * self.numvalues
+
+            # loop over all relevant rules
+            for _rule in rules_applicable:
+                # prepare inputs
+                inputs = []
+                for index_input in _rule["inputs"]:
+                    inputs.append(_leafcode[index_input])
+
+                outputs = []
+                for index_output in _rule["outputs"]:
+                    outputs.append(_leafcode[index_output])
+
+                # figure out the output state
+                output_value_rule = _rule["rulefunction"](inputs, outputs[0])
+
+                # add to the tally
+                tally[output_value_rule] = tally[output_value_rule] + 1
+
+            # decide what it will be this leafcode
+            output_value = 0
+            for _ in range(0, self.numvalues):
+                if tally[output_value] != 0:
+                    break
+                else:
+                    output_value = output_value + 1
+
+            # update the leafcode
+            _leafcode.append(output_value)
+
+            # extend tree
+            self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
+
+            # add the variable
+            self.numvariables = self.numvariables + 1
+
+        # validate everything is still normalized
+        self.check_normalization()
 
     def evaluate_motif(self, genes=None):
         """
@@ -229,59 +324,16 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         genes: list of integers (correspond to gene indices)
         """
+        # drop old timestep
+        if self.numvariables == 2 * self.grn_vars["gene_cnt"]:
+            self.reduce_tree(self.joint_probabilities.joint_probabilities,
+                             self.grn_vars["gene_cnt"])
+        elif self.numvariables != self.grn_vars["gene_cnt"]:
+            raise ValueError("cannot do a timestep: numvariables not equal to gene_cnt or twice")
+
         # we don't need to update all genes, but the default is we do
         if genes is None:
             genes = list(range(0, self.grn_vars["gene_cnt"]))
 
         for _gene in genes:
-            # filter rules with this gene as the target
-            rules_applicable = []
-            for _rule in self.grn_vars["rules"]:
-                # check if _gene is the target, if so add
-                if _gene in _rule["outputs"]:
-                    rules_applicable.append(_rule)
-
-            # construct the leafcodes
-            states = list(range(self.numvalues))
-            leafcodes = list(itertools.product(states, repeat=self.numvariables))
-            for _leafcode in leafcodes:
-                # tally over all rules what state this should be
-                # this is always deterministic
-                tally = [0] * self.numvalues
-
-                # loop over all relevant rules
-                for _rule in rules_applicable:
-                    # prepare inputs
-                    inputs = []
-                    for index_input in _rule["inputs"]:
-                        inputs.append(_leafcode[index_input])
-
-                    outputs = []
-                    for index_output in _rule["outputs"]:
-                        outputs.append(_leafcode[index_output])
-
-                    # figure out the output state
-                    output_value_rule = _rule["rulefunction"](inputs, outputs[0])
-
-                    # add to the tally
-                    tally[output_value_rule] = tally[output_value_rule] + 1
-
-                # decide what it will be this leafcode
-                output_value = 0
-                for _ in range(0, self.numvalues):
-                    if tally[output_value] != 0:
-                        break
-                    else:
-                        output_value = output_value + 1
-
-                # update the leafcode
-                _leafcode.append(output_value)
-
-                # extend tree
-                self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
-
-                # add the variable
-                self.numvariables = self.numvariables + 1
-
-            # validate everything is still normalized
-            self.check_normalization()
+            self.append_variable_grn(_gene)

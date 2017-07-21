@@ -3,6 +3,7 @@ This is a small test for the discrete motif code.
 """
 
 from __future__ import print_function
+
 import sys
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
@@ -12,34 +13,30 @@ def main():
     """
     This code will be mostly the main.
     """
-    # some presets
-    motif_size = 4
-
     # create a network motif, in our case a bifan
     motif = DiscreteGrnMotif()
 
     # add some variables
-    print("The state before appending the rest: ")
-    print(motif.state.joint_probabilities.joint_probabilities)
-    for _ in range(1, motif_size):
-        motif.append_gene()
-    print("Size of motif: "+str(motif.numgenes))
-    print("The state: ")
-    print(motif.state.joint_probabilities.joint_probabilities)
+    motif.grn_vars["gene_cnt"] = 2
 
     # add some rules
-    motif.append_rule([0], [2], functions.plus)
-    motif.append_rule([1], [3], functions.plus)
-    motif.append_rule([0], [3], functions.minus)
-    #motif.append_rule([1], [2], functions.minus)
+    motif.append_rule([0], [1], functions.plus)
+
+    # construct
+    print("The state empty: ")
+    print(motif.joint_probabilities.joint_probabilities)
+    motif.construct_grn()
+    print("The state before: ")
+    print(motif.joint_probabilities.joint_probabilities)
+
+    # print the rules
     print("The rules: ")
-    print(motif.rules)
+    print(motif.grn_vars["rules"])
 
     # test the rule
     motif.evaluate_motif()
-    print("The state: ")
-    print(motif.state.joint_probabilities.joint_probabilities)
-
+    print("The state after: ")
+    print(motif.joint_probabilities.joint_probabilities)
 
 if __name__ == '__main__':
     main()
