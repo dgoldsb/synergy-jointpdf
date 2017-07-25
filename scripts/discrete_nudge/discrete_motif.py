@@ -7,6 +7,7 @@ from __future__ import print_function
 import itertools
 import json
 import os
+from operator import add
 import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
@@ -40,15 +41,8 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     grn_vars["rules"] = []
     ## correlation matrix for the dependent PDF of the initial conditions
     grn_vars["correlations"] = None
-
-    def __init__(self, numvalues = 2):
-        self.numvariables = 0
-        self.labels = []
-        self.numvalues = numvalues
-
-        # default case from original init
-        self.joint_probabilities = FullNestedArrayOfProbabilities()
-        self.generate_random_joint_probabilities()
+    ## also there has been a sequence of states, the latest is the current state
+    states = []
 
     def setter_grn_to_file(self, filename):
         """
@@ -78,18 +72,24 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         """
         Creates a FullNestedArrayOfProbabilities object from the settings provided.
         """
-        # reset the object
-        self.reset(self, 0, self.numvalues, self.joint_probabilities.joint_probabilities)
+        # reset the object\
+        #self.labels = []
+        #self.numvariables = 0
+        #self.joint_probabilities = FullNestedArrayOfProbabilities()
+        self.reset(1, self.numvalues, self.joint_probabilities)
 
         # add all the genes
         if self.grn_vars["correlations"] is None:
             # use the default append_variable with random dependencies
-            self.append_variables(num_added_variables=self.grn_vars["gene_cnt"]
-                                  , added_joint_probabilities=None)
+            for _ in range(1, self.grn_vars["gene_cnt"]):
+                self.append_variables(num_added_variables=1
+                                      , added_joint_probabilities=None)
         else:
             # use the total correlation append_variable
             self.append_variables_correlation(num_added_variables=self.grn_vars["gene_cnt"]
                                               , correlations_matrix=self.grn_vars["correlations"])
+
+        self.states.append(self.joint_probabilities.joint_probabilities)
 
     def append_variables_correlation(self, num_added_variables, correlations_matrix):
         """
@@ -189,6 +189,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         leafcode: list of integers (corresponding to Boolean values)
         nested: a nested list, depth same as length of leafcode
         """
+
         if len(leafcode) > 1:
             new_branches = []
             for i in range(0, self.numvalues):
@@ -203,12 +204,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             # we should have arrived at a single number
             leaf_value = nested
             new_branch = []
+            #print(leaf_value)
+
             for i in range(0, self.numvalues):
-                if i == leafcode[0]:
-                    new_branch.append(leaf_value)
+                if int(i) == int(leafcode[0]):
+                    new_branch = new_branch + [leaf_value]
                 else:
-                    new_branch.append(0)
-            return list(new_branch)
+                    new_branch = new_branch + [0]
+            return new_branch
 
     def check_normalization(self):
         """
@@ -243,11 +246,19 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         if level == 0:
             tree_reduced = tree_input
         else:
-            tree_reduced = self.reduce_tree(tree_input[0], level-1)
+            # use some numpy magic to add the two nested lists by their leafs
+            tree_reduced = np.matrix(self.reduce_tree(tree_input[0], level-1))
             for i in range(1, self.numvalues):
-                tree_reduced = tree_reduced + self.reduce_tree(tree_input[i], level-1)
-
+                tree_reduced = tree_reduced + np.matrix(self.reduce_tree(tree_input[i], level-1))
+            tree_reduced = tree_reduced.tolist()
         return tree_reduced
+
+    def half_tree(self):
+        """
+        Halves the tree, leaving only the new state.
+        """
+        self.joint_probabilities.joint_probabilities =\
+        self.reduce_tree(self.joint_probabilities.joint_probabilities, self.grn_vars["gene_cnt"])
 
     def append_variable_grn(self, gene_index):
         """
@@ -291,20 +302,24 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
             # decide what it will be this leafcode
             output_value = 0
-            for _ in range(0, self.numvalues):
-                if tally[output_value] != 0:
-                    break
-                else:
-                    output_value = output_value + 1
+            if sum(tally) == 0:
+                output_value = _leafcode[gene_index]
+            else:
+                for _ in range(0, self.numvalues):
+                    if tally[output_value] != 0:
+                        break
+                    else:
+                        output_value = output_value + 1
 
             # update the leafcode
-            _leafcode.append(output_value)
+            _leafcode = list(_leafcode) + [output_value]
 
             # extend tree
+            self.joint_probabilities.joint_probabilities =\
             self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
 
-            # add the variable
-            self.numvariables = self.numvariables + 1
+        # add the variable
+        self.numvariables = self.numvariables + 1
 
         # validate everything is still normalized
         self.check_normalization()
@@ -326,8 +341,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         """
         # drop old timestep
         if self.numvariables == 2 * self.grn_vars["gene_cnt"]:
-            self.reduce_tree(self.joint_probabilities.joint_probabilities,
-                             self.grn_vars["gene_cnt"])
+            self.half_tree()
         elif self.numvariables != self.grn_vars["gene_cnt"]:
             raise ValueError("cannot do a timestep: numvariables not equal to gene_cnt or twice")
 
@@ -337,3 +351,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         for _gene in genes:
             self.append_variable_grn(_gene)
+
+        # add to the list of states
+        self.states.append(self.reduce_tree(self.joint_probabilities.joint_probabilities,
+                                            self.grn_vars["gene_cnt"]))

@@ -2,14 +2,14 @@
 This file contains some of the common measures used on discrete motifs.
 """
 
+import math
+
 import numpy as np
 
-from scipy.stats import entropy
-
-def KL_div(tree_1, tree_2):
+def abs_diff(tree_1, tree_2):
     """
-    Finds the KL-div between two same-shaped FullNestedArrayOfProbabilities objects.
-
+    Finds the absolute difference between two same-shaped FullNestedArrayOfProbabilities objects.
+    We chose this, as the Kullback-Leibler divergence cannot handle zeros
     PARAMETERS
     ---
     tree_1: FullNestedArrayOfProbabilities object
@@ -17,13 +17,17 @@ def KL_div(tree_1, tree_2):
 
     RETURNS
     ---
-    Kullback-Leibler divergence: float
+    absolute difference: float
     """
     # flatten the trees
-    tree_1_flat = np.copy(tree_1).flatten()
-    tree_2_flat = np.copy(tree_2).flatten()
+    t1_flat = np.array(np.copy(tree_1).flatten())
+    t2_flat = np.array(np.copy(tree_2).flatten())
 
-    return entropy(tree_1_flat, tree_2_flat)
+    returnval = 0
+    for i in range(0, len(t1_flat)):
+        returnval = math.fabs(t1_flat[i] - t2_flat[i])
+
+    return returnval
 
 def mutual_information():
     return 0
