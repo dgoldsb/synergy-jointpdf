@@ -41,6 +41,8 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     grn_vars["rules"] = []
     ## correlation matrix for the dependent PDF of the initial conditions
     grn_vars["correlations"] = None
+    ## set the default to downregulation dominates
+    grn_vars["conflict_rule"] = 'down'
     ## also there has been a sequence of states, the latest is the current state
     states = []
 
@@ -199,19 +201,19 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 else:
                     old_subbranch = nested[i]
                     new_branches.append(old_subbranch)
+            print(new_branches)
             return list(new_branches)
         else:
             # we should have arrived at a single number
             leaf_value = nested
             new_branch = []
-            #print(leaf_value)
 
             for i in range(0, self.numvalues):
                 if int(i) == int(leafcode[0]):
                     new_branch = new_branch + [leaf_value]
                 else:
                     new_branch = new_branch + [0]
-            return new_branch
+            return list(new_branch)
 
     def check_normalization(self):
         """
@@ -260,6 +262,37 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         self.joint_probabilities.joint_probabilities =\
         self.reduce_tree(self.joint_probabilities.joint_probabilities, self.grn_vars["gene_cnt"])
 
+    def decide_outcome(self, tally, rule, old_value):
+        """
+        Decides what happens when multiple rules affect a gene.
+        The most basic rules are majority rules, and downregulation dominates.
+
+        PARAMETERS
+        ---
+        tally: how many times each outcome was decided by all rules (list of ints)
+        rule: the way we decide the outcome
+        old_value: the old state of the gene (int)
+
+        RETURNS
+        ---
+        output_value: the new state of the gene (int)
+        """
+        if rule == 'down':
+            output_value = 0
+            if sum(tally) == 0:
+                output_value = old_value
+            else:
+                for _ in range(0, self.numvalues):
+                    if tally[output_value] != 0:
+                        break
+                    else:
+                        output_value = output_value + 1
+            return output_value
+        elif rule == 'majority':
+            return tally.index(max(tally))
+        else:
+            raise ValueError("no valid rule defined!")
+
     def append_variable_grn(self, gene_index):
         """
         Appends a GRN-ruled variable
@@ -301,22 +334,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 tally[output_value_rule] = tally[output_value_rule] + 1
 
             # decide what it will be this leafcode
-            output_value = 0
-            if sum(tally) == 0:
-                output_value = _leafcode[gene_index]
-            else:
-                for _ in range(0, self.numvalues):
-                    if tally[output_value] != 0:
-                        break
-                    else:
-                        output_value = output_value + 1
+            output_value = self.decide_outcome(tally, self.grn_vars["conflict_rule"],
+                                               _leafcode[gene_index])
 
             # update the leafcode
             _leafcode = list(_leafcode) + [output_value]
 
             # extend tree
             self.joint_probabilities.joint_probabilities =\
-            self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
+            np.array(self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities))
 
         # add the variable
         self.numvariables = self.numvariables + 1

@@ -46,10 +46,11 @@ def main():
     print(measures.abs_diff(motif.states[0], motif.states[1]))
     print("Pretty different, but since we do time evolution that makes sense!")
     print("The mutual information: ")
-
+    print(measures.mutual_information(motif))
     print("The synergistic information: ")
-
+    print(measures.synergy_quax(motif))
     print("The WMS information: ")
+    print(measures.synergy_wms(motif, 2))
 
     # testing the nudges
     # reset to the first state
@@ -61,6 +62,10 @@ def main():
     motif.half_tree()
     print("The reduced state after: ")
     print(motif.joint_probabilities.joint_probabilities)
+
+    # OK! now reset and try simple X-OR
+
+    # OK! now reset and try simple copy case (no rules)
 
 if __name__ == '__main__':
     main()
