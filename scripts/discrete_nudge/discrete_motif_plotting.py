@@ -1,39 +1,32 @@
 '''
-Author: Dylan Goldsborough
-Email:  dgoldsb@live.nl
-
 This script allows for the creation of synergy profiles, the plotting of them,
-and analysis on sets of profiles.
+and analysis on profiles.
 '''
 
 from __future__ import print_function
+
+import sys
 import itertools
 import matplotlib.pyplot as plt
-from jointpdf import jointpdf
 import numpy as np
 
 __author__ = 'dgoldsb'
 
-def create_system_discrete(numvariables=5, numvalues=2, joint_probs='unbiased'):
-    '''
-    This function creates a set of random systems
-    '''
-    system = jointpdf.JointProbabilityMatrix(numvariables=numvariables, numvalues=numvalues
-                                             , joint_probs=joint_probs)
-    return system
+def scatterplot_synergy_nudgeimpact(motifs):
+    """
+    Adds variables, enforcing set total correlations between them.
 
-def create_systemset_discrete(numprofiles=10, numvariables=2, numvalues=2, joint_probs='unbiased'):
-    '''
-    This function creates a set of random systems
-    '''
-    systemset = []
-    for i in range(0, numprofiles):
-        system = jointpdf.JointProbabilityMatrix(numvariables=numvariables, numvalues=numvalues
-                                                 , joint_probs=joint_probs)
-        systemset.append({'ID': i, 'Instance':system})
-    return systemset
+    PARAMETERS
+    ---
+    motifs: a list of DiscreteGrnMotif objects
+    """
+    impacts = []
+    synergies = []
+    for motif in motifs:
+        print("Unimplemented...")
+    sys.exit(0)
 
-def create_mi_profile(system, mode='maximum'):
+def create_mi_profile(motif, mode):
     '''
     This function creates a MI profile from a system, which can be used later.
     '''
@@ -45,24 +38,22 @@ def create_mi_profile(system, mode='maximum'):
     plot_data = [0]
 
     # Determine the system size
-    system_size = len(system.get_labels())
+    system_size = motif.numvariables
 
     # Relabel to be sure
-    labels = []
-    for i in range(0, system_size):
-        labels.append(i)
-    system.set_labels(labels)
+    labels = range(0, system_size)
+    motif.set_labels(labels)
 
     # Calculate the system entropy, for normalization
-    entropy_system = system.entropy(labels)
+    entropy_system = motif.entropy(labels)
 
     for i in range(1, system_size+1):
         combinations = itertools.combinations(labels, r=i)
         entropies = []
         for combination in combinations:
             combination = list(combination)
-            entropy = system.entropy(combination)
-            print("Found entropy of "+str(entropy)+" for combination "+str(combination))
+            entropy = motif.entropy(combination)
+            print("found entropy of "+str(entropy)+" for combination "+str(combination))
             entropies.append(entropy)
         if mode == 'average':
             plot_data.append(np.average(entropies)/entropy_system)
@@ -71,10 +62,11 @@ def create_mi_profile(system, mode='maximum'):
 
     return plot_data
 
-def plot_mi_profile(plot_data):
+def plot_mi_profile(motif, mode='maximum'):
     '''
     This function plots a profile, or a set of profiles
     '''
+    plot_data = create_mi_profile(motif, mode)
     if isinstance(plot_data[0], list):
         print('You supplied a list')
     else:

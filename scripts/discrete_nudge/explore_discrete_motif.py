@@ -44,13 +44,15 @@ def main():
     # test the measures
     print("The absolute difference: ")
     print(measures.abs_diff(motif.states[0], motif.states[1]))
+    print("The Hellinger distance: ")
+    print(measures.hellinger(motif.states[0], motif.states[1]))
     print("Pretty different, but since we do time evolution that makes sense!")
     print("The mutual information: ")
     print(measures.mutual_information(motif))
     print("The synergistic information: ")
     print(measures.synergy_quax(motif))
     print("The WMS information: ")
-    print(measures.synergy_wms(motif, 2))
+    print(measures.synergy_wms(motif))
 
     # testing the nudges
     # reset to the first state
@@ -66,6 +68,13 @@ def main():
     # OK! now reset and try simple X-OR
 
     # OK! now reset and try simple copy case (no rules)
+
+    # Create a synergy profile
+
+    # Create a scatterplot
+
+    # Now try to create a correlation matrix
+    
 
 if __name__ == '__main__':
     main()

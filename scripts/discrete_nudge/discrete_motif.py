@@ -1,4 +1,7 @@
 """
+Author: Dylan Goldsborough
+Email:  dgoldsb@live.nl
+
 This file builds a discrete GRN motif, and contains some of the common operations used.
 """
 
@@ -7,11 +10,9 @@ from __future__ import print_function
 import itertools
 import json
 import os
-from operator import add
 import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
-from jointpdf.jointpdf import FullNestedArrayOfProbabilities
 import numpy as np
 
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
@@ -201,7 +202,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 else:
                     old_subbranch = nested[i]
                     new_branches.append(old_subbranch)
-            print(new_branches)
             return list(new_branches)
         else:
             # we should have arrived at a single number
@@ -293,7 +293,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         else:
             raise ValueError("no valid rule defined!")
 
-    def append_variable_grn(self, gene_index):
+    def append_variable_grn(self, gene_index, transition_functions):
         """
         Appends a GRN-ruled variable
 
@@ -301,12 +301,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         gene_index: index of the gene that should be added at the next timestep
         """
-        # filter rules with this gene as the target
-        rules_applicable = []
-        for _rule in self.grn_vars["rules"]:
-            # check if gene_index is the target, if so add
-            if gene_index in _rule["outputs"]:
-                rules_applicable.append(_rule)
 
         # construct the leafcodes
         states = list(range(self.numvalues))
@@ -317,21 +311,21 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             tally = [0] * self.numvalues
 
             # loop over all relevant rules
-            for _rule in rules_applicable:
+            for _func in transition_functions:
                 # prepare inputs
                 inputs = []
-                for index_input in _rule["inputs"]:
+                for index_input in _func["inputs"]:
                     inputs.append(_leafcode[index_input])
 
                 outputs = []
-                for index_output in _rule["outputs"]:
+                for index_output in _func["outputs"]:
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_rule = _rule["rulefunction"](inputs, outputs[0])
+                output_value_func = _func["rulefunction"](inputs, outputs[0])
 
                 # add to the tally
-                tally[output_value_rule] = tally[output_value_rule] + 1
+                tally[output_value_func] = tally[output_value_func] + 1
 
             # decide what it will be this leafcode
             output_value = self.decide_outcome(tally, self.grn_vars["conflict_rule"],
@@ -342,10 +336,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
             # extend tree
             self.joint_probabilities.joint_probabilities =\
-            np.array(self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities))
+            self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
 
         # add the variable
         self.numvariables = self.numvariables + 1
+
+        # very important: turn the thing back to a numpy array!
+        # this was not possible before, as in the process of extending the tree is unbalanced
+        self.joint_probabilities.joint_probabilities =\
+        np.array(self.joint_probabilities.joint_probabilities)
 
         # validate everything is still normalized
         self.check_normalization()
@@ -376,7 +375,13 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             genes = list(range(0, self.grn_vars["gene_cnt"]))
 
         for _gene in genes:
-            self.append_variable_grn(_gene)
+            # filter rules with this gene as the target
+            transition_functions = []
+            for _rule in self.grn_vars["rules"]:
+                # check if gene is the target, if so add
+                if _gene in _rule["outputs"]:
+                    transition_functions.append(_rule)
+            self.append_variable_grn(_gene, transition_functions)
 
         # add to the list of states
         self.states.append(self.reduce_tree(self.joint_probabilities.joint_probabilities,

@@ -13,7 +13,7 @@ def plus(inputs, output):
         if inputs == [1]:
             return 1
         else:
-            return 0
+            return output
 
 def minus(inputs, output):
     """
@@ -25,7 +25,7 @@ def minus(inputs, output):
         if inputs == [1]:
             return 0
         else:
-            return 1
+            return output
 
 # many-to-1 functions
 def plus_and(inputs, output):
