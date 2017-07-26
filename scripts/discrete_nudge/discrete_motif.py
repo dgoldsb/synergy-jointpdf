@@ -227,40 +227,19 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                                        , dtype=np.float128)
         return np.testing.assert_almost_equal(np.sum(total_probabilities), 1.0)
 
-    def reduce_tree(self, tree_input, level):
-        """
-        Reduces the tree, by summing all subtrees at a set level together.
-        This makes the assumption that each subtree is the same shape, which is True
-        for the FullNestedArrayOfProbabilities object we look at.
-        This is useful if we want to isolate the new state of the gene activations,
-        to do another timestep for instance.
-        For example, if we have [A, B, A', B'], we can reduce at level 2 to get [A', B'].
-
-        PARAMETERS
-        ---
-        tree_input: FullNestedArrayOfProbabilities object
-        level: level of nested list object to reduce to (int)
-
-        RETURNS
-        ---
-        tree_reduced: FullNestedArrayOfProbabilities object
-        """
-        if level == 0:
-            tree_reduced = tree_input
-        else:
-            # use some numpy magic to add the two nested lists by their leafs
-            tree_reduced = np.matrix(self.reduce_tree(tree_input[0], level-1))
-            for i in range(1, self.numvalues):
-                tree_reduced = tree_reduced + np.matrix(self.reduce_tree(tree_input[i], level-1))
-            tree_reduced = tree_reduced.tolist()
-        return tree_reduced
-
     def half_tree(self):
         """
         Halves the tree, leaving only the new state.
         """
-        self.joint_probabilities.joint_probabilities =\
-        self.reduce_tree(self.joint_probabilities.joint_probabilities, self.grn_vars["gene_cnt"])
+        # find the indices sans the initial state
+        indices = range(self.grn_vars["gene_cnt"], self.numvariables)
+
+        # marginalize the distribution
+        marginalized_object = self.marginalize_distribution(indices)
+
+        # set the new properties
+        self.joint_probabilities = marginalized_object.joint_probabilities
+        self.numvariables = marginalized_object.numvariables
 
     def decide_outcome(self, tally, rule, old_value):
         """
