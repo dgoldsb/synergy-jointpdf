@@ -4,18 +4,35 @@ This file contains some of the common measures used on discrete motifs.
 
 from __future__ import print_function
 
-import copy
 import math
-import sys
 
 import numpy as np
 from scipy.linalg import norm
 from scipy.stats import entropy
 
+def total_correlation(motif, indices):
+    """
+    Returns the total correlation.
+
+    PARAMETERS
+    ---
+    motif: a DiscreteGrnMotif object
+    indices: the indices over which to calculate the total correlation (list of integers)
+
+    RETURNS
+    ---
+    total correlation: float
+    """
+    return_value = - motif.entropy(indices)
+    for index in indices:
+        return_value += motif.entropy(index)
+    return return_value
+
 def abs_diff(tree_1, tree_2):
     """
     Finds the absolute difference between two same-shaped FullNestedArrayOfProbabilities objects.
-    We chose this, as the Kullback-Leibler divergence cannot handle zeros
+    We chose this, as the Kullback-Leibler divergence cannot handle zeros.
+
     PARAMETERS
     ---
     tree_1: FullNestedArrayOfProbabilities object
@@ -38,7 +55,8 @@ def abs_diff(tree_1, tree_2):
 def hellinger(tree_1, tree_2):
     """
     Finds the absolute difference between two same-shaped FullNestedArrayOfProbabilities objects.
-    We chose this, as the Kullback-Leibler divergence cannot handle zeros
+    We chose this, as the Kullback-Leibler divergence cannot handle zeros.
+
     PARAMETERS
     ---
     tree_1: FullNestedArrayOfProbabilities object
@@ -46,7 +64,7 @@ def hellinger(tree_1, tree_2):
 
     RETURNS
     ---
-    absolute difference: float
+    hellinger divergence: float
     """
     # flatten the trees
     t1_flat = np.array(np.copy(tree_1).flatten())

@@ -89,22 +89,63 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                                       , added_joint_probabilities=None)
         else:
             # use the total correlation append_variable
-            self.append_variables_correlation(num_added_variables=self.grn_vars["gene_cnt"]
-                                              , correlations_matrix=self.grn_vars["correlations"])
+            for i in range(1, self.grn_vars["gene_cnt"]):
+                row = self.grn_vars["correlations"][i]
+                correlations = row[0:self.numvariables]
+                if len(correlations) != self.numvariables:
+                    raise ValueError("wrong no. of correlations passed")
+                self.append_variable_correlation(correlations)
 
         self.states.append(self.joint_probabilities.joint_probabilities)
 
-    def append_variables_correlation(self, num_added_variables, correlations_matrix):
+    def append_variable_correlation(self, correlations):
         """
         Adds variables, enforcing set total correlations between them.
 
         PARAMETERS
         ---
-        num_added_variables: integer
-        correlations_matrix: n-times-n array of floats
+        correlations: defines the correlations with all existing variables
+                      (list of floats)
         """
-        print("Unimplemented...")
-        sys.exit(0)
+        # deepen the tree, simply copy the parent value for both children
+        states = list(range(self.numvalues))
+        leafcodes = list(itertools.product(states, repeat=self.numvariables))
+        for _leafcode in leafcodes:
+            leafcode_long = _leafcode + [0]
+            self.joint_probabilities.joint_probabilities =\
+                self.deepen_leafcode_with_copy(leafcode_long,\
+                self.joint_probabilities.joint_probabilities)
+
+        # correct the children, based on the correlations and the leafcode
+        # essentially what we do, is multiply with all correlations
+        # where r or 1-r is chosen based on the leafcode
+        leafcodes = list(itertools.product(states, repeat=self.numvariables + 1))
+        for _leafcode in leafcodes:
+            # default is even distibution
+            multiplier = float(1) / self.numvalues
+            for i in range(0, self.numvariables):
+                if _leafcode[i] == _leafcode(self.numvariables - 1):
+                    # case where these are the same
+                else:
+                    # case where these are the opposite
+
+            # multiply this leaf with the multiplier
+
+        # fix the object to a numpy array
+        self.joint_probabilities.joint_probabilities =\
+            np.array(self.joint_probabilities.joint_probabilities)
+
+        # normalize
+        total_sum = sum(np.copy(self.joint_probabilities.joint_probabilities).flatten())
+        multiply_by = float(1) / total_sum
+        self.joint_probabilities.joint_probabilities =\
+            np.multiply(multiply_by, self.joint_probabilities.joint_probabilities)
+
+        # check normalization
+        self.check_normalization()
+
+        # increase the number of variables
+        self.numvariables += 1
 
     def append_rule(self, inputs, outputs, rulefunction):
         """
@@ -168,7 +209,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 else:
                     old_subbranch = nested[i]
                     new_branches.append(old_subbranch)
-            return list(new_branches)
+            return np.array(new_branches)
         else:
             new_branches = []
             for i in range(0, self.numvalues):
@@ -178,7 +219,37 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 else:
                     old_subbranch = nested[i]
                     new_branches.append(old_subbranch)
+            return np.array(new_branches)
+
+    def deepen_leafcode_with_copy(self, leafcode, nested):
+        """
+        Deepens a tree with copies of the parent.
+        The leafcode we receive is 1 longer than the tree is deep.
+
+        PARAMETERS
+        ---
+        leafcode: list of integers (corresponding to Boolean values)
+        nested: a nested list, depth same as length of leafcode
+        """
+
+        if len(leafcode) > 1:
+            new_branches = []
+            for i in range(0, self.numvalues):
+                if i == leafcode[0]:
+                    new_subbranch = self.deepen_leafcode(leafcode[1:], nested[leafcode[0]])
+                    new_branches.append(new_subbranch)
+                else:
+                    old_subbranch = nested[i]
+                    new_branches.append(old_subbranch)
             return list(new_branches)
+        else:
+            # we should have arrived at a single number
+            leaf_value = nested
+            new_branch = []
+
+            for i in range(0, self.numvalues):
+                new_branch = new_branch + [leaf_value]
+            return list(new_branch)
 
     def deepen_leafcode(self, leafcode, nested):
         """
@@ -315,7 +386,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
             # extend tree
             self.joint_probabilities.joint_probabilities =\
-            self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
+                self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
 
         # add the variable
         self.numvariables = self.numvariables + 1
@@ -323,7 +394,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # very important: turn the thing back to a numpy array!
         # this was not possible before, as in the process of extending the tree is unbalanced
         self.joint_probabilities.joint_probabilities =\
-        np.array(self.joint_probabilities.joint_probabilities)
+            np.array(self.joint_probabilities.joint_probabilities)
 
         # validate everything is still normalized
         self.check_normalization()
@@ -363,5 +434,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             self.append_variable_grn(_gene, transition_functions)
 
         # add to the list of states
-        self.states.append(self.reduce_tree(self.joint_probabilities.joint_probabilities,
-                                            self.grn_vars["gene_cnt"]))
+        ## find the indices sans the initial state
+        indices = range(self.grn_vars["gene_cnt"], self.numvariables)
+        ## marginalize the distribution
+        marginalized_object = self.marginalize_distribution(indices)
+        ## append the state
+        self.states.append(marginalized_object.joint_probabilities.joint_probabilities)
