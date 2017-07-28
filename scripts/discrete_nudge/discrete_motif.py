@@ -75,10 +75,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         """
         Creates a FullNestedArrayOfProbabilities object from the settings provided.
         """
-        # reset the object\
-        #self.labels = []
-        #self.numvariables = 0
-        #self.joint_probabilities = FullNestedArrayOfProbabilities()
+        # reset the object
         self.reset(1, self.numvalues, self.joint_probabilities)
 
         # add all the genes
@@ -101,11 +98,12 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         """
         Adds variables, enforcing set total correlations between them.
 
-        I thought a bit more about this, and I think the correlation matrix 
-        is defined by the values under/above the diagonal. 
-        With these values given, you can derive the other correlations for a match/no match situation. 
-        For this reason, we only need these values to add a correlated variable. 
-        Even better, to add a new correlated variables we only need to know 
+        I thought a bit more about this, and I think the correlation matrix
+        is defined by the values under/above the diagonal.
+        With these values given, you can derive the other correlations
+        for a match/no match situation.
+        For this reason, we only need these values to add a correlated variable.
+        Even better, to add a new correlated variables we only need to know
         its correlation with the previously added variable.
 
         This should still be normalized, which is good!
