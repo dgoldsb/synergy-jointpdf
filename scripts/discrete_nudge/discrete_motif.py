@@ -90,56 +90,43 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         else:
             # use the total correlation append_variable
             for i in range(1, self.grn_vars["gene_cnt"]):
+                # find the correlation of the to-be-appended gene with previous
                 row = self.grn_vars["correlations"][i]
-                correlations = row[0:self.numvariables]
-                if len(correlations) != self.numvariables:
-                    raise ValueError("wrong no. of correlations passed")
-                self.append_variable_correlation(correlations)
+                correlation = row[self.numvariables - 1]
+                self.append_variable_correlation(correlation)
 
         self.states.append(self.joint_probabilities.joint_probabilities)
 
-    def append_variable_correlation(self, correlations):
+    def append_variable_correlation(self, correlation):
         """
         Adds variables, enforcing set total correlations between them.
+
+        I thought a bit more about this, and I think the correlation matrix 
+        is defined by the values under/above the diagonal. 
+        With these values given, you can derive the other correlations for a match/no match situation. 
+        For this reason, we only need these values to add a correlated variable. 
+        Even better, to add a new correlated variables we only need to know 
+        its correlation with the previously added variable.
+
+        This should still be normalized, which is good!
 
         PARAMETERS
         ---
         correlations: defines the correlations with all existing variables
                       (list of floats)
         """
-        # deepen the tree, simply copy the parent value for both children
+        # deepen the tree, use the correlation with the previous variable
         states = list(range(self.numvalues))
         leafcodes = list(itertools.product(states, repeat=self.numvariables))
         for _leafcode in leafcodes:
             leafcode_long = _leafcode + [0]
             self.joint_probabilities.joint_probabilities =\
-                self.deepen_leafcode_with_copy(leafcode_long,\
-                self.joint_probabilities.joint_probabilities)
-
-        # correct the children, based on the correlations and the leafcode
-        # essentially what we do, is multiply with all correlations
-        # where r or 1-r is chosen based on the leafcode
-        leafcodes = list(itertools.product(states, repeat=self.numvariables + 1))
-        for _leafcode in leafcodes:
-            # default is even distibution
-            multiplier = float(1) / self.numvalues
-            for i in range(0, self.numvariables):
-                if _leafcode[i] == _leafcode(self.numvariables - 1):
-                    # case where these are the same
-                else:
-                    # case where these are the opposite
-
-            # multiply this leaf with the multiplier
+                self.deepen_leafcode_with_corr(leafcode_long,\
+                self.joint_probabilities.joint_probabilities, correlation)
 
         # fix the object to a numpy array
         self.joint_probabilities.joint_probabilities =\
             np.array(self.joint_probabilities.joint_probabilities)
-
-        # normalize
-        total_sum = sum(np.copy(self.joint_probabilities.joint_probabilities).flatten())
-        multiply_by = float(1) / total_sum
-        self.joint_probabilities.joint_probabilities =\
-            np.multiply(multiply_by, self.joint_probabilities.joint_probabilities)
 
         # check normalization
         self.check_normalization()
@@ -221,7 +208,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     new_branches.append(old_subbranch)
             return np.array(new_branches)
 
-    def deepen_leafcode_with_copy(self, leafcode, nested):
+    def deepen_leafcode_with_corr(self, leafcode, nested, corr):
         """
         Deepens a tree with copies of the parent.
         The leafcode we receive is 1 longer than the tree is deep.
@@ -247,12 +234,28 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             leaf_value = nested
             new_branch = []
 
+            # fairfrac is the fraction each leaf would get with r = 0
+            fairfrac = 1/self.numvalues
+            matchfrac = None
+            if corr >= 0:
+                matchfrac = fairfrac + (1 - fairfrac) * corr
+            else:
+                matchfrac = fairfrac + fairfrac * corr
+            mismatchfrac = (1 - matchfrac) / (self.numvalues - 1)
             for i in range(0, self.numvalues):
-                new_branch = new_branch + [leaf_value]
+                new_leaf = None
+                if i == leafcode[-2]:
+                    # they match, so correlation applies
+                    new_leaf = leaf_value * matchfrac
+                else:
+                    new_leaf = leaf_value * mismatchfrac
+                new_branch = new_branch + [new_leaf]
             return list(new_branch)
 
-    def deepen_leafcode(self, leafcode, nested):
+    def deepen_leafcode_old(self, leafcode, nested):
         """
+        Can be removed if the transition table method works.
+
         Deepens a tree.
         The leafcode we receive is 1 longer than the tree is deep.
         Deepens in deterministic fashion: all probability goes to the last
@@ -343,9 +346,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         else:
             raise ValueError("no valid rule defined!")
 
-    def append_variable_grn(self, gene_index, transition_functions):
+    def append_variable_grn_old(self, gene_index, transition_functions):
         """
-        Appends a GRN-ruled variable
+        Can be removed if the transition table method works.
+
+        Appends a GRN-ruled variable.
 
         PARAMETERS
         ---
@@ -395,6 +400,64 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # this was not possible before, as in the process of extending the tree is unbalanced
         self.joint_probabilities.joint_probabilities =\
             np.array(self.joint_probabilities.joint_probabilities)
+
+        # validate everything is still normalized
+        self.check_normalization()
+
+
+    def append_variable_grn(self, gene_index, transition_functions):
+        """
+        Can be removed if the transition table method works.
+
+        Appends a GRN-ruled variable.
+
+        PARAMETERS
+        ---
+        gene_index: index of the gene that should be added at the next timestep
+        """
+
+        # construct the leafcodes
+        states = list(range(self.numvalues))
+        leafcodes = list(itertools.product(states, repeat=self.numvariables))
+
+        # make an empty state_transitions object
+        state_transitions = []
+
+        # fill the transitions table
+        for _leafcode in leafcodes:
+            # tally over all rules what state this should be
+            # this is always deterministic
+            tally = [0] * self.numvalues
+
+            # loop over all relevant rules
+            for _func in transition_functions:
+                # prepare inputs
+                inputs = []
+                for index_input in _func["inputs"]:
+                    inputs.append(_leafcode[index_input])
+
+                outputs = []
+                for index_output in _func["outputs"]:
+                    outputs.append(_leafcode[index_output])
+
+                # figure out the output state
+                output_value_func = _func["rulefunction"](inputs, outputs[0])
+
+                # add to the tally
+                tally[output_value_func] = tally[output_value_func] + 1
+
+            # decide what it will be this leafcode
+            output_value = self.decide_outcome(tally, self.grn_vars["conflict_rule"],
+                                               _leafcode[gene_index])
+
+            # update the leafcode
+            _leafcode = list(_leafcode) + [output_value]
+
+            # add to the state transition
+            state_transitions.append(_leafcode)
+
+        # add usting state transitions
+        self.append_variables_using_state_transitions_table(np.array(state_transitions))
 
         # validate everything is still normalized
         self.check_normalization()
