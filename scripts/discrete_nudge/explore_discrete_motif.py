@@ -29,7 +29,9 @@ def main():
 
     # construct
     motif.construct_grn()
-    motifs = generator.generate_motifs(1, 3, 0.4)
+
+    # OVERRIDE
+    motifs = generator.generate_motifs(1, 2, 0.6)
     motif = motifs[0]
 
     print("The correlations: ")
@@ -43,7 +45,7 @@ def main():
     print(motif.grn_vars["rules"])
 
     # test the rule
-    motif.evaluate_motif(genes=[1])
+    motif.evaluate_motif(genes=[0, 1])
     print("The full state after: ")
     print(motif.joint_probabilities.joint_probabilities)
 
