@@ -117,7 +117,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         states = list(range(self.numvalues))
         leafcodes = list(itertools.product(states, repeat=self.numvariables))
         for _leafcode in leafcodes:
-            leafcode_long = _leafcode + [0]
+            leafcode_long = list(_leafcode) + [0]
             self.joint_probabilities.joint_probabilities =\
                 self.deepen_leafcode_with_corr(leafcode_long,\
                 self.joint_probabilities.joint_probabilities, correlation)
@@ -206,7 +206,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     new_branches.append(old_subbranch)
             return np.array(new_branches)
 
-    def deepen_leafcode_with_corr(self, leafcode, nested, corr):
+    def deepen_leafcode_with_corr(self, leafcode, nested, corr, popped=None):
         """
         Deepens a tree with copies of the parent.
         The leafcode we receive is 1 longer than the tree is deep.
@@ -221,7 +221,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             new_branches = []
             for i in range(0, self.numvalues):
                 if i == leafcode[0]:
-                    new_subbranch = self.deepen_leafcode(leafcode[1:], nested[leafcode[0]])
+                    new_subbranch = self.deepen_leafcode_with_corr(leafcode[1:],
+                                                                   nested[leafcode[0]],
+                                                                   corr, leafcode[0])
                     new_branches.append(new_subbranch)
                 else:
                     old_subbranch = nested[i]
@@ -242,7 +244,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             mismatchfrac = (1 - matchfrac) / (self.numvalues - 1)
             for i in range(0, self.numvalues):
                 new_leaf = None
-                if i == leafcode[-2]:
+                if i == popped:
                     # they match, so correlation applies
                     new_leaf = leaf_value * matchfrac
                 else:
@@ -269,7 +271,8 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             new_branches = []
             for i in range(0, self.numvalues):
                 if i == leafcode[0]:
-                    new_subbranch = self.deepen_leafcode(leafcode[1:], nested[leafcode[0]])
+                    new_subbranch = self.deepen_leafcode_old(leafcode[1:],
+                                                             nested[leafcode[0]])
                     new_branches.append(new_subbranch)
                 else:
                     old_subbranch = nested[i]

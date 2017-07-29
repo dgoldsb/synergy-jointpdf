@@ -75,13 +75,13 @@ def generate_rules_naive(no_rules, no_nodes):
         for _ in range(0, choice["o"]):
             random.shuffle(nodes)
             outputs.append(nodes[0])
-            nodes = nodes.pop()
+            nodes.pop()
         nodes = range(0, no_nodes)
         inputs = []
         for _ in range(0, choice["i"]):
             random.shuffle(nodes)
             inputs.append(nodes[0])
-            nodes = nodes.pop()
+            nodes.pop()
 
         # set the values
         rule["inputs"] = inputs
@@ -93,14 +93,17 @@ def generate_rules_naive(no_rules, no_nodes):
 
     return rules
 
-def generate_motif(samplesize, no_nodes, indegree, numvalues):
+def generate_motifs(samplesize, no_nodes, indegree, numvalues=2):
     """
-    Returns an object
-
+    Returns a list of objects.
     Improvable Barabasi-Albert network.
 
     PARAMETERS
     ---
+    samplesize: number of objects in list
+    no_nodes: number of genes
+    indegree: average indegree desired (float)
+    numvalues: number of possible values (int)
 
     RETURNS
     ---
@@ -116,15 +119,15 @@ def generate_motif(samplesize, no_nodes, indegree, numvalues):
 
         # set the size
         grn_vars["gene_cnt"] = no_nodes
-
+        grn_vars["conflict_rule"] = 'down'
         # set the correlation matrix
         grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
 
         # the rules are not part of the original framework
-        no_rules = indegree * no_nodes
+        no_rules = int(indegree * no_nodes)
         grn_vars["rules"] = generate_rules_naive(no_rules, no_nodes)
 
-        motif = DiscreteGrnMotif(no_nodes, numvalues)
+        motif = DiscreteGrnMotif(1, numvalues, 'random')
         motif.grn_vars = deepcopy(grn_vars)
         motif.construct_grn()
 

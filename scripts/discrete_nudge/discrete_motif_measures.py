@@ -8,6 +8,7 @@ import math
 
 import numpy as np
 from scipy.linalg import norm
+from scipy.optimize import minimize
 from scipy.stats import entropy
 
 def total_correlation(motif, indices):
@@ -46,6 +47,9 @@ def abs_diff(tree_1, tree_2):
     t1_flat = np.array(np.copy(tree_1).flatten())
     t2_flat = np.array(np.copy(tree_2).flatten())
 
+    if len(t1_flat) != len(t2_flat):
+        return None
+
     returnval = 0
     for i in range(0, len(t1_flat)):
         returnval = math.fabs(t1_flat[i] - t2_flat[i])
@@ -69,6 +73,9 @@ def hellinger(tree_1, tree_2):
     # flatten the trees
     t1_flat = np.array(np.copy(tree_1).flatten())
     t2_flat = np.array(np.copy(tree_2).flatten())
+
+    if len(t1_flat) != len(t2_flat):
+        return None
 
     return norm(np.sqrt(t1_flat) - np.sqrt(t2_flat)) / np.sqrt(2)
 
@@ -130,7 +137,9 @@ def synergy_quax(motif):
     genes_t0 = range(0, motif.grn_vars["gene_cnt"])
     genes_t1 = range(motif.grn_vars["gene_cnt"], motif.numvariables)
 
-    return motif.synergistic_information(genes_t0, genes_t1)
+    return motif.synergistic_information(genes_t1, genes_t0, tol_nonsyn_mi_frac=0.05, verbose=False,
+                                         minimize_method=None, num_repeats_per_srv_append=30,
+                                         initial_guess_summed_modulo=False)
 
 def synergy_wms(motif):
     """
@@ -151,6 +160,6 @@ def synergy_wms(motif):
     genes_t0 = range(0, motif.grn_vars["gene_cnt"])
     genes_t1 = range(motif.grn_vars["gene_cnt"], motif.numvariables)
 
-    return motif.synergistic_information_naive(genes_t0, genes_t1)
+    return motif.synergistic_information_naive(genes_t1, genes_t0)
 
 #TODO: something with SRVs?

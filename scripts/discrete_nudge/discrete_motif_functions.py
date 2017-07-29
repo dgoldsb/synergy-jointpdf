@@ -98,7 +98,9 @@ def xor(inputs, output):
     """
     Simple XOR function
     """
-    if ([0] in inputs) and ([1] in inputs):
+    if inputs[0] == 1 and inputs[1] == 0:
+        return 1
+    elif inputs[1] == 1 and inputs[0] == 0:
         return 1
     else:
         return 0

@@ -8,6 +8,7 @@ from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
 import discrete_motif_operations as operations
 import discrete_motif_measures as measures
+import discrete_motif_generator as generator
 
 def main():
     """
@@ -20,13 +21,20 @@ def main():
     # add some variables
     motif.grn_vars["gene_cnt"] = 2
 
-    # add some rules
-    motif.append_rule([0], [1], functions.plus)
+    # add some rule
+    motif.append_rule([0, 1], [1], functions.xor)
 
-    # construct
     print("The state empty: ")
     print(motif.joint_probabilities.joint_probabilities)
+
+    # construct
     motif.construct_grn()
+    motifs = generator.generate_motifs(1, 3, 0.4)
+    motif = motifs[0]
+
+    print("The correlations: ")
+    print(motif.grn_vars["correlations"])
+
     print("The state before: ")
     print(motif.joint_probabilities.joint_probabilities)
 
@@ -35,7 +43,7 @@ def main():
     print(motif.grn_vars["rules"])
 
     # test the rule
-    motif.evaluate_motif()
+    motif.evaluate_motif(genes=[1])
     print("The full state after: ")
     print(motif.joint_probabilities.joint_probabilities)
 
@@ -44,7 +52,8 @@ def main():
     print(measures.abs_diff(motif.states[0], motif.states[1]))
     print("The Hellinger distance: ")
     print(measures.hellinger(motif.states[0], motif.states[1]))
-    print("Pretty different, but since we do time evolution that makes sense!")
+    if measures.hellinger(motif.states[0], motif.states[1]) is not None:
+        print("Pretty different, but since we do time evolution that makes sense!")
     print("The mutual information: ")
     print(measures.mutual_information(motif))
     print("The synergistic information: ")
@@ -56,11 +65,11 @@ def main():
     # reset to the first state
 
     # perform a nudge by going back to the state, and comparing the new outcome
-    print("The nudge impact: ")
+    #print("The nudge impact: ")
 
     # get the half tree and be ready for a next timestep
     motif.half_tree()
-    print("The reduced state after: ")
+    print("The marginalized state after: ")
     print(motif.joint_probabilities.joint_probabilities)
 
     # OK! now reset and try simple X-OR
@@ -72,7 +81,7 @@ def main():
     # Create a scatterplot
 
     # Now try to create a correlation matrix
-    
+
 
 if __name__ == '__main__':
     main()
