@@ -16,21 +16,21 @@ def main():
     """
     # create a network motif, we always start with 1 variable
     # as zero variables is unsupported
-    motif = DiscreteGrnMotif(1, 2, 'random')
+    motif_set = DiscreteGrnMotif(1, 2, 'random')
 
     # add some variables
-    motif.grn_vars["gene_cnt"] = 2
+    motif_set.grn_vars["gene_cnt"] = 2
 
     # add some rule
-    motif.append_rule([0, 1], [1], functions.xor)
+    motif_set.append_rule([0, 1], [1], functions.xor)
 
     print("The state empty: ")
-    print(motif.joint_probabilities.joint_probabilities)
+    print(motif_set.joint_probabilities.joint_probabilities)
 
     # construct
-    motif.construct_grn()
+    motif_set.construct_grn()
 
-    # OVERRIDE
+    # OVERRIDE because we can
     motifs = generator.generate_motifs(1, 2, 0.6)
     motif = motifs[0]
 
@@ -63,27 +63,26 @@ def main():
     print("The WMS information: ")
     print(measures.synergy_wms(motif))
 
-    # testing the nudges
-    # reset to the first state
+    # testing the nudges, let's use the original
+    motif_set.evaluate_motif()
 
-    # perform a nudge by going back to the state, and comparing the new outcome
-    #print("The nudge impact: ")
+    # reset to the first state
+    motif_set.reset_to_state(0)
+
+    # perform a nudge by going back to the state
+    operations.nudge_variable(motif_set, 1)
+    motif_set.evaluate_motif()
+
+    # compare the outcome
+    print("The nudge impact: ")
+    measures.hellinger(motif_set.states[1], motif_set.states[2])
 
     # get the half tree and be ready for a next timestep
     motif.half_tree()
     print("The marginalized state after: ")
     print(motif.joint_probabilities.joint_probabilities)
 
-    # OK! now reset and try simple X-OR
-
-    # OK! now reset and try simple copy case (no rules)
-
-    # Create a synergy profile
-
-    # Create a scatterplot
-
-    # Now try to create a correlation matrix
-
+    # Create a synergy profile and a scatterplot in a dedicated file
 
 if __name__ == '__main__':
     main()

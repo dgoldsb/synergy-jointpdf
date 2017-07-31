@@ -504,3 +504,17 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         marginalized_object = self.marginalize_distribution(indices)
         ## append the state
         self.states.append(marginalized_object.joint_probabilities.joint_probabilities)
+
+    def reset_to_state(self, index):
+        """
+        Reset to the state at the index.
+
+        PARAMETERS
+        ---
+        index: integer
+        """
+        if index > (len(self.states) - 1):
+            raise ValueError("state does not exist")
+
+        self.joint_probabilities.joint_probabilities = self.states[index]
+        self.numvariables = self.grn_vars["gene_cnt"]
