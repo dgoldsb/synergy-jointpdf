@@ -16,10 +16,11 @@ def main():
     This code will be mostly the main.
     """
     # create a network motif
-    motifs = generate_motifs(50, 3, 2)
+    motifs, indegree_avg = generate_motifs(50, 3)
+    print("average indegree is "+str(indegree_avg))
 
     # make a plot
-    scatterplot_synergy_nudgeimpact(motifs, 2, 0.5, False)
+    scatterplot_synergy_nudgeimpact(motifs, 3, 0.7, False)
 
 if __name__ == '__main__':
     main()

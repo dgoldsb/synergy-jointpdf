@@ -6,6 +6,7 @@ Generates random discrete motif objects and saves them.
 """
 
 from copy import deepcopy
+import itertools
 import random
 
 import numpy as np
@@ -61,31 +62,44 @@ def generate_rules_naive(no_rules, no_nodes):
     rules = []
     functions_choices = functions.dictionary()
 
+    # create list of all possible target genes
+    targets = range(0, no_nodes)
+
+    # create list of all single actor genes
+    actors = []
+    actors_tuples = []
+    for i in range(1, 3):
+        actors_tuples += itertools.combinations(targets, i)
+        actors = [list(t) for t in actors_tuples]
+
+    # create a list of all possible in/out combinations
+    edges = []
+    for i in range(0, len(actors)):
+        for j in range(0, len(targets)):
+            combination = []
+            combination.append(deepcopy(actors[i]))
+            combination.append(deepcopy(targets[j]))
+            edges.append(combination)
+
     for _ in range(0, no_rules):
         # create a dict
         rule = {}
 
+        # pick a random edge to find a rule for
+        random.shuffle(edges)
+        edge = deepcopy(edges[0])
+        edges.pop(0)
+
+        # find the no_actors
+        no_actors = len(edge[0])
+
         # pick a random rule
         # find the number of inputs and outputs required
-        choice = random.choice(functions_choices)
-
-        # draw these values from the genes
-        nodes = range(0, no_nodes)
-        outputs = []
-        for _ in range(0, choice["o"]):
-            random.shuffle(nodes)
-            outputs.append(nodes[0])
-            nodes.pop()
-        nodes = range(0, no_nodes)
-        inputs = []
-        for _ in range(0, choice["i"]):
-            random.shuffle(nodes)
-            inputs.append(nodes[0])
-            nodes.pop()
+        choice = random.choice(functions_choices[no_actors])
 
         # set the values
-        rule["inputs"] = inputs
-        rule["outputs"] = outputs
+        rule["inputs"] = deepcopy(edge[0])
+        rule["outputs"] = [deepcopy(edge[1])]
         rule["rulefunction"] = choice["f"]
 
         # append to rules
@@ -93,7 +107,7 @@ def generate_rules_naive(no_rules, no_nodes):
 
     return rules
 
-def generate_motifs(samplesize, no_nodes, indegree, numvalues=2):
+def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2):
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
@@ -102,15 +116,28 @@ def generate_motifs(samplesize, no_nodes, indegree, numvalues=2):
     ---
     samplesize: number of objects in list
     no_nodes: number of genes
-    indegree: average indegree desired (float)
+    indegree: average indegree desired, if None random (float)
     numvalues: number of possible values (int)
 
     RETURNS
     ---
     motifs: list of DiscreteGrnMotif objects
     """
-    # make list for the objects
+    # create empty list for the objects
     motifs = []
+
+    # create list of all possible target genes
+    targets = range(0, no_nodes)
+
+    # create list of all single actor genes
+    actors = []
+    actors_tuples = []
+    for i in range(1, 3):
+        actors_tuples += itertools.combinations(targets, i)
+        actors = [list(t) for t in actors_tuples]
+
+    # for calculating the average indegree
+    rules_total = 0
 
     # generate N samples
     for _ in range(0, samplesize):
@@ -123,8 +150,15 @@ def generate_motifs(samplesize, no_nodes, indegree, numvalues=2):
         # set the correlation matrix
         grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
 
+        # generate a random indegree if not given
+        if indegree is None:
+            max_edges = len(targets) * len(actors)
+            no_rules = random.randint(0, max_edges)
+        else:
+            no_rules = int(indegree * no_nodes)
+        rules_total += no_rules
+
         # the rules are not part of the original framework
-        no_rules = int(indegree * no_nodes)
         grn_vars["rules"] = generate_rules_naive(no_rules, no_nodes)
 
         motif = DiscreteGrnMotif(1, numvalues, 'random')
@@ -133,4 +167,5 @@ def generate_motifs(samplesize, no_nodes, indegree, numvalues=2):
 
         motifs.append(motif)
 
-    return motifs
+    indegree_avg = (float(rules_total)/no_nodes)/samplesize
+    return motifs, indegree_avg

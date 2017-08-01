@@ -31,7 +31,8 @@ def main():
     motif_set.construct_grn()
 
     # OVERRIDE because we can
-    motifs = generator.generate_motifs(1, 2, 0.6)
+    motifs, _ = generator.generate_motifs(2, 3, 2)
+    print(motifs)
     motif = motifs[0]
 
     print("The correlations: ")
@@ -45,8 +46,8 @@ def main():
     print(motif.grn_vars["rules"])
 
     # test the rule
-    motif.evaluate_motif(genes=[0, 1])
     print("The full state after: ")
+    motif.evaluate_motif(genes=[0, 1])
     print(motif.joint_probabilities.joint_probabilities)
 
     # test the measures
@@ -58,10 +59,10 @@ def main():
         print("Pretty different, but since we do time evolution that makes sense!")
     print("The mutual information: ")
     print(measures.mutual_information(motif))
-    print("The synergistic information: ")
-    print(measures.synergy_quax(motif))
     print("The WMS information: ")
     print(measures.synergy_wms(motif))
+    #print("The synergistic information: ")
+    #print(measures.synergy_quax(motif))
 
     # testing the nudges, let's use the original
     motif_set.evaluate_motif()
@@ -75,12 +76,17 @@ def main():
 
     # compare the outcome
     print("The nudge impact: ")
-    print(measures.hellinger(motif_set.states[3], motif_set.states[4]))
+    print(measures.hellinger(motif_set.states[-2], motif_set.states[-1]))
 
     # get the half tree and be ready for a next timestep
-    motif.half_tree()
     print("The marginalized state after: ")
+    motif.half_tree()
     print(motif.joint_probabilities.joint_probabilities)
+
+    # examine the memory
+    print("The memory: ")
+    motif = motifs[1]
+    print(measures.mi_decay(motif))
 
     # Create a synergy profile and a scatterplot in a dedicated file
     print("Create a synergy profile and a scatterplot in a dedicated file...")

@@ -8,6 +8,7 @@ from __future__ import print_function
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 import discrete_motif_measures as measures
 import discrete_motif_operations as operations
@@ -41,7 +42,11 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=Non
             if wms:
                 synergy = measures.synergy_wms(motif)
             else:
+                time_start = time.time()
                 synergy = measures.synergy_quax(motif)
+                time_end = time.time()
+                time_diff = time_end - time_start
+                print("finding synergy took: "+str(time_diff))
 
             # find the nudge impact
             motif.reset_to_state(0)
@@ -53,6 +58,7 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=Non
             impacts.append(impact)
         except:
             print("failed to find the synergy")
+        print(motif.states[-1])
     plt.scatter(impacts, synergies)
     plt.xlabel("Nudge impact")
     plt.ylabel("Synergy")

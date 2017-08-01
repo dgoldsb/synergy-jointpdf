@@ -7,6 +7,7 @@ This file builds a discrete GRN motif, and contains some of the common operation
 
 from __future__ import print_function
 
+from copy import deepcopy
 import itertools
 import json
 import os
@@ -430,6 +431,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             # this is always deterministic
             tally = [0] * self.numvalues
 
+            # some trickery to make sure you can also append a state
+            # when you did not clear the initial one
+            _leafcode_original = deepcopy(_leafcode)
+            _leafcode = _leafcode[-self.grn_vars["gene_cnt"]:]
+
             # loop over all relevant rules
             for _func in transition_functions:
                 # prepare inputs
@@ -452,18 +458,18 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                                                _leafcode[gene_index])
 
             # update the leafcode
-            _leafcode = list(_leafcode) + [output_value]
+            _leafcode_original = list(_leafcode_original) + [output_value]
 
             # add to the state transition
-            state_transitions.append(_leafcode)
+            state_transitions.append(_leafcode_original)
 
-        # add usting state transitions
+        # adjusting state transitions
         self.append_variables_using_state_transitions_table(np.array(state_transitions))
 
         # validate everything is still normalized
         self.check_normalization()
 
-    def evaluate_motif(self, genes=None):
+    def evaluate_motif(self, genes=None, cleanup_first=True):
         """
         At every leaf, this builds a new probability tree on the initial one.
         This new tree is created based on the rules, and is sparse in nature.
@@ -478,11 +484,26 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         genes: list of integers (correspond to gene indices)
         """
-        # drop old timestep
-        if self.numvariables == 2 * self.grn_vars["gene_cnt"]:
-            self.half_tree()
-        elif self.numvariables != self.grn_vars["gene_cnt"]:
-            raise ValueError("cannot do a timestep: numvariables not equal to gene_cnt or twice")
+        if cleanup_first:
+            # drop old timestep
+            if self.numvariables == 2 * self.grn_vars["gene_cnt"]:
+                self.half_tree()
+            elif self.numvariables != self.grn_vars["gene_cnt"]:
+                raise ValueError("cannot do a timestep after partial timestep")
+        else:
+            if self.numvariables == 3 * self.grn_vars["gene_cnt"]:
+                # find the indices sans the initial state
+                indices = range(0, self.grn_vars["gene_cnt"]) +\
+                          range(2*self.grn_vars["gene_cnt"], self.numvariables)
+
+                # marginalize the distribution
+                marginalized_object = self.marginalize_distribution(indices)
+
+                # set the new properties
+                self.joint_probabilities = marginalized_object.joint_probabilities
+                self.numvariables = marginalized_object.numvariables
+            elif self.numvariables % self.grn_vars["gene_cnt"] != 0:
+                raise ValueError("cannot do a timestep after partial timestep")
 
         # we don't need to update all genes, but the default is we do
         if genes is None:

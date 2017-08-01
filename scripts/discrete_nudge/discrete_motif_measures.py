@@ -162,4 +162,26 @@ def synergy_wms(motif):
 
     return motif.synergistic_information_naive(genes_t1, genes_t0)
 
-#TODO: something with SRVs?
+def mi_decay(motif, no_steps=8):
+    """
+    Finds the mutual information for the motif after a time evaluation.
+
+    PARAMETERS
+    ---
+    motif: a DiscreteGrnMotif object
+
+    RETURNS
+    ---
+    memory: list of MI state 0 vs. state i (list of floats)
+    """
+    memory = [motif.entropy()]
+
+    for i in range(0, no_steps):
+        motif.evaluate_motif(cleanup_first=False)
+        first = range(0, motif.grn_vars["gene_cnt"])
+        #print(motif.marginalize_distribution(first).joint_probabilities.joint_probabilities)
+        current = range(min(i, 2)*motif.grn_vars["gene_cnt"], motif.numvariables)
+        #print(motif.marginalize_distribution(current).joint_probabilities.joint_probabilities)
+        #print(motif.mutual_information(first, current))
+        memory.append(motif.mutual_information(first, current))
+    return memory
