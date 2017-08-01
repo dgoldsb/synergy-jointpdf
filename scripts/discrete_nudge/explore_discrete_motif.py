@@ -70,12 +70,12 @@ def main():
     motif_set.reset_to_state(0)
 
     # perform a nudge by going back to the state
-    operations.nudge_variable(motif_set, 1)
+    operations.nudge_variable(motif_set, 1, 0)
     motif_set.evaluate_motif()
 
     # compare the outcome
     print("The nudge impact: ")
-    measures.hellinger(motif_set.states[1], motif_set.states[2])
+    print(measures.hellinger(motif_set.states[3], motif_set.states[4]))
 
     # get the half tree and be ready for a next timestep
     motif.half_tree()
@@ -83,6 +83,7 @@ def main():
     print(motif.joint_probabilities.joint_probabilities)
 
     # Create a synergy profile and a scatterplot in a dedicated file
+    print("Create a synergy profile and a scatterplot in a dedicated file...")
 
 if __name__ == '__main__':
     main()

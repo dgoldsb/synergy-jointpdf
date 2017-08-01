@@ -392,7 +392,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
             # extend tree
             self.joint_probabilities.joint_probabilities =\
-                self.deepen_leafcode(_leafcode, self.joint_probabilities.joint_probabilities)
+                self.deepen_leafcode_old(_leafcode, self.joint_probabilities.joint_probabilities)
 
         # add the variable
         self.numvariables = self.numvariables + 1

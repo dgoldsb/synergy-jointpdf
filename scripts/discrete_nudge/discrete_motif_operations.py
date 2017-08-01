@@ -20,7 +20,7 @@ def nudge_variable(motif, no_impacted, size=0.1):
     labels = []
     possible_labels = range(0, motif.numvariables)
     for _ in range(0, no_impacted):
-        possible_labels = shuffle(possible_labels)
+        shuffle(possible_labels)
         labels.append(possible_labels.pop())
     new_joint = nudge(joint, labels, size)
     motif.joint_probabilities.joint_probabilities = new_joint
