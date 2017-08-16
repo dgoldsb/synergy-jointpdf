@@ -108,8 +108,19 @@ The size of the set $A$ is in theory arbitrarily big, but in reality limited by 
 
 % System definition
 %TODO
-We use a continuous model that describes a gene regulatory system.
-The system is defined through a set of independent initial distributions, which represent reactant concentrations.
+We use a discrete model that describes a gene regulatory system.
+In our experiments we use a binary system, where genes can either be turned on or off.
+However, this methodology supports a larger number of expression levels as well.
+The system is defined through a joint probability mass function, which represents the probability that a given state of the system occurs.
+As the basis, the joint PDF framework is used \cite{jointpdf}.
+In this Python framework, a joint distribution is stored as a $n$-tree, where $n$ is the number of states a variable can be found in.
+
+% Explain how to go from correlations to PMF
+The joint distribution in our case can be derived from a correlation matrix, describing the correlations between each possible pair of the variables.
+This is allows for the usage of empirical data, as the correlation data is in many cases available \cite{}.
+%CONVERT
+
+set of independent initial distributions, which represent reactant concentrations.
 For the sake of simplicity, we have assumed these distributions to be Gaussian.
 The progression of the system over time is defined through a set of ODEs.
 This ODE system takes the form of (base this on the paper I get the dataset from)...
