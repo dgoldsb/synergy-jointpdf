@@ -96,7 +96,8 @@ This method of nudging is reminiscent of the signal-response curves popular in b
 These, however, do not carry any mutual information naturally.
 
 \subsection{Simulation Methodology}
-%NA EXPERIMENTEN
+% I write this while doing my experiments, as it helps to find direction in the chaos that is scientific research
+% In the end I decided to do discrete research, if I need the continuous stuff again go back to commits before Aug 2017
 
 % General idea
 In our simulation, we consider the synergetic properties, memory, and resilience of gene regulatory networks.
@@ -107,18 +108,41 @@ Here, $\delta t$ is an step in time. % in arbitrary units or in seconds, once we
 The size of the set $A$ is in theory arbitrarily big, but in reality limited by computational complexity of the evaluation of the model, which is in sections of the implementation $O(2^{c \dot n})$.
 
 % System definition
-%TODO
 We use a discrete model that describes a gene regulatory system.
 In our experiments we use a binary system, where genes can either be turned on or off.
 However, this methodology supports a larger number of expression levels as well.
 The system is defined through a joint probability mass function, which represents the probability that a given state of the system occurs.
-As the basis, the joint PDF framework is used \cite{jointpdf}.
+As the basis, the joint PDF framework is used \cite{quax2017quantifying}.
 In this Python framework, a joint distribution is stored as a $n$-tree, where $n$ is the number of states a variable can be found in.
 
 % Explain how to go from correlations to PMF
 The joint distribution in our case can be derived from a correlation matrix, describing the correlations between each possible pair of the variables.
 This is allows for the usage of empirical data, as the correlation data is in many cases available \cite{}.
-%CONVERT
+The matrix is converted to a joint PMF by assuming that the first gene has an equal chance of being in each state.
+The result is a tree of depth 1, where each leaf has the same value.
+With each subsequent gene that is added, the tree is made one deeper.
+The ratio in which the probability of each branch is divided over the new leafs is decided by the correlation between the last gene to be added, and the new gene.
+If the in the new leaf both genes are of the same expression level, the new probability is
+%
+\begin{equation}
+    p_\mathrm{leaf} = p_\mathrm{parent} \cdot (\frac{1}{n} + (1 - \frac{1}{n}) \cdot r)
+\end{equation}
+%
+where $r$ is the correlation, and $n$ is the number of expression levels.
+The leaf value for a mismatch is then defined as
+%
+\begin{equation}
+    p_\mathrm{leaf} = p_\mathrm{parent} \cdot \frac{(1 - (\frac{1}{n} + (1 - \frac{1}{n}) \cdot r))}{n-1} 
+\end{equation}
+%
+This method ensures that the joint PMF remains normalized after each addition, as in the latter equation we simply divide the remaining probability not assigned to the former case equally over the remaining $n-1$ leafs.
+
+
+%CONTINUE HERE
+
+
+
+
 
 set of independent initial distributions, which represent reactant concentrations.
 For the sake of simplicity, we have assumed these distributions to be Gaussian.
