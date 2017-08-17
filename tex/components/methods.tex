@@ -137,6 +137,25 @@ The leaf value for a mismatch is then defined as
 %
 This method ensures that the joint PMF remains normalized after each addition, as in the latter equation we simply divide the remaining probability not assigned to the former case equally over the remaining $n-1$ leafs.
 
+% Evolution of the system over time
+The evolution of the joint PMF over time is governed by a set of rule functions.
+These rule function represent edges in a network motif, which define the dynamics through which genes regulate each other.
+Most of these edges are one-to-one mappings; these are of the type "gene A activates gene B in the next timestep, if A is activated in the current timestep".
+Many-to-one mappings are enabled in the framework, but are rare in real life scenarios.
+They are not unimaginable, however.
+For instance, gene A might be translated into a promotor for gene B, but only if the co-enzyme for which gene C codes is also present.
+Due to the poor scalability of this model, we cannot capture an entire GRN; even in a binary system, the number of leaf-values in the tree structure is $2^k$, where $k$ is the number of genes.
+Smaller GRNs contain of around 50 genes typically, which would require a tree too big to process in Python in reasonable time.
+To overcome this scaling issue, we isolate a motif from the network.
+The rest of the network is inferred through the correlation matrix.
+As the correlation matrix is only applied in the first timestep, this model is not suitable for long simulations.
+
+MORE
+
+%
+
+
+
 
 %CONTINUE HERE
 
