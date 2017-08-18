@@ -150,9 +150,13 @@ To overcome this scaling issue, we isolate a motif from the network.
 The rest of the network is inferred through the correlation matrix.
 As the correlation matrix is only applied in the first timestep, this model is not suitable for long simulations.
 
-MORE
+To find the next state of the system, all rules of the motif are applied to the system in the previous state.
+If there are no rules acting on a gene, it is assumed that its state remains unchanged.
+If multiple rules act on the same gene, the outcome is the output that is produced by the majority of the rules.
+In the case of a tie downregulation dominates, similarly as in nature \cite{}.
+The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$.
 
-%
+% Measures
 
 
 
