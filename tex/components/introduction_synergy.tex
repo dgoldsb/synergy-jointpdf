@@ -63,6 +63,7 @@ At the bivariate level, we can examine the overlap in information between the tw
 This is quantified using the mutual information, which is defined as 
 %
 \begin{equation}
+\label{MI}
 \mathrm{I}(X;Y) = \sum_{y \subset Y} \sum_{x \subset X} \log_b (\frac{p(x,y)}{p(x) p(y)})
 \end{equation}
 %
@@ -267,6 +268,7 @@ This can be expressed as
 %
 \begin{equation}
 \mathrm{WMS}(X;Y) = \mathrm{I}(X;Y) - \sum_i [\mathrm{I}(X_i;Y)]
+\label{WMS}
 \end{equation}
 %
 As this is essentially the synergy minus the redundancy, the WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
@@ -279,6 +281,16 @@ This is expressed as
 %
 where $\mathrm{I}_\mathrm{VK}$ is the unique information, a measure based on the Kullback-Leibler divergence.
 This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
+
+% Quax also has his measure
+A measure of synergy based on synergistic random variables (SRVs) has also been proposed \cite{quax2017quantifying}.
+This method is centered around the determination of a set of SRVs, which have zero mutual information with the individual variables in the inspected system, but a non-zero mutual information with the system as a whole.
+The total synergystic information is defined as
+\begin{equation}
+\label{SRV}
+I_\mathrm{syn}(X \rightarrow Y) \equiv \max_k \sum_i I(Y : S_{i,k}^\perp)
+\end{equation}
+where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
 
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
