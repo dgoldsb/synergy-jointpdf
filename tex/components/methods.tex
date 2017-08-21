@@ -129,7 +129,7 @@ The leaf value for a mismatch is then defined as
 This method ensures that the joint PMF remains normalized after each addition, as in the latter equation we simply divide the remaining probability not assigned to the former case equally over the remaining $n-1$ leafs.
 
 % Evolution of the system over time
-The evolution of the joint PMF over time is governed by a set of rule functions.
+The evolution of the joint PMF over time is governed by a set of Boolean functions.
 These rule function represent edges in a network motif, which define the dynamics through which genes regulate each other.
 Most of these edges are one-to-one mappings; these are of the type "gene A activates gene B in the next timestep, if A is activated in the current timestep".
 Many-to-one mappings are enabled in the framework, but are rare in real life scenarios.
@@ -151,6 +151,14 @@ The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$
 %TODO
 
 %TODO NETWORK PROPERTIES
+lahdesmaki2003learning
+indegree yeast 2-3, low in gerenal, 4-8 in more complicated networks
+indegree of each gene low
+seems simple relations mostly
+
+schlitt2007current
+pbn
+seems only + or - single, but with strerngth
 
 %TODO LIBRARY OF FUNCTIONS
 
