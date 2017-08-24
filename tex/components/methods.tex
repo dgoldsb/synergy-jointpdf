@@ -149,16 +149,14 @@ The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$
 
 % Generating random networks
 %TODO
+%TYPE OF NETWORK, NORMAL RANDOM, NOT BARABASI
 
 %TODO NETWORK PROPERTIES
-lahdesmaki2003learning
-indegree yeast 2-3, low in gerenal, 4-8 in more complicated networks
-indegree of each gene low
-seems simple relations mostly
-
-schlitt2007current
-pbn
-seems only + or - single, but with strerngth
+In the generation of random networks, we aim to produce results with similar network properties to actual networks.
+We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
+Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
+In general, the indegree of individual genes is low as well, meaning hub formation as in Barabasi-Albers networks is atypical.
+The Boolean function often consists predominantly of simple relations, such as gene A downregulates gene B \cite{lahdesmaki2003learning, schlitt2007current}.
 
 %TODO LIBRARY OF FUNCTIONS
 
