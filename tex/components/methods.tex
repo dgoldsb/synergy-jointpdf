@@ -1,6 +1,7 @@
 % Version: 1.1
 
 \documentclass[../main.tex]{subfiles}
+\usepackage[]{algorithm2e}
 
 \begin{document}
 
@@ -151,6 +152,21 @@ The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$
 %TODO
 %TYPE OF NETWORK, NORMAL RANDOM, NOT BARABASI
 
+\begin{algorithm}[H]
+ \SetKwData{Edges}{edges}
+ \SetKwFunction{FindEdges}{FindEdges}
+
+ \Input{a desired motif size, sample size and average indegree}
+ \Output{a list of GRN objects}
+ \BlankLine
+
+ \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
+ \For{$n \leftarrow 1$ \kwTo sample size}{
+   go to next section\;
+ }
+ \caption{Generating a random network}
+\end{algorithm}
+
 %TODO NETWORK PROPERTIES
 In the generation of random networks, we aim to produce results with similar network properties to actual networks.
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
@@ -198,17 +214,20 @@ The used implementations for both measures are imported from the jointPDF packag
 
 We hypothesize that:
 
-%TODO
 % Hypotheses (move to end introduction)
 \begin{itemize}
 \item There is significantly more synergy in a biological GRN motif versus a random GRN motif
-\item An actual GRN scores significantly better in memory and single-nudge resilience than a random GRN
-\item An actual GRN scores comparable in multiple-nudge resilience to a random GRN
-\item There is a stronger than linear decrease in resilience when increasing the number of variables nudged
-\item An actual GRN is at the Pareto boundary of the memory/resilience cost function
-\item Synergy is found at a low level in biological networks, the level of common network motifs 
-\item Synergy is found at a low level in trained random GRNs
-\item The (DJ graph) indicates a level of synergistic control that is greater than random
+\item An actual GRN scores significantly better in memory than a random GRN motif
+\item An actual GRN scores significantly better in single-nudge resilience than a random GRN motif
+\item An actual GRN does not score significantly differently in multiple-nudge resilience to a random GRN motif
+\item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
 \end{itemize}
+
+% If I have more time...
+
+% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
+% \item Synergy is found at a low level in biological networks, the level of common network motifs 
+% \item Synergy is found at a low level in trained random GRNs
+% \item The (DJ graph) indicates a level of synergistic control that is greater than random
 
 \end{document}
