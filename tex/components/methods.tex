@@ -148,15 +148,38 @@ If multiple rules act on the same gene, the outcome is the output that is produc
 In the case of a tie downregulation dominates, similarly as in nature \cite{}.
 The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$.
 
+\subsection{Generating random GRNs}
 % Generating random networks
+
+In order to test hypotheses regarding the GRN networks that occur in biological systems, we need to make a comparison to the set of all possible GRN motifs.
+We aim to sample from this set by generating random GRN motifs.
+These should adhere to a set of network properties that are characteristic for GRN motifs, but should otherwise be completely random.
+We aim to do so by using the algorithm described in figure~\ref{random_generation}.
+In this algorithm, \texttt{rmatrix} denotes the matrix of all correlations between the different genes in the motif.
+This defines the initial joint PDF of the system.
+The \texttt{GenerateRules} function is given in figure~\ref{generate_rules}, and the \texttt{GenerateCorrelations} function in figure~\ref{generate_correlations}.
+The \texttt{FindEdges} function simply makes a list of all possible edges between all nodes.
+This function can be set to allow only one-to-one edges, or also many-to-one.
+The latter is required to build in complex functions.
+% WAIT, can we make an AND function with just plus and minus?
+% If so, we can drop all this nonsense
+
 %TODO
 %TYPE OF NETWORK, NORMAL RANDOM, NOT BARABASI
 
 \begin{algorithm}[H]
  \SetKwData{Edges}{edges}
+ \SetKwData{Rmatrix}{rmatrix}
+ \SetKwData{Rules}{rules}
+ \SetKwData{GRN}{grn}
+ \SetKwData{GRNs}{grns}
+ \SetKwData{Rules_cnt}{rules_cnt}
  \SetKwFunction{FindEdges}{FindEdges}
+ \SetKwFunction{Pack}{Pack}
+ \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
+ \SetKwFunction{GenerateRules}{GenerateRules}
 
- \Input{a desired motif size, sample size and average indegree}
+ \Input{motif size, sample size and average indegree}
  \Output{a list of GRN objects}
  \BlankLine
 
@@ -164,6 +187,7 @@ The result of this is a new $n$-tree describign the joint PMF at time $t=t_0+dt$
  \For{$n \leftarrow 1$ \kwTo sample size}{
    go to next section\;
  }
+ \label{random_generation}
  \caption{Generating a random network}
 \end{algorithm}
 
@@ -216,6 +240,7 @@ We hypothesize that:
 
 % Hypotheses (move to end introduction)
 \begin{itemize}
+\item There is a correlation between synergy and nudge resilience in random GRN motifs
 \item There is significantly more synergy in a biological GRN motif versus a random GRN motif
 \item An actual GRN scores significantly better in memory than a random GRN motif
 \item An actual GRN scores significantly better in single-nudge resilience than a random GRN motif
@@ -224,7 +249,9 @@ We hypothesize that:
 \end{itemize}
 
 % If I have more time...
+% \item An actual GRN motif is optimized for memory and resilience
 
+% If I have even more time...
 % \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
 % \item Synergy is found at a low level in biological networks, the level of common network motifs 
 % \item Synergy is found at a low level in trained random GRNs
