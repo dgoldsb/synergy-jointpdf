@@ -16,4 +16,5 @@ __init__.py
 bin/MatLab/
 *.mat
 *.m
+*.ipynb_checkpoints
 !./bin/*.pdf
