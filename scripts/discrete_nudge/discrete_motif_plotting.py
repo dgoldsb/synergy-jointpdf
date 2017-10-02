@@ -58,7 +58,6 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=Non
             impacts.append(impact)
         except:
             print("failed to find the synergy")
-        print(motif.states[-1])
     plt.scatter(impacts, synergies)
     plt.xlabel("Nudge impact")
     plt.ylabel("Synergy")

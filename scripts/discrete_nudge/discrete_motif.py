@@ -519,7 +519,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             self.append_variable_grn(_gene, transition_functions)
 
 
-        print(self.joint_probabilities.joint_probabilities)
         # add to the list of states
         ## find the indices sans the initial state
         indices = range(self.grn_vars["gene_cnt"], self.numvariables)
