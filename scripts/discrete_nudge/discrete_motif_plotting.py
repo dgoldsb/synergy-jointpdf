@@ -15,7 +15,84 @@ import discrete_motif_operations as operations
 
 __author__ = 'dgoldsb'
 
-def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=None):
+def state_transition_table(motif):
+    """
+    Find the state transition table, and return it as a list of list.
+    This list of lists can be turned into a nice table using tabulate and display(HTML()).
+    
+    PARAMETERS:
+    ---
+    motif: a DiscreteGrnMotif object
+    
+    
+    RETURNS:
+    ---
+    trans_table: a list of lists
+    """
+    # set up the table
+    table = []
+    header = []
+    genes = list(range(0, motif.grn_vars["gene_cnt"]))
+    for _gene in genes:
+        header.append("Gene "+str(_gene)+" t=0")
+    for _gene in genes:
+        header.append("Gene "+str(_gene)+" t=1")
+    table.append(header)
+    
+    # construct the leafcodes, each leafcode represents a state at T=0
+    states = list(range(motif.numvalues))
+    leafcodes = list(itertools.product(states, repeat=motif.grn_vars["gene_cnt"]))
+    genes = list(range(0, motif.grn_vars["gene_cnt"]))
+    
+    # loop over all states
+    for _leafcode in leafcodes:
+        # we build a new leafcode, which is the new state
+        # we build it as a list for table purposes
+        leafcode_old = [str(e) for e in list(_leafcode)]
+        leafcode_new = []
+        
+        for _gene in genes:
+            # filter rules with this gene as the target
+            transition_functions = []
+            for _rule in motif.grn_vars["rules"]:
+                # check if gene is the target, if so add
+                if _gene in _rule["outputs"]:
+                    transition_functions.append(_rule)
+                    
+            # tally over all rules what state this should be
+            # this is always deterministic
+            tally = [0] * motif.numvalues
+
+            # loop over all relevant rules
+            for _func in transition_functions:
+                # prepare inputs
+                inputs = []
+                for index_input in _func["inputs"]:
+                    inputs.append(_leafcode[index_input])
+
+                outputs = []
+                for index_output in _func["outputs"]:
+                    outputs.append(_leafcode[index_output])
+
+                # figure out the output state
+                output_value_func = _func["rulefunction"](inputs, outputs[0])
+
+                # add to the tally
+                tally[output_value_func] = tally[output_value_func] + 1
+
+            # decide what it will be this leafcode
+            output_value = "/".join([str(i) for i, e in enumerate(tally) if e != 0])
+            if output_value == "":
+                output_value = str(_leafcode[_gene])
+
+            leafcode_new.append(output_value)
+        row = []
+        row.extend(leafcode_old)
+        row.extend(leafcode_new)
+        table.append(row)
+    return table
+
+def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filename=None):
     """
     Adds variables, enforcing set total correlations between them.
 
@@ -24,7 +101,7 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=Non
     motifs: a list of DiscreteGrnMotif objects
     width: number of variables nudged (int)
     size: size of the nudge (float)
-    wms: use wms or Quax' synergy (Boolean)
+    synergy_measure: the synergy function to use (object)
     filename: name of pdf to save to (string)
     """
     impacts = []
@@ -39,14 +116,11 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, wms=False, filename=Non
         try:
             # find the synergy
             motif.evaluate_motif(targets)
-            if wms:
-                synergy = measures.synergy_wms(motif)
-            else:
-                time_start = time.time()
-                synergy = measures.synergy_quax(motif)
-                time_end = time.time()
-                time_diff = time_end - time_start
-                print("finding synergy took: "+str(time_diff))
+            time_start = time.time()
+            synergy = synergy_measure(motif)
+            time_end = time.time()
+            time_diff = time_end - time_start
+            print("finding synergy took: "+str(time_diff))
 
             # find the nudge impact
             motif.reset_to_state(0)

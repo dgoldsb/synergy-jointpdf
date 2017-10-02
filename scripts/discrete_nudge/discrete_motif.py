@@ -332,19 +332,28 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         output_value: the new state of the gene (int)
         """
+        # if the tally is 0, keep the old value
+        if sum(tally) == 0:
+            output_value = old_value
+            return output_value
+            
         if rule == 'down':
             output_value = 0
-            if sum(tally) == 0:
-                output_value = old_value
-            else:
-                for _ in range(0, self.numvalues):
-                    if tally[output_value] != 0:
-                        break
-                    else:
-                        output_value = output_value + 1
+            for _ in range(0, self.numvalues):
+                if tally[output_value] != 0:
+                    break
+                else:
+                    output_value = output_value + 1
             return output_value
         elif rule == 'majority':
             return tally.index(max(tally))
+        elif rule == 'odds':
+            diceroll = np.random.randint(0, sum(tally))
+            running_total = 0
+            for index in range(0, len(tally)):
+                running_total += tally [index]
+                if running_total > diceroll:
+                    return index
         else:
             raise ValueError("no valid rule defined!")
 

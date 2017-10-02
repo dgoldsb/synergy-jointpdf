@@ -107,7 +107,7 @@ def generate_rules_naive(no_rules, no_nodes):
 
     return rules
 
-def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2):
+def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_rule = 'odds'):
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
@@ -146,7 +146,7 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2):
 
         # set the size
         grn_vars["gene_cnt"] = no_nodes
-        grn_vars["conflict_rule"] = 'down'
+        grn_vars["conflict_rule"] = conflict_rule
         # set the correlation matrix
         grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
 
