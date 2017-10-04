@@ -48,6 +48,22 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     ## also there has been a sequence of states, the latest is the current state
     states = []
 
+    def __init__(self, numvariables, numvalues, mode='uniform'):
+        # call the super init
+        super(DiscreteGrnMotif, self).__init__(numvariables, numvalues, mode)
+        # global variables of a GRN
+        self.grn_vars = {}
+        ## important to store the number of genes, as this is not the same as the numvariables
+        self.grn_vars["gene_cnt"] = 0
+        ## the rules are not part of the original framework
+        self.grn_vars["rules"] = []
+        ## correlation matrix for the dependent PDF of the initial conditions
+        self.grn_vars["correlations"] = None
+        ## set the default to downregulation dominates
+        self.grn_vars["conflict_rule"] = 'totaleffect'
+        ## also there has been a sequence of states, the latest is the current state
+        self.states = []
+
     def setter_grn_to_file(self, filename):
         """
         Set the settings for the GRN from a json.
@@ -79,6 +95,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # reset the object
         self.reset(1, self.numvalues, self.joint_probabilities)
 
+        # nasty thing with the states intially taking over those of the last created object
+        self.states = []
+
         # add all the genes
         if self.grn_vars["correlations"] is None:
             # use the default append_variable with random dependencies
@@ -93,6 +112,8 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 correlation = row[self.numvariables - 1]
                 self.append_variable_correlation(correlation)
 
+        # resample the probabilities, otherwise they get messed up somehow        
+        self.generate_random_joint_probabilities()
         self.states.append(self.joint_probabilities.joint_probabilities)
 
     def append_variable_correlation(self, correlation):
@@ -324,7 +345,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         PARAMETERS
         ---
-        tally: how many times each outcome was decided by all rules (list of ints)
+        tally: how many times each outcome was decided by all rules (dict)
         rule: the way we decide the outcome
         old_value: the old state of the gene (int)
 
@@ -332,28 +353,66 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         output_value: the new state of the gene (int)
         """
-        # if the tally is 0, keep the old value
-        if sum(tally) == 0:
-            output_value = old_value
-            return output_value
-            
+        if rule == 'totaleffect':
+            # find the sum
+            total_effect = 0
+            for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
+                total_effect += i * tally[str(i)]
+
+            # calculate the new value
+            new_value = old_value + total_effect
+            if new_value < 0:
+                return 0
+            elif new_value >= self.numvalues:
+                return self.numvalues - 1
+            else:
+                return new_value
         if rule == 'down':
-            output_value = 0
-            for _ in range(0, self.numvalues):
-                if tally[output_value] != 0:
+            # find the most negative effect
+            effect = 0
+            for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
+                if tally[str(i)] != 0:
+                    effect = i
                     break
-                else:
-                    output_value = output_value + 1
-            return output_value
+
+            # calculate the new value
+            new_value = old_value + effect
+            if new_value < 0:
+                return 0
+            elif new_value >= self.numvalues:
+                return self.numvalues - 1
+            else:
+                return new_value
         elif rule == 'majority':
-            return tally.index(max(tally))
+            # find the most common effect
+            effect = 0
+            votes_effect = 0
+            options = [i for i in range(2*(-self.numvalues), 2*(self.numvalues + 1))]
+
+            # to randomly pick in case of ties, we shuffle the order and pick
+            # the first we encounter in case of ties
+            random.shuffle(options)
+            for i in options:
+                if tally[str(i)] > votes_effect:
+                    effect = i
+                    votes_effect = tally[str(i)]
+
+            # calculate the new value
+            new_value = old_value + effect
+            if new_value < 0:
+                return 0
+            elif new_value >= self.numvalues:
+                return self.numvalues - 1
+            else:
+                return new_value
         elif rule == 'odds':
-            diceroll = np.random.randint(0, sum(tally))
-            running_total = 0
-            for index in range(0, len(tally)):
-                running_total += tally [index]
-                if running_total > diceroll:
-                    return index
+            raise ValueError("stochastic method is not re-implemented...")
+            #diceroll = np.random.randint(0, sum(tally))
+            #running_total = 0
+            #for index in range(0, len(tally)):
+            #    running_total += tally [index]
+            #    if running_total > diceroll:
+            #        return index
         else:
             raise ValueError("no valid rule defined!")
 
@@ -374,7 +433,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         for _leafcode in leafcodes:
             # tally over all rules what state this should be
             # this is always deterministic
-            tally = [0] * self.numvalues
+            tally = {}
+            for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
+                tally[str(i)] = 0
 
             # loop over all relevant rules
             for _func in transition_functions:
@@ -388,13 +449,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_func = _func["rulefunction"](inputs, outputs[0])
+                output_value_func = _func["rulefunction"](inputs)
 
                 # add to the tally
-                tally[output_value_func] = tally[output_value_func] + 1
+                tally[str(int(output_value_func))] += 1
 
             # decide what it will be this leafcode
-            output_value = self.decide_outcome(tally, self.grn_vars["conflict_rule"],
+            output_value = self.decide_outcome(tally,
+                                               self.grn_vars["conflict_rule"],
                                                _leafcode[gene_index])
 
             # update the leafcode
@@ -438,7 +500,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         for _leafcode in leafcodes:
             # tally over all rules what state this should be
             # this is always deterministic
-            tally = [0] * self.numvalues
+            tally = {}
+            for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
+                tally[str(i)] = 0
 
             # some trickery to make sure you can also append a state
             # when you did not clear the initial one
@@ -457,13 +521,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_func = _func["rulefunction"](inputs, outputs[0])
+                output_value_func = _func["rulefunction"](inputs)
 
                 # add to the tally
-                tally[output_value_func] = tally[output_value_func] + 1
+                tally[str(int(output_value_func))] += 1
 
             # decide what it will be this leafcode
-            output_value = self.decide_outcome(tally, self.grn_vars["conflict_rule"],
+            output_value = self.decide_outcome(tally,
+                                               self.grn_vars["conflict_rule"],
                                                _leafcode[gene_index])
 
             # update the leafcode

@@ -107,7 +107,7 @@ def generate_rules_naive(no_rules, no_nodes):
 
     return rules
 
-def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_rule = 'odds'):
+def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_rule = 'totaleffect'):
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
@@ -161,7 +161,7 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_r
         # the rules are not part of the original framework
         grn_vars["rules"] = generate_rules_naive(no_rules, no_nodes)
 
-        motif = DiscreteGrnMotif(1, numvalues, 'random')
+        motif = DiscreteGrnMotif(1, numvalues)
         motif.grn_vars = deepcopy(grn_vars)
         motif.construct_grn()
 

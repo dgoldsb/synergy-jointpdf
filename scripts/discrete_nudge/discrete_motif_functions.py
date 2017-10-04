@@ -2,6 +2,8 @@
 This file contains some of the common operations used on discrete motifs.
 """
 
+import math
+
 def dictionary():
     """
     Give a dictionary with all available functions,
@@ -27,6 +29,20 @@ def dictionary():
     minus_d["o"] = 1
     function_dict[1].append(minus_d)
 
+    # superplus
+    superplus_d = {}
+    superplus_d["f"] = superplus
+    superplus_d["i"] = 1
+    superplus_d["o"] = 1
+    function_dict[1].append(superplus_d)
+
+    # supermin
+    superminus_d = {}
+    superminus_d["f"] = superminus
+    superminus_d["i"] = 1
+    superminus_d["o"] = 1
+    function_dict[1].append(superminus_d)
+
     # and
     plus_and_d = {}
     plus_and_d["f"] = plus_and
@@ -48,109 +64,124 @@ def dictionary():
     xor_d["o"] = 1
     function_dict[2].append(xor_d)
 
-    # Nxor
-    nxor_d = {}
-    nxor_d["f"] = nxor
-    nxor_d["i"] = 2
-    nxor_d["o"] = 1
-    function_dict[2].append(nxor_d)
+    # negative xor
+    neg_xor_d = {}
+    neg_xor_d["f"] = neg_xor
+    neg_xor_d["i"] = 2
+    neg_xor_d["o"] = 1
+    function_dict[2].append(neg_xor_d)
 
-    # or
-    or_d = {}
-    or_d["f"] = por
-    or_d["i"] = 2
-    or_d["o"] = 1
-    function_dict[2].append(or_d)
+    # incl or
+    incl_or_d = {}
+    incl_or_d["f"] = incl_or
+    incl_or_d["i"] = 2
+    incl_or_d["o"] = 1
+    function_dict[2].append(incl_or_d)
 
-    # Nor
-    nor_d = {}
-    nor_d["f"] = nor
-    nor_d["i"] = 2
-    nor_d["o"] = 1
-    function_dict[2].append(nor_d)
+    # negative incl or
+    neg_incl_or_d = {}
+    neg_incl_or_d["f"] = neg_incl_or
+    neg_incl_or_d["i"] = 2
+    neg_incl_or_d["o"] = 1
+    function_dict[2].append(neg_incl_or_d)
+
+    # excl or
+    excl_or_d = {}
+    excl_or_d["f"] = excl_or
+    excl_or_d["i"] = 2
+    excl_or_d["o"] = 1
+    function_dict[2].append(excl_or_d)
+
+    # negative excl or
+    neg_excl_or_d = {}
+    neg_excl_or_d["f"] = neg_excl_or
+    neg_excl_or_d["i"] = 2
+    neg_excl_or_d["o"] = 1
+    function_dict[2].append(neg_excl_or_d)
 
     return function_dict
 
 # 1-to-1 functions
-def plus(inputs, output):
+def superplus(input):
+    """
+    Strong stimulation.
+    """
+    increase = input[0] * 2
+    return increase
+
+def plus(input):
     """
     Simple stimulation.
     """
-    if output == 1:
-        return output
-    else:
-        if inputs == [1]:
-            return 1
-        else:
-            return output
+    increase = input[0] * 1
+    return increase
 
-def minus(inputs, output):
+def minus(input):
     """
     Simple surpression.
     """
-    if output == 0:
-        return output
-    else:
-        if inputs == [1]:
-            return 0
-        else:
-            return output
+    increase = input[0] * -1
+    return increase
+
+def superminus(input):
+    """
+    Strong surpression.
+    """
+    increase = input[0] * -2
+    return increase
 
 # 2-to-1 functions
-def plus_and(inputs, output):
+def plus_and(inputs):
     """
     Simple stimulation iff all inputs are stimulated.
     """
-    if [0] in inputs:
-        return output
-    else:
-        return 1
+    increase = min(inputs) * 1
+    return increase
 
-def min_and(inputs, output):
+def min_and(inputs):
     """
     Simple stimulation iff all inputs are stimulated.
     """
-    if [0] in inputs:
-        return output
-    else:
-        return 0
+    increase = min(inputs) * -1
+    return increase
 
-def xor(inputs, output):
+def xor(inputs):
     """
-    Simple XOR function
+    Simple XOR function.
     """
-    if inputs[0] == 1 and inputs[1] == 0:
-        return 1
-    elif inputs[1] == 1 and inputs[0] == 0:
-        return 1
-    else:
-        return 0
- 
-def nxor(inputs, output):
-    """
-    Simple NXOR function
-    """
-    if inputs[0] == 1 and inputs[1] == 0:
-        return 0
-    elif inputs[1] == 1 and inputs[0] == 0:
-        return 0
-    else:
-        return 1
+    increase = math.fabs(inputs[0] - inputs[1]) * 1
+    return increase
 
-def por(inputs, output):
+def neg_xor(inputs):
     """
-    Simple OR function
+    Simple NXOR function.
     """
-    if inputs[0] == 0 and inputs[1] == 0:
-        return 0
-    else:
-        return 1
+    return -1 * xor(inputs)
 
-def nor(inputs, output):
+def incl_or(inputs):
     """
-    Simple NOR function
+    Simple OR function.
     """
-    if inputs[0] == 0 and inputs[1] == 0:
-        return 1
-    else:
-        return 0
+    increase = min(inputs) * 1
+    return increase
+
+def neg_incl_or(inputs):
+    """
+    Simple negative OR function.
+    """
+    return incl_or(inputs) * -1
+
+def excl_or(inputs):
+    """
+    Simple exclusive OR function.
+    """
+    increase = 0
+    if min(inputs) == 0:
+        increase = max(inputs) + 1
+    return increase
+
+def neg_excl_or(inputs):
+    """
+    Simple negative exclusive OR function.
+    """
+    return excl_or(inputs) * -1

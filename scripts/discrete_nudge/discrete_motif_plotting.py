@@ -15,16 +15,16 @@ import discrete_motif_operations as operations
 
 __author__ = 'dgoldsb'
 
-def state_transition_table(motif):
+def state_transition_table(motif, rule):
     """
     Find the state transition table, and return it as a list of list.
     This list of lists can be turned into a nice table using tabulate and display(HTML()).
-    
+
     PARAMETERS:
     ---
     motif: a DiscreteGrnMotif object
-    
-    
+
+
     RETURNS:
     ---
     trans_table: a list of lists
@@ -38,19 +38,19 @@ def state_transition_table(motif):
     for _gene in genes:
         header.append("Gene "+str(_gene)+" t=1")
     table.append(header)
-    
+
     # construct the leafcodes, each leafcode represents a state at T=0
     states = list(range(motif.numvalues))
     leafcodes = list(itertools.product(states, repeat=motif.grn_vars["gene_cnt"]))
     genes = list(range(0, motif.grn_vars["gene_cnt"]))
-    
+
     # loop over all states
     for _leafcode in leafcodes:
         # we build a new leafcode, which is the new state
         # we build it as a list for table purposes
         leafcode_old = [str(e) for e in list(_leafcode)]
         leafcode_new = []
-        
+
         for _gene in genes:
             # filter rules with this gene as the target
             transition_functions = []
@@ -58,10 +58,12 @@ def state_transition_table(motif):
                 # check if gene is the target, if so add
                 if _gene in _rule["outputs"]:
                     transition_functions.append(_rule)
-                    
+
             # tally over all rules what state this should be
             # this is always deterministic
-            tally = [0] * motif.numvalues
+            tally = {}
+            for i in range(2 * (-motif.numvalues), 2 * (motif.numvalues + 1)):
+                tally[str(i)] = 0
 
             # loop over all relevant rules
             for _func in transition_functions:
@@ -75,16 +77,16 @@ def state_transition_table(motif):
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_func = _func["rulefunction"](inputs, outputs[0])
+                output_value_func = _func["rulefunction"](inputs)
 
                 # add to the tally
-                tally[output_value_func] = tally[output_value_func] + 1
+                tally[str(int(output_value_func))] += 1
 
             # decide what it will be this leafcode
-            output_value = "/".join([str(i) for i, e in enumerate(tally) if e != 0])
-            if output_value == "":
-                output_value = str(_leafcode[_gene])
-
+            #output_value = "/".join([str(i) for i, e in enumerate(tally) if e != 0])
+            #if output_value == "":
+            #    output_value = str(_leafcode[_gene])
+            output_value = motif.decide_outcome(tally, rule, _leafcode[_gene])
             leafcode_new.append(output_value)
         row = []
         row.extend(leafcode_old)
@@ -92,7 +94,7 @@ def state_transition_table(motif):
         table.append(row)
     return table
 
-def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filename=None):
+def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filename=None, verbose=False):
     """
     Adds variables, enforcing set total correlations between them.
 
@@ -107,20 +109,25 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filena
     impacts = []
     synergies = []
     for motif in motifs:
-        print("trying to find datapoint "+str(len(impacts)+1))
+        if verbose:
+            print("trying to find datapoint "+str(len(impacts)+1))
         # we only evaluate the variables that are targeted
         targets = []
         for rule in motif.grn_vars["rules"]:
             targets = list(set(targets + rule["outputs"]))
-        print("the rules affect "+str(targets))
+        if verbose:
+            print("the rules affect "+str(targets))
         try:
             # find the synergy
-            motif.evaluate_motif(targets)
+            # actually, let's use the full picture
+            motif.evaluate_motif()
             time_start = time.time()
+            mutual_information = measures.mutual_information(motif)
             synergy = synergy_measure(motif)
             time_end = time.time()
             time_diff = time_end - time_start
-            print("finding synergy took: "+str(time_diff))
+            if verbose:
+                print("finding synergy took: "+str(time_diff))
 
             # find the nudge impact
             motif.reset_to_state(0)
@@ -128,13 +135,14 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filena
             motif.evaluate_motif()
             impact = measures.abs_diff(motif.states[-2], motif.states[-1])
 
-            synergies.append(synergy)
+            # normalize by dividing by the total mutual information
+            synergies.append(float(synergy)/float(mutual_information))
             impacts.append(impact)
         except:
             print("failed to find the synergy")
     plt.scatter(impacts, synergies)
     plt.xlabel("Nudge impact")
-    plt.ylabel("Synergy")
+    plt.ylabel("Synergy/MI")
     if filename is not None:
         plt.savefig('myfig.pdf', format='pdf')
     plt.show()
