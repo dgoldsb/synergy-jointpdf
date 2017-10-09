@@ -111,6 +111,8 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_r
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
+    This returns networks, which represent a part of the transition table search
+    space that we think contains all biological GRN networks.
 
     PARAMETERS
     ---
@@ -169,3 +171,59 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_r
 
     indegree_avg = (float(rules_total)/no_nodes)/samplesize
     return motifs, indegree_avg
+
+def generate_random(sample_size, no_nodes, num_values = 2):
+    """
+    This is a true random generator of transition tables, and covers the entire search space.
+    """
+
+    # construct the leafcodes
+    states = list(range(self.numvalues))
+    leafcodes = list(itertools.product(states, repeat=self.numvariables))
+
+    # make an empty state_transitions object
+    state_transitions = []
+
+    # fill the transitions table
+    for _leafcode in leafcodes:
+        # tally over all rules what state this should be
+        # this is always deterministic
+        tally = {}
+        for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
+            tally[str(i)] = 0
+
+        # some trickery to make sure you can also append a state
+        # when you did not clear the initial one
+        _leafcode_original = deepcopy(_leafcode)
+        _leafcode = _leafcode[-self.grn_vars["gene_cnt"]:]
+
+        # loop over all relevant rules
+        for _func in transition_functions:
+            # prepare inputs
+            inputs = []
+            for index_input in _func["inputs"]:
+                inputs.append(_leafcode[index_input])
+
+            outputs = []
+            for index_output in _func["outputs"]:
+                outputs.append(_leafcode[index_output])
+
+            # figure out the output state
+            output_value_func = _func["rulefunction"](inputs)
+
+            # add to the tally
+            tally[str(int(output_value_func))] += 1
+
+        # decide what it will be this leafcode
+        output_value = self.decide_outcome(tally,
+                                           self.grn_vars["conflict_rule"],
+                                           _leafcode[gene_index])
+
+        # update the leafcode
+        _leafcode_original = list(_leafcode_original) + [output_value]
+
+        # add to the state transition
+        state_transitions.append(_leafcode_original)
+
+    # adjusting state transitions
+    self.append_variables_using_state_transitions_table(np.array(state_transitions))

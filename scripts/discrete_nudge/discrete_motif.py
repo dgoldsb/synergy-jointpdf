@@ -35,23 +35,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     It is an extension of the jointpdf package from Rick Quax.
     """
 
-    # global variables of a GRN
-    grn_vars = {}
-    ## important to store the number of genes, as this is not the same as the numvariables
-    grn_vars["gene_cnt"] = 0
-    ## the rules are not part of the original framework
-    grn_vars["rules"] = []
-    ## correlation matrix for the dependent PDF of the initial conditions
-    grn_vars["correlations"] = None
-    ## set the default to downregulation dominates
-    grn_vars["conflict_rule"] = 'down'
-    ## also there has been a sequence of states, the latest is the current state
-    states = []
-
     def __init__(self, numvariables, numvalues, mode='uniform'):
         # call the super init
         super(DiscreteGrnMotif, self).__init__(numvariables, numvalues, mode)
-        # global variables of a GRN
+
+        # set evolution style, network or transition_table
+        self.evolution_style = 'network'
+
+        # global variables of a GRN network
         self.grn_vars = {}
         ## important to store the number of genes, as this is not the same as the numvariables
         self.grn_vars["gene_cnt"] = 0
@@ -63,6 +54,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         self.grn_vars["conflict_rule"] = 'totaleffect'
         ## also there has been a sequence of states, the latest is the current state
         self.states = []
+
+        # global variables of a transition table
+        self.transition_table = None
 
     def setter_grn_to_file(self, filename):
         """
@@ -112,7 +106,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 correlation = row[self.numvariables - 1]
                 self.append_variable_correlation(correlation)
 
-        # resample the probabilities, otherwise they get messed up somehow        
+        # resample the probabilities, otherwise they get messed up somehow
         self.generate_random_joint_probabilities()
         self.states.append(self.joint_probabilities.joint_probabilities)
 
@@ -272,44 +266,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 else:
                     new_leaf = leaf_value * mismatchfrac
                 new_branch = new_branch + [new_leaf]
-            return list(new_branch)
-
-    def deepen_leafcode_old(self, leafcode, nested):
-        """
-        Can be removed if the transition table method works.
-
-        Deepens a tree.
-        The leafcode we receive is 1 longer than the tree is deep.
-        Deepens in deterministic fashion: all probability goes to the last
-        leafcode digit.
-
-        PARAMETERS
-        ---
-        leafcode: list of integers (corresponding to Boolean values)
-        nested: a nested list, depth same as length of leafcode
-        """
-
-        if len(leafcode) > 1:
-            new_branches = []
-            for i in range(0, self.numvalues):
-                if i == leafcode[0]:
-                    new_subbranch = self.deepen_leafcode_old(leafcode[1:],
-                                                             nested[leafcode[0]])
-                    new_branches.append(new_subbranch)
-                else:
-                    old_subbranch = nested[i]
-                    new_branches.append(old_subbranch)
-            return list(new_branches)
-        else:
-            # we should have arrived at a single number
-            leaf_value = nested
-            new_branch = []
-
-            for i in range(0, self.numvalues):
-                if int(i) == int(leafcode[0]):
-                    new_branch = new_branch + [leaf_value]
-                else:
-                    new_branch = new_branch + [0]
             return list(new_branch)
 
     def check_normalization(self):
@@ -488,7 +444,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         ---
         gene_index: index of the gene that should be added at the next timestep
         """
-
         # construct the leafcodes
         states = list(range(self.numvalues))
         leafcodes = list(itertools.product(states, repeat=self.numvariables))
@@ -579,19 +534,28 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             elif self.numvariables % self.grn_vars["gene_cnt"] != 0:
                 raise ValueError("cannot do a timestep after partial timestep")
 
-        # we don't need to update all genes, but the default is we do
-        if genes is None:
-            genes = list(range(0, self.grn_vars["gene_cnt"]))
 
-        for _gene in genes:
-            # filter rules with this gene as the target
-            transition_functions = []
-            for _rule in self.grn_vars["rules"]:
-                # check if gene is the target, if so add
-                if _gene in _rule["outputs"]:
-                    transition_functions.append(_rule)
-            self.append_variable_grn(_gene, transition_functions)
+        if self.evaluation_style == 'network':
+            # we don't need to update all genes, but the default is we do
+            if genes is None:
+                genes = list(range(0, self.grn_vars["gene_cnt"]))
 
+            for _gene in genes:
+                # filter rules with this gene as the target
+                transition_functions = []
+                for _rule in self.grn_vars["rules"]:
+                    # check if gene is the target, if so add
+                    if _gene in _rule["outputs"]:
+                        transition_functions.append(_rule)
+                self.append_variable_grn(_gene, transition_functions)
+        elif self.evaluation_style == 'transition_table':
+            if len(genes) < self.grn_vars["gene_cnt"]:
+                raise ValueError("Transition tables only support full system evaluations")
+            # adjusting state transitions
+            self.append_variables_using_state_transitions_table(self.transition_table)
+            self.check_normalization()
+        else:
+            raise ValueError("Invalid method of getting a transition table, should be transition_table or network")
 
         # add to the list of states
         ## find the indices sans the initial state
