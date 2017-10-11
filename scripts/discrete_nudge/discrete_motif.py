@@ -40,7 +40,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         super(DiscreteGrnMotif, self).__init__(numvariables, numvalues, mode)
 
         # set evolution style, network or transition_table
-        self.evolution_style = 'network'
+        self.evaluation_style = 'network'
 
         # global variables of a GRN network
         self.grn_vars = {}
@@ -534,12 +534,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             elif self.numvariables % self.grn_vars["gene_cnt"] != 0:
                 raise ValueError("cannot do a timestep after partial timestep")
 
+        # we don't need to update all genes, but the default is we do
+        if genes is None:
+            genes = list(range(0, self.grn_vars["gene_cnt"]))
 
         if self.evaluation_style == 'network':
-            # we don't need to update all genes, but the default is we do
-            if genes is None:
-                genes = list(range(0, self.grn_vars["gene_cnt"]))
-
             for _gene in genes:
                 # filter rules with this gene as the target
                 transition_functions = []

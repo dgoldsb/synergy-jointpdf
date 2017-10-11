@@ -1,7 +1,14 @@
 # Working area
 
+Nice to have: BA-netwerk
+Ik kan de experimenten nu supermakkelijk schrijven en doen, en dan improve ik mijn constrained searchspace tot er awesome stuff uitkomt (of niet, wat ik dan report) :D
+
+limiet testen van hoeveel genes (timing test)
+
 Improve random generator preferential attachment
-Add stochasticity in boolean function
+
+
+Add stochasticity in boolean function NOT GOING TO
 Too many hole in initial distribution FIXED
 
 1. is demo logisch bezig: juiste momenten geen synergy
@@ -11,6 +18,24 @@ Too many hole in initial distribution FIXED
 5. notes hieronder verwerken
 6. werk aan tweede resultaat
 7. is methods logisch
+
+## New direction
+
+Ik kies wel voor regels van type "X moet met 2 verhoogd worden", en ik neem geen X-OR mee (problem solved) in mijn default dictionary
+
+Ik heb eigenlijk 3 vergelijkingen: hele search space van trans tables, de constrained op biologische dingen (deze zijn based op semi-random netwerken), en echte GRN motieven
+
+Constraints zijn
+
+1. barabasi albers (zeker als ik ze groot kan maken)
+2. Limiet op soorten relaties (+/-/++/--/AND/NAND)
+3. Ratios van relaties
+4. Aantal relaties
+5. Bereikbaarheid van states
+
+## In paper
+
+Synergy komt uit amalgaam van pos en neg relaties, niet specifiek uit xor
 
 ## Multi valued logic
 

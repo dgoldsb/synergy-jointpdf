@@ -14,6 +14,7 @@ import numpy as np
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
 
+
 def generate_correlation_matrix(gene_cnt):
     """
     Generate a completely random gene correlation matrix.
@@ -44,6 +45,7 @@ def generate_correlation_matrix(gene_cnt):
 
     return matrix
 
+
 def generate_rules_naive(no_rules, no_nodes):
     """
     We should look into the way the networks are typically build up.
@@ -54,6 +56,7 @@ def generate_rules_naive(no_rules, no_nodes):
     PARAMETERS
     ---
     no_rules: the number of rules requested (int)
+    no_nodes: the number of nodes requested (int)
 
     RETURNS
     ---
@@ -107,6 +110,7 @@ def generate_rules_naive(no_rules, no_nodes):
 
     return rules
 
+
 def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_rule = 'totaleffect'):
     """
     Returns a list of objects.
@@ -120,6 +124,7 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_r
     no_nodes: number of genes
     indegree: average indegree desired, if None random (float)
     numvalues: number of possible values (int)
+    conflict_rule: the rule for deciding what state we get when rules conflict (str)
 
     RETURNS
     ---
@@ -172,58 +177,77 @@ def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_r
     indegree_avg = (float(rules_total)/no_nodes)/samplesize
     return motifs, indegree_avg
 
-def generate_random(sample_size, no_nodes, num_values = 2):
+
+def random_transition_table(no_nodes, num_values):
     """
-    This is a true random generator of transition tables, and covers the entire search space.
+    Generate a random transition table.
+
+    PARAMETERS
+    ---
+    no_nodes: number of genes
+    numvalues: number of possible values (int)
+
+    RETURNS
+    ---
+    trans_table: a numpy array
     """
 
     # construct the leafcodes
-    states = list(range(self.numvalues))
-    leafcodes = list(itertools.product(states, repeat=self.numvariables))
+    states = list(range(num_values))
+    leafcodes = list(itertools.product(states, repeat=no_nodes))
 
     # make an empty state_transitions object
     state_transitions = []
 
     # fill the transitions table
     for _leafcode in leafcodes:
-        # tally over all rules what state this should be
-        # this is always deterministic
-        tally = {}
-        for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
-            tally[str(i)] = 0
+        for _ in range(0, no_nodes):
+            random_state = np.random.randint(0, num_values)
 
-        # some trickery to make sure you can also append a state
-        # when you did not clear the initial one
-        _leafcode_original = deepcopy(_leafcode)
-        _leafcode = _leafcode[-self.grn_vars["gene_cnt"]:]
-
-        # loop over all relevant rules
-        for _func in transition_functions:
-            # prepare inputs
-            inputs = []
-            for index_input in _func["inputs"]:
-                inputs.append(_leafcode[index_input])
-
-            outputs = []
-            for index_output in _func["outputs"]:
-                outputs.append(_leafcode[index_output])
-
-            # figure out the output state
-            output_value_func = _func["rulefunction"](inputs)
-
-            # add to the tally
-            tally[str(int(output_value_func))] += 1
-
-        # decide what it will be this leafcode
-        output_value = self.decide_outcome(tally,
-                                           self.grn_vars["conflict_rule"],
-                                           _leafcode[gene_index])
-
-        # update the leafcode
-        _leafcode_original = list(_leafcode_original) + [output_value]
+            # update the leafcode
+            _leafcode = list(_leafcode) + [random_state]
 
         # add to the state transition
-        state_transitions.append(_leafcode_original)
+        state_transitions.append(_leafcode)
 
-    # adjusting state transitions
-    self.append_variables_using_state_transitions_table(np.array(state_transitions))
+    return np.array(state_transitions)
+
+
+def generate_random(samplesize, no_nodes, numvalues = 2):
+    """
+    This is a true random generator of transition table-based GRNs,
+    and covers the entire search space, not just the bio-GRN part.
+
+
+    PARAMETERS
+    ---
+    samplesize: number of objects in list
+    no_nodes: number of genes
+    numvalues: number of possible values (int)
+
+    RETURNS
+    ---
+    motifs: list of DiscreteGrnMotif objects
+    """
+    # create empty list for the objects
+    motifs = []
+
+    # generate N samples
+    for _ in range(0, samplesize):
+        # create
+        grn_vars = {}
+
+        # set the size
+        grn_vars["gene_cnt"] = no_nodes
+        # set the correlation matrix
+        grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
+
+        motif = DiscreteGrnMotif(1, numvalues)
+        motif.grn_vars = deepcopy(grn_vars)
+        motif.evaluation_style = 'transition_table'
+        motif.transition_table = random_transition_table(no_nodes, numvalues)
+        motif.construct_grn()
+
+        motifs.append(motif)
+
+    return motifs

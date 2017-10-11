@@ -111,12 +111,16 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filena
     for motif in motifs:
         if verbose:
             print("trying to find datapoint "+str(len(impacts)+1))
-        # we only evaluate the variables that are targeted
+
+        # find the targets
         targets = []
-        for rule in motif.grn_vars["rules"]:
-            targets = list(set(targets + rule["outputs"]))
-        if verbose:
-            print("the rules affect "+str(targets))
+        if motif.evaluation_style == 'network':
+            for rule in motif.grn_vars["rules"]:
+                targets = list(set(targets + rule["outputs"]))
+            if verbose:
+                print("the rules affect "+str(targets))
+
+        # try to evaluate and find synergy
         try:
             # find the synergy
             # actually, let's use the full picture

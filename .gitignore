@@ -1,3 +1,4 @@
+*/.idea/*
 ./scripts/discrete_nudge/jointpdf/*
 ./scripts/continuous_nudge/NPEET/*
 scripts/discrete_nudge/jointpdf_DJ/*
