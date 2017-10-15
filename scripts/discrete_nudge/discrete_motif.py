@@ -43,6 +43,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         self.evaluation_style = 'network'
 
         # global variables of a GRN network
+        # TODO: refactor this away, the dict is annoying
         self.grn_vars = {}
         ## important to store the number of genes, as this is not the same as the numvariables
         self.grn_vars["gene_cnt"] = 0
@@ -538,7 +539,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         if genes is None:
             genes = list(range(0, self.grn_vars["gene_cnt"]))
 
-        if self.evaluation_style == 'network':
+        if self.transition_table is None and self.evaluation_style == 'network':
             for _gene in genes:
                 # filter rules with this gene as the target
                 transition_functions = []
@@ -547,7 +548,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     if _gene in _rule["outputs"]:
                         transition_functions.append(_rule)
                 self.append_variable_grn(_gene, transition_functions)
-        elif self.evaluation_style == 'transition_table':
+        elif self.transition_table is not None and (self.evaluation_style == 'transition_table' or self.evaluation_style == 'network'):
             if len(genes) < self.grn_vars["gene_cnt"]:
                 raise ValueError("Transition tables only support full system evaluations")
             # adjusting state transitions
@@ -577,3 +578,70 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         self.joint_probabilities.joint_probabilities = self.states[index]
         self.numvariables = self.grn_vars["gene_cnt"]
+
+    def set_transition_table(self, rule='totaleffect'):
+        """
+        Find the state transition table, and set it. Note that this always uses the total effect method if not otherwise specified!
+        """
+        if self.evaluation_style != 'network':
+            raise ValueError("can only do this step for network motifs")
+
+        # set up the table
+        table = []
+
+        # construct the leafcodes, each leafcode represents a state at T=0
+        states = list(range(self.numvalues))
+        leafcodes = list(itertools.product(states, repeat=self.grn_vars["gene_cnt"]))
+        genes = list(range(0, self.grn_vars["gene_cnt"]))
+
+        # loop over all states
+        for _leafcode in leafcodes:
+            # we build a new leafcode, which is the new state
+            # we build it as a list for table purposes
+            leafcode_old = [str(e) for e in list(_leafcode)]
+            leafcode_new = []
+
+            for _gene in genes:
+                # filter rules with this gene as the target
+                transition_functions = []
+                for _rule in self.grn_vars["rules"]:
+                    # check if gene is the target, if so add
+                    if _gene in _rule["outputs"]:
+                        transition_functions.append(_rule)
+
+                # tally over all rules what state this should be
+                # this is always deterministic
+                tally = {}
+                for i in range(2 * (-self.numvalues), 2 * (self.numvalues + 1)):
+                    tally[str(i)] = 0
+
+                # loop over all relevant rules
+                for _func in transition_functions:
+                    # prepare inputs
+                    inputs = []
+                    for index_input in _func["inputs"]:
+                        inputs.append(_leafcode[index_input])
+
+                    outputs = []
+                    for index_output in _func["outputs"]:
+                        outputs.append(_leafcode[index_output])
+
+                    # figure out the output state
+                    output_value_func = _func["rulefunction"](inputs)
+
+                    # add to the tally
+                    tally[str(int(output_value_func))] += 1
+
+                output_value = self.decide_outcome(tally, rule, _leafcode[_gene])
+                leafcode_new.append(output_value)
+            row = []
+            row.extend(leafcode_old)
+            row.extend(leafcode_new)
+
+            # cast all to integers
+            for i in range(0, len(row)):
+                row[i] = int(row[i])
+            table.append(row)
+
+        # set the state
+        self.transition_table = table

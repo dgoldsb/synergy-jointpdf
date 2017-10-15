@@ -8,12 +8,47 @@ from __future__ import print_function
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import random
+import string
 import time
 
 import discrete_motif_measures as measures
 import discrete_motif_operations as operations
 
 __author__ = 'dgoldsb'
+
+
+def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=None):
+    """
+    example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
+
+    :param x_values: numpy array
+    :param colors: the color of each point
+    :param labels: the label of each point
+    :param title: the plot title
+    :param filename: the file to save to
+    """
+    plt.title(title)
+    if axes_labels is not None:
+        plt.xlabel(axes_labels[0])
+        plt.ylabel(axes_labels[1])
+    for current_color in set(colors):
+        x_plot = []
+        col_plot = []
+        lab_plot = []
+        for i in range(0, len(colors)):
+            if colors[i] == current_color:
+                x_plot.append(x_values[i])
+                col_plot.append(colors[i])
+                lab_plot.append(labels[i])
+        x_plot = np.array(x_plot)
+        plt.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker="x")
+    plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
+    if filename is not None:
+        plt.savefig('myfig.pdf', format='pdf')
+    plt.show()
+
 
 def state_transition_table(motif, rule):
     """
@@ -82,10 +117,6 @@ def state_transition_table(motif, rule):
                 # add to the tally
                 tally[str(int(output_value_func))] += 1
 
-            # decide what it will be this leafcode
-            #output_value = "/".join([str(i) for i, e in enumerate(tally) if e != 0])
-            #if output_value == "":
-            #    output_value = str(_leafcode[_gene])
             output_value = motif.decide_outcome(tally, rule, _leafcode[_gene])
             leafcode_new.append(output_value)
         row = []
@@ -94,7 +125,17 @@ def state_transition_table(motif, rule):
         table.append(row)
     return table
 
-def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filename=None, verbose=False):
+
+def generate_id(size=7, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+def append_id(filename):
+    name, ext = os.path.splitext(filename)
+    return "{name}_{uid}{ext}".format(name=name, uid=generate_id(), ext=ext)
+
+
+def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, colors=None, labels=None,
+                                    filename=None, verbose=False):
     """
     Adds variables, enforcing set total correlations between them.
 
@@ -104,7 +145,14 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filena
     width: number of variables nudged (int)
     size: size of the nudge (float)
     synergy_measure: the synergy function to use (object)
+    colors: the color of a scatterpoint
+    labels: the label of a scatterpoint
     filename: name of pdf to save to (string)
+
+    RETURNS
+    ---
+    impacts: list of the impact of the nudge per motif
+    synergies: list of the synergy per motif
     """
     impacts = []
     synergies = []
@@ -144,12 +192,25 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, filena
             impacts.append(impact)
         except:
             print("failed to find the synergy")
-    plt.scatter(impacts, synergies)
-    plt.xlabel("Nudge impact")
-    plt.ylabel("Synergy/MI")
+            # to make sure the labels are still correct
+            synergies.append(None)
+            impacts.append(None)
+
+    # create the plot
+    if colors is None:
+        colors = ["red"] * len(motifs)
+    if labels is None:
+        labels = [motif.evaluation_style] * len(motifs)
     if filename is not None:
-        plt.savefig('myfig.pdf', format='pdf')
-    plt.show()
+        filename = append_id(filename)
+    x_values = zip(impacts, synergies)
+    axes_labels = ["Nudge impact", "Synergy/MI"]
+    title = "Relation between synergy and nudge impact (%s variables, %s-valued\
+            logic, %s nudge affecting %s variables)" % (motifs[0].grn_vars["gene_cnt"],
+                                                        motifs[0].numvalues, size, width)
+    plot_scatter(x_values, colors, labels, title, filename, axes_labels)
+
+    return impacts, synergies
 
 def create_mi_profile(motif, mode):
     '''

@@ -111,7 +111,7 @@ def generate_rules_naive(no_rules, no_nodes):
     return rules
 
 
-def generate_motifs(samplesize, no_nodes, indegree=None, numvalues=2, conflict_rule = 'totaleffect'):
+def generate_motifs(samplesize, no_nodes, numvalues=2, indegree=None, conflict_rule = 'totaleffect'):
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
