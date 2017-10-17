@@ -5,20 +5,24 @@ This file contains some of the common operations used on discrete motifs.
 from random import shuffle
 import numpy as np
 
+# TODO: extend the class more?
+
+
 def select_subset(arr, threshold):
     """
-    Import from Derkjan that broke down, so manually implementing
+    Import from Derkjan that broke down, so manually implementing.
 
     Select a subset of the arr (randomly) which is at least bigger than
-    threshold
+    threshold. From these parts of the array we subtract probability as part
+    of our nudge.
 
-    Parameters:
-    ----------
-    arr: a 1-d numpy array
+    :parameter
+    :param arr: a 1-d numpy array
         All entries should be greater or equal to zero
+    :param threshold: floating point number
 
-    Returns: a 1-d numpy filled with zeros and ones
-
+    :returns
+    :return minus_states: a 1-d numpy filled with zeros and ones
     """
     minus_states = np.random.randint(0, 2, arr.shape[0])
     attempt_count = 0
@@ -32,28 +36,25 @@ def select_subset(arr, threshold):
         indices = list(range(arr.shape[0]))
         np.random.shuffle(indices)
         for index in indices:
-            print(minus_states)
-            print(index)
-            print(arr)
-            if arr[minus_states] - arr[index] > threshold:
-                minus_states[index] = 0 # was selected, which does not exist, I hope this is correct
+            if np.sum(arr[minus_states != 0]) - arr[index] > threshold:
+                # was selected, which does not exist, I hope this is correct
+                minus_states[index] = 0
 
     return minus_states
 
 
 def mutate_array_bigger_zero(arr, nudge_size, option):
     """
-    Import from Derkjan that broke down, so manually implementing
+    Import from Derkjan that broke down, so manually implementing.
 
     Mutate the arr under the constraint that every entry must be
     bigger or equal to zero. The total plus and minus change should
-    both be equal to nudge size
+    both be equal to nudge size.
 
-    Parameters:
-    ----------
-    arr: a 1-d nd array
-    nudge_size: A (small) number
-    option: string in set: {proportional, random}
+    :parameter
+    :param arr: a 1-d np array
+    :param nudge_size: A (small) number
+    :param option: string in set: {proportional, random}
         how to create the vector to perform the nudge. With proportional
         the plus and minus states are chosen randomly (within the
         constraint that the minus states must have weight bigger than
@@ -64,7 +65,8 @@ def mutate_array_bigger_zero(arr, nudge_size, option):
         that part of the nudge is redistributed among the other states (
         again using Dirichlet)
 
-    Returns: a 1-d numpy array
+    :returns
+    :return nudged_array: a 1-d numpy array
 
     """
     nudged_array = np.copy(arr)
@@ -87,9 +89,9 @@ def mutate_array_bigger_zero(arr, nudge_size, option):
         minus_nudge = np.minimum(nudged_array[minus_mask], minus_nudge)
         difference = abs(np.sum(minus_nudge)-nudge_size)
         count = 0
-        while difference > 10**(-10) and count<10:
+        while difference > 10**(-10) and count < 10:
             count += 1
-            number_of_free_states = minus_nudge[nudged_array[minus_mask]!=minus_nudge].shape[0]
+            number_of_free_states = minus_nudge[nudged_array[minus_mask] != minus_nudge].shape[0]
             redistribute = difference * np.random.dirichlet([1]*number_of_free_states)
             minus_nudge[nudged_array[minus_mask] != minus_nudge] += redistribute
             minus_nudge = np.minimum(nudged_array[minus_mask], minus_nudge)
@@ -115,7 +117,7 @@ def mutate_array_bigger_zero(arr, nudge_size, option):
 
 def nudge_distribution_non_local_non_causal(joint, nudge_labels, nudge_size, nudge_option='random'):
     """
-    Import from Derkjan that broke down, so manually implementing
+    Import from Derkjan that broke down, so manually implementing.
 
     Nudge the the variable with nudge label while keeping the
     marginal of the other variables constant. Thus assuming that the variable
@@ -123,18 +125,17 @@ def nudge_distribution_non_local_non_causal(joint, nudge_labels, nudge_size, nud
     The nudge moves weight around in a random manner. Meaning that the weight
     does not go from one state to another state, but rather a random
     perturbation vector is placed on the states, its sum being equal
-    to 0 and its absolute sum equal to 2*nudge_size
+    to 0 and its absolute sum equal to 2*nudge_size.
 
-    Parameters:
-    ----------
-    joint: a numpy array
-        Representing a discrete probability distribution
-    nudge_labels: a list of integers
-    nudge_size: a (small) number
-    nudge_option: string in set {random, proportional}
+    :parameter
+    :param joint: a numpy array representing a discrete probability distribution
+    :param nudge_labels: a list of integers
+    :param nudge_size: a (small) floating point number
+    :param nudge_option: string in set {random, proportional}
         see mutate_array_bigger_zero option docs
 
-    Returns: a numpy array, representing the nudged probability distribution
+    :returns
+    :return nudged_joint: a nudged version of the joint
     """
     nudged_joint = np.copy(joint)
     nudged_indices = tuple(range(len(joint.shape) - len(nudge_labels), len(joint.shape), 1))
@@ -158,21 +159,23 @@ def nudge_distribution_non_local_non_causal(joint, nudge_labels, nudge_size, nud
     return nudged_joint
 
 
-def nudge_variable(motif, no_impacted, size=0.1):
+def nudge_variable(motif, targets, nudge_size, source):
     """
-    Nudge a variable or a number of variables, using DJ his method.
+    Nudge a variable or a number of variables, using DJ his method or the jointpdf method.
 
-    PARAMETERS
-    ---
-    motif: a DiscreteGrnMotif object
-    no_impacted: number of variables impacted
-    size: size of the nudge
+    :parameter
+    :param motif: a motif object
+    :param targets: the target variables to nudge
+    :param nudge_size: the total size of the nudge
+    :param source: the method to use, either jointpdf (jointpdf package) or DJ (modified implementation of
+        Derkjan his method, included here)
     """
-    joint = motif.joint_probabilities.joint_probabilities
-    labels = []
-    possible_labels = range(0, motif.numvariables)
-    for _ in range(0, no_impacted):
-        shuffle(possible_labels)
-        labels.append(possible_labels.pop())
-    new_joint = nudge_distribution_non_local_non_causal(joint, labels, size)
-    motif.joint_probabilities.joint_probabilities = new_joint
+
+    if source == 'joint_pdf':
+        motif.nudge(targets, [], nudge_size)
+    elif source == 'DJ':
+        joint = motif.joint_probabilities.joint_probabilities
+        new_joint = nudge_distribution_non_local_non_causal(joint, targets, nudge_size)
+        motif.joint_probabilities.joint_probabilities = new_joint
+    else:
+        raise ValueError("Source not correctly entered")

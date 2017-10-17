@@ -6,10 +6,13 @@ and analysis on profiles.
 from __future__ import print_function
 
 import itertools
+import math
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import os
 import random
+import scipy.stats
 import string
 import time
 
@@ -17,6 +20,47 @@ import discrete_motif_measures as measures
 import discrete_motif_operations as operations
 
 __author__ = 'dgoldsb'
+
+
+def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
+    """
+    example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
+
+    :param values: numpy array, should be a list containing [x-value, [y-values]]
+    :param colors: the color of each point
+    :param labels: the label of each point
+    :param title: the plot title
+    :param filename: the file to save to
+    :param axes_labels: labels for the axes
+    """
+    plt.title(title)
+    if axes_labels is not None:
+        plt.xlabel(axes_labels[0])
+        plt.ylabel(axes_labels[1])
+    for current_color in set(colors):
+        x_values = []
+        means = []
+        confidence_intervals = []
+        col_plot = []
+        lab_plot = []
+        for i in range(0, len(colors)):
+            if colors[i] == current_color:
+                # TODO: do a normality test, if it fails return without plotting
+                x_values.append(values[i][0])
+                n, min_max, mean, var, skew, kurt = scipy.stats.describe(values[i][1])
+                std = math.sqrt(var)
+                confidence_interval = scipy.stats.norm.interval(0.95, loc=mean, scale=std)
+                means.append(mean)
+                width_interval = confidence_interval[1] - mean
+                confidence_intervals.append(width_interval)
+                col_plot.append(colors[i])
+                lab_plot.append(labels[i])
+        plt.plot(x_values, means, c=col_plot[0], label=lab_plot[0])
+        plt.errorbar(x_values, means, yerr=confidence_intervals, fmt='x')
+    plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
+    if filename is not None:
+        plt.savefig(filename, format='pdf')
+    plt.show()
 
 
 def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=None):
@@ -28,6 +72,7 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
     :param labels: the label of each point
     :param title: the plot title
     :param filename: the file to save to
+    :param axes_labels: labels for the axes
     """
     plt.title(title)
     if axes_labels is not None:
@@ -46,10 +91,46 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
         plt.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker="x")
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
-        plt.savefig('myfig.pdf', format='pdf')
+        plt.savefig(filename, format='pdf')
     plt.show()
 
 
+def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=None):
+    """
+    example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
+
+    :param x_values: numpy array
+    :param colors: the color of each point
+    :param labels: the label of each point
+    :param title: the plot title
+    :param filename: the file to save to
+    :param axes_labels: labels for the axes
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    plt.title(title)
+    if axes_labels is not None:
+        ax.set_xlabel(axes_labels[0])
+        ax.set_ylabel(axes_labels[1])
+        ax.set_zlabel(axes_labels[2])
+    for current_color in set(colors):
+        x_plot = []
+        col_plot = []
+        lab_plot = []
+        for i in range(0, len(colors)):
+            if colors[i] == current_color:
+                x_plot.append(x_values[i])
+                col_plot.append(colors[i])
+                lab_plot.append(labels[i])
+        x_plot = np.array(x_plot)
+        ax.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker="x")
+    plt.legend(loc='lower right', numpoints=1, ncol=3, fontsize=8)
+    if filename is not None:
+        plt.savefig(filename, format='pdf')
+    plt.show()
+
+
+# TODO: below obsolete?
 def state_transition_table(motif, rule):
     """
     Find the state transition table, and return it as a list of list.
