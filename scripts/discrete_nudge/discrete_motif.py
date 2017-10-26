@@ -581,7 +581,8 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
     def set_transition_table(self, rule='totaleffect'):
         """
-        Find the state transition table, and set it. Note that this always uses the total effect method if not otherwise specified!
+        Find the state transition table, and set it. 
+        Note that this always uses the total effect method if not otherwise specified!
         """
         if self.evaluation_style != 'network':
             raise ValueError("can only do this step for network motifs")
@@ -645,3 +646,167 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         # set the state
         self.transition_table = table
+
+
+    def is_cyclical(self, max_cycle_length=10):
+        """
+        Tests if the motif contains a cycle of max. n timesteps,
+        where n is given as a parameter "max_cycle_length".
+        We use the transition table extensively to do this.
+
+        :parameter
+        :param max_cycle_length: the maximum length of the cycle (integer)
+
+        :returns
+        :return cyclical_states: list of all the initial states that are in a cycle
+        """
+        # create the return variable
+        cyclical_states = []
+
+        # we loop over all possible starting states
+        for row in self.transition_table:
+            half_length = len(row)/2
+            state_start = row[:half_length]
+
+            # we now loop, making a time step every time
+            # we start at the start state, to preserve the start state we copy by values
+            state_current = deepcopy(state_start)
+            for i in range(0, max_cycle_length):
+                state_next = self.match_row(state_current)
+
+                # use numpy to compare
+                a = np.array(state_start, dtype=np.int16)
+                b = np.array(state_current, dtype=np.int16)
+                c = np.array(state_next, dtype=np.int16)
+                if b.equals(c):
+                    # this is a static state, so we can quit lookin
+                    break
+                if a.equals(c):
+                    # this is a loop!
+                    cyclical_states.append(state_start)
+                    break
+                else:
+                    state_current = state_next
+
+        # the number of states that are in a cycle is len(cyclical_states)
+        return cyclical_states
+
+
+    def match_row(self, state_current):
+        """
+        Find the next state, according to the transition table.
+
+        :parameter
+        :param state_current: the current state (list of integers)
+
+        :returns
+        :return state_next: the next state (list of integers)
+        """
+        state_next = None
+        for row in self.transition_table:
+            half_length = len(row)/2
+            row_state_start = row[:half_length]
+            row_state_next = row[half_length:]
+
+            # use numpy to compare
+            a = np.array(row_state_start, dtype=np.int16)
+            b = np.array(state_current, dtype=np.int16)
+            if a.equals(b):
+                state_next = row_state_next
+                break
+
+        # if nothing is found, return None
+        return state_next
+
+
+    def find_in_sample(self, sample, strict=True):
+        """
+        See if an identical motif to self can be found in the sample.
+        This is tricky, as we want to find every motif that in essence is the same...
+        This means motif where 1 stimulates 2 is the same as a motif where 2 stimulates 1.
+
+        :parameter
+        :param sample: the set to compare to (list of DiscreteGrnMotif objects)
+        :param strict: if True, we ignore matches with the same transition table,
+            but different functions (bool)
+        :returns
+        :param found: the matches of the search (list of DiscreteGrnMotif objects)
+        """
+        # create the return variable
+        found = []
+
+        # loop over our sample
+        for motif in sample:
+            # first we check if the the functions are the same, if not it is a different motif
+            if not strict or (self.grn_vars["rules"].sorted() == motif.grn_vars["rules"].sorted()):
+                # find all transition table mutations
+                permutations = self.find_transition_table_permutations()
+                for permutation in permutations:
+                    # to be sure, we compare numpy arrays
+                    a = np.array(permutation, dtype=np.int16)
+                    b = np.array(motif.transition_table, dtype=np.int16)
+                    if a.equals(b):
+                        found.append(motif)
+
+        return found
+
+
+    def find_transition_table_permutations(self):
+        """
+        Find all permutations of a transition table that are the same motif.
+
+        :returns
+        :return permutations: list of transition tables
+        """
+        # create return variable
+        permutations = []
+
+        # find all possible gene mappings (e.g. 0 > 1 and 1 > 0)
+        genes = list(range(0, self.grn_vars["gene_cnt"]))
+        genes_permutations = itertools.permutations(genes)
+
+        # loop over all possible mappings, n! possibilities sadly
+        for genes_permutation in genes_permutations:
+            permutations.append(self.permute_transistion_table(genes_permutation))
+
+        return permutations            
+
+
+    def permute_transition_table(self, mapping):
+        """
+        Permutes a transition table following a mapping.
+
+        :parameter
+        :param mapping: gene index becomes gene value of index (list of integers)
+
+        :returns
+        :return table_new: new transistion table (list of list of ints)
+        """
+        # create return value
+        table_old = self.transition_table
+        table_new = None
+
+        for row_old in table_old:
+            # to keep the order correct
+            half_length = len(row_old)/2
+            left_new = row_old[:half_length]
+
+            # create and fill left_old
+            left_old = [] * len(left_new)
+            for i in range(0, len(left_new)):
+                left_old[mapping[i]] = left_new[i]
+
+            # match the correct right_old
+            right_old = self.match_row(left_old)
+
+            # create and fill right_new
+            right_new = [] * len(right_old)
+            for i in range(0, len(right_old)):
+                right_new[i] = right_old[mapping[i]]
+
+            # accumulate the new row
+            row_new = left_new + right_new
+            table_new.append(row_new)
+
+        # permutation done!
+        return table_new
