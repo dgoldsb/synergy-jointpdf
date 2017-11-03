@@ -11,6 +11,7 @@ from copy import deepcopy
 import itertools
 import json
 import os
+import random
 import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
@@ -647,7 +648,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # set the state
         self.transition_table = table
 
-
     def is_cyclical(self, max_cycle_length=10):
         """
         Tests if the motif contains a cycle of max. n timesteps,
@@ -658,10 +658,10 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         :param max_cycle_length: the maximum length of the cycle (integer)
 
         :returns
-        :return cyclical_states: list of all the initial states that are in a cycle
+        :return cycles: list of all cycles
         """
         # create the return variable
-        cyclical_states = []
+        cycles = []
 
         # we loop over all possible starting states
         for row in self.transition_table:
@@ -678,19 +678,31 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 a = np.array(state_start, dtype=np.int16)
                 b = np.array(state_current, dtype=np.int16)
                 c = np.array(state_next, dtype=np.int16)
-                if b.equals(c):
-                    # this is a static state, so we can quit lookin
+
+                if np.array_equal(b, c):
+                    # this is a static state, so we can quit looking
                     break
-                if a.equals(c):
+
+                # check if we visited the state already in a cycle, if so this is part of the same cycle
+                found_cycle = False
+                for cycle in cycles:
+                    for state in cycle:
+                        if np.array_equal(c, state):
+                            cycle.append(a)
+                            found_cycle = True
+
+                if found_cycle:
+                    break
+
+                if np.array_equal(a, c):
                     # this is a loop!
-                    cyclical_states.append(state_start)
+                    cycles.append([a])
                     break
                 else:
                     state_current = state_next
 
         # the number of states that are in a cycle is len(cyclical_states)
-        return cyclical_states
-
+        return cycles
 
     def match_row(self, state_current):
         """
@@ -711,13 +723,12 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             # use numpy to compare
             a = np.array(row_state_start, dtype=np.int16)
             b = np.array(state_current, dtype=np.int16)
-            if a.equals(b):
+            if np.array_equal(a, b):
                 state_next = row_state_next
                 break
 
         # if nothing is found, return None
         return state_next
-
 
     def find_in_sample(self, sample, strict=True):
         """
@@ -730,7 +741,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         :param strict: if True, we ignore matches with the same transition table,
             but different functions (bool)
         :returns
-        :param found: the matches of the search (list of DiscreteGrnMotif objects)
+        :return found: the matches of the search (list of DiscreteGrnMotif objects)
         """
         # create the return variable
         found = []
@@ -745,11 +756,10 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     # to be sure, we compare numpy arrays
                     a = np.array(permutation, dtype=np.int16)
                     b = np.array(motif.transition_table, dtype=np.int16)
-                    if a.equals(b):
+                    if np.array_equal(a, b):
                         found.append(motif)
 
         return found
-
 
     def find_transition_table_permutations(self):
         """
@@ -767,10 +777,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         # loop over all possible mappings, n! possibilities sadly
         for genes_permutation in genes_permutations:
-            permutations.append(self.permute_transistion_table(genes_permutation))
+            permutations.append(self.permute_transition_table(genes_permutation))
 
         return permutations            
-
 
     def permute_transition_table(self, mapping):
         """
@@ -784,7 +793,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         """
         # create return value
         table_old = self.transition_table
-        table_new = None
+        table_new = []
 
         for row_old in table_old:
             # to keep the order correct
@@ -792,7 +801,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             left_new = row_old[:half_length]
 
             # create and fill left_old
-            left_old = [] * len(left_new)
+            left_old = [0] * len(left_new)
             for i in range(0, len(left_new)):
                 left_old[mapping[i]] = left_new[i]
 
@@ -800,12 +809,12 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             right_old = self.match_row(left_old)
 
             # create and fill right_new
-            right_new = [] * len(right_old)
+            right_new = [0] * len(right_old)
             for i in range(0, len(right_old)):
                 right_new[i] = right_old[mapping[i]]
 
             # accumulate the new row
-            row_new = left_new + right_new
+            row_new = np.concatenate((left_new, right_new), axis=0)
             table_new.append(row_new)
 
         # permutation done!

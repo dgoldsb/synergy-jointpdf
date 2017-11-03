@@ -22,9 +22,61 @@ import discrete_motif_operations as operations
 __author__ = 'dgoldsb'
 
 
+def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
+    """
+    Make a sample of
+
+    :param samples: list of lists of integers
+    :param colors: the color of each bar
+    :param labels: the label of each bar
+    :param title: the plot title
+    :param filename: the file to save to
+    :param axes_labels: labels for the axes
+    """
+    # to determine the range on the x-axis
+    total_sample = []
+
+    # for each, count how common it is
+    bar_datas = []
+    for sample in samples:
+        bar_data = [0] * (max(sample) + 2)
+        for i in range(0, max(sample) + 1):
+            bar_data[i] = sample.count(i)
+        bar_datas.append(bar_data)
+        total_sample = total_sample + sample
+
+    # preprocess the data to the right format
+    index = list(range(0, max(total_sample) + 2))
+
+    # settings
+    opacity = 0.4
+    bar_width = 0.35
+
+    # make plot
+    plt.title(title)
+    if axes_labels is not None:
+        plt.xlabel(axes_labels[0])
+        plt.ylabel(axes_labels[1])
+    iterator = 0
+    for bar_data in bar_datas:
+        bar_data = bar_data + [0] * (len(index) - len(bar_data))
+        index_data = [x+(iterator * bar_width) for x in index]
+        plt.bar(index_data, bar_data, bar_width, alpha=opacity, color=colors[iterator], label=labels[iterator])
+        iterator += 1
+    group_cnt = iterator
+
+    index_data = [(x + ((group_cnt - 1) * bar_width)/group_cnt) for x in index]
+    plt.xticks(index_data, index)
+    plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
+    if filename is not None:
+        plt.savefig(filename, format='pdf')
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
     """
-    example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
+    Make a line plot
 
     :param values: numpy array, should be a list containing [x-value, [y-values]]
     :param colors: the color of each point
@@ -123,7 +175,7 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
                 col_plot.append(colors[i])
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
-        ax.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker="x")
+        ax.scatter(x_plot[:, 0], x_plot[:, 1], x_plot[:, 2], c=col_plot[0], label=lab_plot[0], marker="x")
     plt.legend(loc='lower right', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
