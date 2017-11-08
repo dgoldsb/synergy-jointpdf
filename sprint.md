@@ -43,5 +43,3 @@ Nu heb ik, doordat het wat langer duurt, iets gevonden waar ik wel heel erg enth
     * MI profiles
 * Conclusion
 * Discussion
-
-EXPERIMENT AF DUS OOK ECHTE AL ZOEKEN
