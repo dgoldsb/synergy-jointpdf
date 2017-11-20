@@ -11,3 +11,10 @@ https://www.researchgate.net/profile/M_Kaufman/publication/225890380_Dynamical_b
 MINIMUM BIOLOGISCH TE ONDERBOUWEN
 OMLAAG GAAN ZONDER ZELFVERSTERKING BIOLOGISCH TE ONDERBOUWEN, DECAY
 HOEVEEL LAAT EEN + VAN EEN 2 EEN 0 OMHOOG GAAN?
+
+
+IN STUK LITERATURE WAAROP IK MODELBOUW BASEER
+https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-7-S1-S7 zowel ER als BA is OK
+http://home.himolde.no/~molka/in765/NetworkBio_Nature-Rev-Genetics-2004.pdf Barabasi claims BA
+Small size, dus alles is eigenlijk wel ok
+http://www.ibt.unam.mx/~erueda/Curso_IBT_2011/ng1340.pdf scalefree transcription factors produced, dus outgoing connections? PLUS k a bit over 2

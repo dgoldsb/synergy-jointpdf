@@ -142,6 +142,13 @@ These should adhere to a set of network properties that are characteristic for G
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
 We do so using the algorithm described in figure~\ref{random_generation}.
 This algorithm can be configured by defining a set of possible rules, a number of nodes, and an average indegree over the network.
+The network is constructed using preferential attachment, resulting in a scale-free network (or Barabási–Albert network).
+An Erdős–Rényi model would have also been a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
+In the literature, the Barabási–Albert seems to be a slightly more common choice.
+In addition, we argue that the choice does not make a large difference in the results, as our networks are typically so small that there is little difference between the two.
+We use a slightly modified version of the standard scheme, as for directed graphs the algorithm cannot create cyclic graphs.
+There is no biological reason for this, hence we allow new connections to be in either direction.
+We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 
 In order to test hypotheses regarding the GRN networks that occur in biological systems, we need to make a comparison to the set of all possible GRN motifs.
 We aim to sample from this set by generating random GRN motifs.

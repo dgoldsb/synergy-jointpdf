@@ -46,10 +46,9 @@ def generate_correlation_matrix(gene_cnt):
     return matrix
 
 
-def generate_rules_naive(no_rules, no_nodes):
+def generate_rules(no_rules, no_nodes):
     """
-    We should look into the way the networks are typically build up.
-    However, for now a naive approach will do.
+    We use a scale-free approach, with preferential attachment.
     We only use 1-to-1 and 2-to-1 functions, and randomly select origins
     and targets.
 
@@ -166,7 +165,7 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegree=None, conflict_r
         rules_total += no_rules
 
         # the rules are not part of the original framework
-        grn_vars["rules"] = generate_rules_naive(no_rules, no_nodes)
+        grn_vars["rules"] = generate_rules(no_rules, no_nodes)
 
         motif = DiscreteGrnMotif(1, numvalues)
         motif.grn_vars = deepcopy(grn_vars)

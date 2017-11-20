@@ -29,6 +29,7 @@ def dictionary():
     minus_d["o"] = 1
     function_dict[1].append(minus_d)
 
+    """
     # superplus
     superplus_d = {}
     superplus_d["f"] = superplus
@@ -42,6 +43,7 @@ def dictionary():
     superminus_d["i"] = 1
     superminus_d["o"] = 1
     function_dict[1].append(superminus_d)
+    """
 
     # and
     plus_and_d = {}
@@ -57,6 +59,7 @@ def dictionary():
     min_and_d["o"] = 1
     function_dict[2].append(min_and_d)
 
+    """
     # xor
     xor_d = {}
     xor_d["f"] = xor
@@ -98,6 +101,7 @@ def dictionary():
     neg_excl_or_d["i"] = 2
     neg_excl_or_d["o"] = 1
     function_dict[2].append(neg_excl_or_d)
+    """
 
     return function_dict
 
