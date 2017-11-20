@@ -46,16 +46,23 @@ def generate_correlation_matrix(gene_cnt):
     return matrix
 
 
-def generate_rules(no_rules, no_nodes):
+def generate_rules(no_rules, no_nodes, chance_1to1):
     """
     We use a scale-free approach, with preferential attachment.
     We only use 1-to-1 and 2-to-1 functions, and randomly select origins
     and targets.
 
+    The ratio 2-to-1 edges is way too high compared to the ratio of 1-to-1
+    edges, the latter are much more common in nature.
+    To compensate, we manually turn this to an approximately 25-75 ratio
+    (configurable).
+
+
     PARAMETERS
     ---
     no_rules: the number of rules requested (int)
     no_nodes: the number of nodes requested (int)
+    chance_1to1: the chance that an edge is 1-to-1 (float)
 
     RETURNS
     ---
@@ -83,34 +90,93 @@ def generate_rules(no_rules, no_nodes):
             combination.append(deepcopy(targets[j]))
             edges.append(combination)
 
-    for _ in range(0, no_rules):
-        # create a dict
-        rule = {}
+    # we use and adaptation of the Barabasi-Albert algorithm
+    # we slightly adapt the algorithm to function with a set number of relations
+    # and to utilize both 1-to-1 directed edges as 2-to-1 directed edges
+    genes_referenced_cnt = [0] * no_nodes
+    nodes_inserted = set([])
+    for i in range(0, no_nodes):
+        rules_left = no_rules - len(rules)
+        nodes_left = no_nodes - len(nodes_inserted)
 
-        # pick a random edge to find a rule for
-        random.shuffle(edges)
-        edge = deepcopy(edges[0])
-        edges.pop(0)
+        # add the node
+        nodes_inserted.append(i)
+        
+        # start adding rules
+        for _ in range(0, (rules_left // nodes_left)):
+            # add a rule
+            rule = {}
 
-        # find the no_actors
-        no_actors = len(edge[0])
+            # we shuffle the edges and pick the first that contains only added
+            # genes
+            random.shuffle(edges)
 
-        # pick a random rule
-        # find the number of inputs and outputs required
-        choice = random.choice(functions_choices[no_actors])
+            # we draw a number to  see the edge should be 1-to-1
+            if i == 0:
+                random_number_1to1 = 1
+            else:
+                random_number_1to1 = np.random.random(0, 1)
 
-        # set the values
-        rule["inputs"] = deepcopy(edge[0])
-        rule["outputs"] = [deepcopy(edge[1])]
-        rule["rulefunction"] = choice["f"]
+            for k in range(0, len(edges)):
+                # join the sets of inputs and outputs of the edge
+                joint_set = set(edges[k][0]) + set(edges[k][1])
 
-        # append to rules
-        rules.append(rule)
+                # see if we want a 1-to-1 edge
+                if random_number_1to1 < chance_1to1 and len(edges[k][0]) == 1:
+                    proceed = True
+                elif random_number_1to1 >= chance_1to1 and len(edges[k][0]) > 1:
+                    proceed = True
+                else:
+                    proceed = False
+                
+                # only proceed if all inserted nodes are in the edge, and if the
+                # currently added node is in the set
+                if ((len(joint_set - nodes_inserted) == 0) and (len(set([i]) - joint_set) == 0) and proceed:
+                    # calculate the total number of edges
+                    # divide the mean of the number of edges that are not the
+                    # currently added edge by this number
+                    relevant_edge_cnt = 0
+                    for j in range(0, i+1):
+                        if len(set([j]) - joint_set) == 0:
+                            relevant_edge_cnt += genes_referenced_cnt[j]
 
+                    relevant_edge_cnt = relevant_edge_cnt / (i+1)
+                    if i == 0:
+                        accept_probability = 1
+                    else:
+                        accept_probability = relevant_edge_cnt / sum(genes_referenced_cnt)
+                        
+                    # the random part
+                    random_number = np.random.random(0, 1)
+                    if random_numer < accept_probability:
+                        edge = deepcopy(edges[k])
+                        edges.pop(k)
+
+                        # find the no_actors
+                        no_actors = len(edge[0])
+
+                        # pick a random rule
+                        # find the number of inputs and outputs required
+                        choice = random.choice(functions_choices[no_actors])
+
+                        # set the values
+                        rule["inputs"] = deepcopy(edge[0])
+                        rule["outputs"] = [deepcopy(edge[1])]
+                        rule["rulefunction"] = choice["f"]
+
+                        # append to rules
+                        rules.append(rule)
+
+                        # add one to all setmembers
+                        for m in joint_set:
+                            genes_referenced_cnt[m] += 1
+
+                        # we found a rule, so break
+                        break
     return rules
 
 
-def generate_motifs(samplesize, no_nodes, numvalues=2, indegree=None, conflict_rule = 'totaleffect'):
+def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_rule='totaleffect', chance_1to1=0.75):
     """
     Returns a list of objects.
     Improvable Barabasi-Albert network.
@@ -121,7 +187,8 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegree=None, conflict_r
     ---
     samplesize: number of objects in list
     no_nodes: number of genes
-    indegree: average indegree desired, if None random (float)
+    indegrees: list of possible indegree desired (average indegree will tend
+    towards the average of the list), if None random (list of integers)
     numvalues: number of possible values (int)
     conflict_rule: the rule for deciding what state we get when rules conflict (str)
 
@@ -157,15 +224,15 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegree=None, conflict_r
         grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
 
         # generate a random indegree if not given
-        if indegree is None:
+        if indegrees is None:
             max_edges = len(targets) * len(actors)
             no_rules = random.randint(0, max_edges)
         else:
-            no_rules = int(indegree * no_nodes)
+            no_rules = np.random.choice(indegrees)
         rules_total += no_rules
 
         # the rules are not part of the original framework
-        grn_vars["rules"] = generate_rules(no_rules, no_nodes)
+        grn_vars["rules"] = generate_rules(no_rules, no_nodes, chance_1to1)
 
         motif = DiscreteGrnMotif(1, numvalues)
         motif.grn_vars = deepcopy(grn_vars)

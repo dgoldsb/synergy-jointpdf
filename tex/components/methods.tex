@@ -78,15 +78,18 @@ If there are no rules acting on a gene, it is assumed that its expression level 
 A side effect of this is that, while the timesteps are in arbitrary units, the resolution in the time dimension becomes higher with higher-valued logic.
 After all, in a Boolean model a gene decays from active to non-active in 1 timestep, whereas in 5-valued logic this will take 5 steps.
 If multiple rules act on the same gene, the outcome is the output that is determined using a 'deciding condition'.
-We support two deciding conditions, each of which fit with a different design choice in simplifying reality
+We support four deciding conditions, each of which fit with a different design choice in simplifying reality
 %
-% TODO: I support two things, add both to my code
 \begin{itemize}
-\item Each function affecting a gene outputs a \textit{change} in the target gene, multiple effects are added. The expression level remains capped ($0 \le m \le l$). This implies that one strong inhibitor can overpower several weak stimulators completely.
-\item Each function affecting a gene outputs a \textit{suggested value} of the target genes, multiple effects combined using a weighted average and rounded to the nearest integer value. This implies that when a gene is both stimulated and inhibited, it is much more likely to end up in a semi-activated state, and not either in a deactivated state or an activated state.
+\item (\texttt{totaleffect}) Each function affecting a gene outputs a \textit{change} in the target gene, multiple effects are added. The expression level remains capped ($0 \le m \le l$). This implies that one strong inhibitor can overpower several weak stimulators completely.
+\item (\texttt{average}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, multiple effects combined using a weighted average and rounded to the nearest integer value. This implies that when a gene is both stimulated and inhibited, it is much more likely to end up in a semi-activated state, and not either in a deactivated state or an activated state.
+\item (\texttt{down}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, the lowest is selected. This method assumes inhibition is dominant.
+\item (\texttt{majority}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, the most commenly suggested value is chosen. In case of a tie a random value is selected.
 \end{itemize}
 %
 We build a transition table by determining for each state in the current timestep of the transition table, and then for each gene in the state in the next timestep what the expression level is.
+It is noted that a self-link is defined to be always active, regardless of its states.
+This is commonly done in the literature as well.
 
 % Go a bit more into initializing jointPDF
 To initialize a jointPDF-object that represents a system, we need to determine an initial distribution of system states.
@@ -140,8 +143,7 @@ As long as the present states are always represented in the same order in the tr
 In contrast drawing samples from the set of all possible transition tables, we also want to draw a sample from the sub-samplespace of all biologically possible transition tables.
 These should adhere to a set of network properties that are characteristic for GRN motifs, as well as be constructable from the stimulation and inhibition rules that exist in GRNs, but should otherwise be completely random.
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
-We do so using the algorithm described in figure~\ref{random_generation}.
-This algorithm can be configured by defining a set of possible rules, a number of nodes, and an average indegree over the network.
+This algorithm can be configured by defining a set of possible rules, a number of nodes, and a set of possible indegrees for the motifs.
 The network is constructed using preferential attachment, resulting in a scale-free network (or Barabási–Albert network).
 An Erdős–Rényi model would have also been a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
 In the literature, the Barabási–Albert seems to be a slightly more common choice.
@@ -150,16 +152,17 @@ We use a slightly modified version of the standard scheme, as for directed graph
 There is no biological reason for this, hence we allow new connections to be in either direction.
 We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 
-In order to test hypotheses regarding the GRN networks that occur in biological systems, we need to make a comparison to the set of all possible GRN motifs.
-We aim to sample from this set by generating random GRN motifs.
+We aim to sample from the set of biologically possible transition tables by generating random GRN motifs.
+We do so using the algorithm described in figure~\ref{random_generation}.
 In this algorithm, \texttt{rmatrix} denotes the matrix of all correlations between the different genes in the motif.
-This defines the initial joint PDF of the system.
-The \texttt{GenerateRules} function is given in figure~\ref{generate_rules}, and the \texttt{GenerateCorrelations} function in figure~\ref{generate_correlations}.
-The \texttt{FindEdges} function simply makes a list of all possible edges between all nodes.
-This function can be set to allow only one-to-one edges, or also many-to-one.
-The latter is required to build in complex functions.
+This defines the initial joint PDF of the system, and represents the the influence of the part of the GRN that is not part of the motif.
+The \texttt{GenerateRules} function is given in figure~\ref{generate_rules}, and produces a set of edges that is conform to a Barabási–Albert network.
+This function can be tweaked to prefer one-to-one edges over many-to-one edges, as these edges are much more common in real life than the many-to-one variant.
+Each edge in this network has a function linked to it, either inhibition or stimulation.
+The \texttt{GenerateCorrelations} function in figure~\ref{generate_correlations} generates the \texttt{rmatrix}.
+The \texttt{FindEdges} function simply produces a list of all possible edges between all nodes.
 
-% TODO: should this be preferential attachment? Barabasi? Also implement correctly!
+% TODO: finish pseudocode
 \begin{algorithm}[H]
     \label{random_generation}
     \caption{Generating a random network}
@@ -184,9 +187,53 @@ The latter is required to build in complex functions.
     }
 \end{algorithm}
 
-% TODO: uitschrijven dit stuk
-In general, the indegree of individual genes is low as well, meaning hub formation as in Barabasi-Albers networks is atypical.
-The Boolean function often consists predominantly of simple relations, such as gene A downregulates gene B \cite{lahdesmaki2003learning, schlitt2007current}.
+\begin{algorithm}[H]
+    \label{generate_rules}
+    \caption{Produce Barabási–Albert directed edges with a function attached}
+    \SetKwData{Edges}{edges}
+    \SetKwData{Rmatrix}{rmatrix}
+    \SetKwData{Rules}{rules}
+    \SetKwData{GRN}{grn}
+    \SetKwData{GRNs}{grns}
+    \SetKwData{Rules_cnt}{rules_cnt}
+    \SetKwFunction{FindEdges}{FindEdges}
+    \SetKwFunction{Pack}{Pack}
+    \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
+    \SetKwFunction{GenerateRules}{GenerateRules}
+
+    \Input{motif size, sample size and average indegree}
+    \Output{a list of GRN objects}
+    \BlankLine
+
+    \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
+    \For{$n \leftarrow 1$ \kwTo sample size}{
+    go to next section\;
+    }
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \label{generate_correlations}
+    \caption{Generate a random set of gene correlations (to define a starting state)}
+    \SetKwData{Edges}{edges}
+    \SetKwData{Rmatrix}{rmatrix}
+    \SetKwData{Rules}{rules}
+    \SetKwData{GRN}{grn}
+    \SetKwData{GRNs}{grns}
+    \SetKwData{Rules_cnt}{rules_cnt}
+    \SetKwFunction{FindEdges}{FindEdges}
+    \SetKwFunction{Pack}{Pack}
+    \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
+    \SetKwFunction{GenerateRules}{GenerateRules}
+
+    \Input{motif size, sample size and average indegree}
+    \Output{a list of GRN objects}
+    \BlankLine
+
+    \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
+    \For{$n \leftarrow 1$ \kwTo sample size}{
+    go to next section\;
+    }
+\end{algorithm}
 
 \subsubsection{Parameter Nudging}
 
@@ -229,7 +276,11 @@ The used implementations for both measures are imported from the jointPDF packag
 
 \subsubsection{Sample Space Visualization}
 
-% TODO: TSNE beschrijven
+An important sanity check is to verify that the sample of biologically possible transition tables shows that this is a subspace of all possible transition tables.
+To achieve this, we consider every gene's state in every future state of the transition table as an independent variable.
+We then create a 2-dimensional embedding of this vector of random variables using t-Distributed Stochastic Neighbor Embedding (t-SNE), a form of dimensionality reduction that works well on dataasets with many variables per datapoint \cite{maaten2008visualizing}.
+Datapoints are colored to indicate whether they are part of the biologically possible set, or the completely random set.
+If a portion of the datapoints of one set are clearly not mixing with the other, it is implied that this set covers a part of the sample space that the other does not.
 
 \subsubsection{Searching}
 
@@ -342,13 +393,37 @@ We hypothesize that:
 
 \subsubsection{Parameter ranges}
 
-% TODO: deze opzetten, en mijn experimenten in jobs gaan draaien
-In the generation of random networks, we aim to produce results with similar network properties to actual networks.
+We perform a parameter sweep over several key parameters.
+These parameters could be narrowed down to a range of interest, either due to limits regarding the time complexity of increasing it further, or by using ranges specified in the literature.
+The ranges, along with the increments with which we increase in our sweet, are shown in Table~\ref{parameters}.
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
+With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
 Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
 
-Nudges in bits.
+\begin{center}
+\begin{table}
+\label{parameters}
+\caption{The parameter ranges used for the experiments}
+\begin{tabular}{| l | c | c | c |}
+\hline
+Parameter & Start & End & Increment \\
+\hline
+Network size (\#) & 2 & 5 & 1 \\
+Logic size (\#) & 2 & 5 & 1 \\
+Nudge size (bits) & 0.1 & 0.5 & 0.1 \\
+Average indegree (\#) & 2 & 4 & 1 \\
+\hline
+\end{tabular}
+\end{table}
+\end{center}
 
-For biological give references.
+In addition to these parameter ranges, we also use the following set values:
+
+\begin{itemize}
+\end \textbf{Synergy function}: $$
+\end \textbf{Nudge function}: 
+\end \textbf{Transition function}: \texttt{totaleffect}
+\end \textbf{Chance 1-to-1 edge}: 75\% 
+\end{itemize}
 
 \end{document}

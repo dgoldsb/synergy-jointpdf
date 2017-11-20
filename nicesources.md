@@ -1,5 +1,7 @@
 # Nice sources
 
+IN STUK LITERATURE BESCHRIJVEN DAT WAT LOGISCHE DESIGNKEUZES ZIJN
+
 https://link.springer.com/chapter/10.1007/978-3-642-49321-8_15 paywall look who cite him
 https://www.ncbi.nlm.nih.gov/pubmed/20868697 paywall
 https://arxiv.org/pdf/1703.06746.pdf simple multivalued logic
@@ -18,3 +20,13 @@ https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-7-S1-S7 z
 http://home.himolde.no/~molka/in765/NetworkBio_Nature-Rev-Genetics-2004.pdf Barabasi claims BA
 Small size, dus alles is eigenlijk wel ok
 http://www.ibt.unam.mx/~erueda/Curso_IBT_2011/ng1340.pdf scalefree transcription factors produced, dus outgoing connections? PLUS k a bit over 2
+
+https://en.wikipedia.org/wiki/Boolean_network classic boolean network has with self things has no 
+https://arxiv.org/ftp/arxiv/papers/1407/1407.6117.pdf self links always work!
+	negative self-links make little sense, but I guess it can do something in some cases (2+ and a - from itself makes +)
+	
+	
+We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
+
+In general, the indegree of individual genes is low as well, meaning hub formation as in Barabasi-Albers networks is atypical.
+The Boolean function often consists predominantly of simple relations, such as gene A downregulates gene B \cite{lahdesmaki2003learning, schlitt2007current}.

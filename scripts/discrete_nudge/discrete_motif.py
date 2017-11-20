@@ -363,6 +363,19 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 return self.numvalues - 1
             else:
                 return new_value
+        elif rule == 'average':
+            # find the average affect, then round to the nearest integer
+            options = [i for i in range(2*(-self.numvalues), 2*(self.numvalues + 1))]
+
+            total = 0
+            divide_by = 0
+            for i in options:
+                total += i * tally[str(i)]
+                divide_by += tally[str(i)]
+            if divide_by > 0:
+                return max(0, min(int(round(total/divide_by)), self.numvalues - 1))
+            else:
+                raise ValueError("divide by zero")
         elif rule == 'odds':
             raise ValueError("stochastic method is not re-implemented...")
             #diceroll = np.random.randint(0, sum(tally))
@@ -629,7 +642,11 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                         outputs.append(_leafcode[index_output])
 
                     # figure out the output state
-                    output_value_func = _func["rulefunction"](inputs)
+                    if set(_func["inputs"]) == set(_func["outputs"]):
+                        # this means it is self-activating
+                        output_value_func = _func["rulefunction"]([self.numvalues-1])
+                    else:
+                        output_value_func = _func["rulefunction"](inputs)
 
                     # add to the tally
                     tally[str(int(output_value_func))] += 1
