@@ -100,7 +100,7 @@ def generate_rules(no_rules, no_nodes, chance_1to1):
         nodes_left = no_nodes - len(nodes_inserted)
 
         # add the node
-        nodes_inserted.append(i)
+        nodes_inserted.add(i)
         
         # start adding rules
         for _ in range(0, (rules_left // nodes_left)):
@@ -115,13 +115,14 @@ def generate_rules(no_rules, no_nodes, chance_1to1):
             if i == 0:
                 random_number_1to1 = 1
             else:
-                random_number_1to1 = np.random.random(0, 1)
+                random_number_1to1 = np.random.random()
 
             for k in range(0, len(edges)):
                 # join the sets of inputs and outputs of the edge
-                joint_set = set(edges[k][0]) + set(edges[k][1])
+                joint_set = set(edges[k][0]).union(set([edges[k][1]]))
 
                 # see if we want a 1-to-1 edge
+                proceed = False
                 if random_number_1to1 < chance_1to1 and len(edges[k][0]) == 1:
                     proceed = True
                 elif random_number_1to1 >= chance_1to1 and len(edges[k][0]) > 1:
@@ -131,7 +132,7 @@ def generate_rules(no_rules, no_nodes, chance_1to1):
                 
                 # only proceed if all inserted nodes are in the edge, and if the
                 # currently added node is in the set
-                if ((len(joint_set - nodes_inserted) == 0) and (len(set([i]) - joint_set) == 0) and proceed:
+                if (len(joint_set - nodes_inserted) == 0) and (len(set([i]) - joint_set) == 0) and proceed:
                     # calculate the total number of edges
                     # divide the mean of the number of edges that are not the
                     # currently added edge by this number
@@ -141,14 +142,14 @@ def generate_rules(no_rules, no_nodes, chance_1to1):
                             relevant_edge_cnt += genes_referenced_cnt[j]
 
                     relevant_edge_cnt = relevant_edge_cnt / (i+1)
-                    if i == 0:
+                    if sum(genes_referenced_cnt) == 0:
                         accept_probability = 1
                     else:
                         accept_probability = relevant_edge_cnt / sum(genes_referenced_cnt)
                         
                     # the random part
-                    random_number = np.random.random(0, 1)
-                    if random_numer < accept_probability:
+                    random_number = np.random.random()
+                    if random_number < accept_probability:
                         edge = deepcopy(edges[k])
                         edges.pop(k)
 

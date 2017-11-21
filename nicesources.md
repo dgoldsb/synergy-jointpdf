@@ -30,3 +30,14 @@ We decided on an indegree between 2 and 4, which seems typical for the smaller G
 
 In general, the indegree of individual genes is low as well, meaning hub formation as in Barabasi-Albers networks is atypical.
 The Boolean function often consists predominantly of simple relations, such as gene A downregulates gene B \cite{lahdesmaki2003learning, schlitt2007current}.
+
+---
+
+BELANGRIJK
+
+discussiëren on: in fact I am seeing if the restraint to go fron network to trans table explaibs hiigher resiliencenand memory, and if it is paired with synergy. 4 possible results: if synergy does not match the resukt it is not part of resilienvr and memory, id it does either positive result or negative with ansuggestion for further research: optimizing bron i networks
+
+krrn thesis: io heb twee modelleb, een supernaif en een een beetje naief, ik kihk of het verschil in eigebschappen de resilience en memory verklaard, en of sit verschil ook synergygerschio oplveret
+discussie beter synergy measure, for now fine
+
+pakket phaleb, final pickles
