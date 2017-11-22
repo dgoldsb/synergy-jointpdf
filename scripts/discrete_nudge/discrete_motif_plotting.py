@@ -262,6 +262,7 @@ def state_transition_table(motif, rule):
 def generate_id(size=7, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
+
 def append_id(filename):
     name, ext = os.path.splitext(filename)
     return "{name}_{uid}{ext}".format(name=name, uid=generate_id(), ext=ext)
@@ -316,7 +317,7 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, colors
 
             # find the nudge impact
             motif.reset_to_state(0)
-            operations.nudge_variable(motif, width, size)
+            operations.nudge_variable(motif, width, size, "DJ")
             motif.evaluate_motif()
             impact = measures.abs_diff(motif.states[-2], motif.states[-1])
 
