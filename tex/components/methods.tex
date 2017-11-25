@@ -68,7 +68,7 @@ We can compare two PMFs at two different points in time, each representing a dis
 As such, we have consistently use the system $A_{t=0}$ as the input system, and system $A_{t=\delta t}$ as the output system.
 Here, $\delta t$ is an step in time in arbitrary units, where we usually chose the value $\delta t = 1$. 
 The jointPDF-framework supports the generation of a new joint PMF from a starting PMF paired with a transition table.
-As a result, we use the former of our two model definitions for time evolution of the distribution of system states.
+As a result, we use the former of our two model definitions for a determinstic time evolution of the distribution of system states.
 The result of this is a new $l$-tree describing the joint PMF at time $t=t_0+dt$.
 
 % Turning a network into a transition table
@@ -284,7 +284,13 @@ If a portion of the datapoints of one set are clearly not mixing with the other,
 
 \subsubsection{Searching}
 
-% TODO: korte beschrijving van mijn searching method
+As a validation method, we implemented a search function to explore random samples.
+This allows us to search sets of random motifs for a particular motif that is common in nature.
+This function takes a network-type motif as an input.
+First, it converts this input motif to a transition table.
+Then, all possible variations of the transition table that represent the same motif are produced.
+After all, if we switch the labels of two genes in the motif the transition table changes, while the network-motif stays the same.
+For each transition table in the sample, we check if it is in the set of transition tables we produced in the previous step.
 
 \subsubsection{Cycle Finding}
 
