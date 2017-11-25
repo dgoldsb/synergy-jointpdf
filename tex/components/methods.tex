@@ -281,6 +281,8 @@ To achieve this, we consider every gene's state in every future state of the tra
 We then create a 2-dimensional embedding of this vector of random variables using t-Distributed Stochastic Neighbor Embedding (t-SNE), a form of dimensionality reduction that works well on dataasets with many variables per datapoint \cite{maaten2008visualizing}.
 Datapoints are colored to indicate whether they are part of the biologically possible set, or the completely random set.
 If a portion of the datapoints of one set are clearly not mixing with the other, it is implied that this set covers a part of the sample space that the other does not.
+We used a perplexity of 10, which is below the usually recommended value by the Scikit Learn.
+This was done as we found that for higher values the datapoints clumped up too much.
 
 \subsubsection{Searching}
 
@@ -405,6 +407,8 @@ The ranges, along with the increments with which we increase in our sweet, are s
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
 With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
 Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
+The nudge size was limited to below 0.5 bits, as for higher values the nudging function stopped performing well.
+In many cases, the nudged PDF would not remain close to normalized.
 
 \begin{center}
 \begin{table}
@@ -426,10 +430,10 @@ Average indegree (\#) & 2 & 4 & 1 \\
 In addition to these parameter ranges, we also use the following set values:
 
 \begin{itemize}
-\end \textbf{Synergy function}: $$
-\end \textbf{Nudge function}: 
-\end \textbf{Transition function}: \texttt{totaleffect}
-\end \textbf{Chance 1-to-1 edge}: 75\% 
+\item \textbf{Synergy function}: \texttt{}
+\item \textbf{Nudge function}: \texttt{}
+\item \textbf{Transition function}: \texttt{totaleffect}
+\item \textbf{Chance 1-to-1 edge}: 75\% 
 \end{itemize}
 
 \end{document}
