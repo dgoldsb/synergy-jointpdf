@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1511137010 "/home/dylan/Repositories/synergy-jointpdf/tex/components/discussion.tex" "discussion.pdf" "discussion" 1511137010
+["pdflatex"] 1511655469 "/home/dylan/Repositories/synergy-jointpdf/tex/components/discussion.tex" "discussion.pdf" "discussion" 1511655469
   "../main.tex" 1503067919 1326 73e5a5955c6ad158c44b37f58b414609 ""
   "/etc/texmf/web2c/texmf.cnf" 1485601181 1101 af7716885e081ab43982cab7b4672c1a ""
-  "/home/dylan/Repositories/synergy-jointpdf/tex/components/discussion.tex" 1511137010 1545 b24c250a537cf7644540f9d9adffb213 ""
+  "/home/dylan/Repositories/synergy-jointpdf/tex/components/discussion.tex" 1511655469 2011 88c07bff59782ba10b31223f355e5822 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/share/texlive/texmf-dist/tex/generic/babel-english/english.ldf" 1367878877 6963 2e0cb3d93aa64508bdb0db58ae900d97 ""
@@ -140,8 +140,8 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1488610416 31340 0f53f8665296bf8fe6c697f9505e31d8 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1490313661 2044936 0edf5ca64352b50b145b46ea2ee03d92 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1492556151 3869600 89efcf6abe531d9384dfdc7d7fbaac4a ""
-  "discussion.aux" 1511137010 8 a94a2480d3289e625eea47cd1b285758 ""
-  "discussion.tex" 1511137010 1545 b24c250a537cf7644540f9d9adffb213 ""
+  "discussion.aux" 1511655469 183 6c79f8db88a6ab56ef79e0db8ee88707 ""
+  "discussion.tex" 1511655469 2011 88c07bff59782ba10b31223f355e5822 ""
   (generated)
   "discussion.aux"
   "discussion.log"

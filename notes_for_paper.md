@@ -1,6 +1,8 @@
 # Working area
 
 Add explanation on nudging, refer to DJ possibly.
+%This method of nudging is reminiscent of the signal-response curves popular in biological sciences \cite{tyson2010functional}.
+%These, however, do not carry any mutual information naturally.
 
 Nice to have: BA-netwerk
 Ik kan de experimenten nu supermakkelijk schrijven en doen, en dan improve ik mijn constrained searchspace tot er awesome stuff uitkomt (of niet, wat ik dan report) :D

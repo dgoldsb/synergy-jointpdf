@@ -93,7 +93,7 @@ This is commonly done in the literature as well.
 
 % Go a bit more into initializing jointPDF
 To initialize a jointPDF-object that represents a system, we need to determine an initial distribution of system states.
-The Python package offers several types of random initialization, of which we opt to use the % TODO
+The Python package offers both a uniform and random initialization.
 However, in the event that we want to insert a real motif into the model, we added the option to initialize the jointPDF-object in a manner that represents the prevalence of true system states.
 For real GRNs, we often have some data about correlations between genes available from empirical studies \cite{}.
 For instance, gene A and gene B might rarely be activated together.
@@ -129,7 +129,7 @@ This method ensures that the joint PMF remains normalized after each addition, a
 % Limitations of the model
 The size of the set $A$ is in theory arbitrarily big, but in reality limited by computational complexity of the evaluation of the model. 
 The time evolution of the model runs in $O(l^{c \dot n})$, as each leaf-value of the $n$-depth tree needs to be evaluated. 
-% TODO: WHICH SECTION
+% The WMS syenrgy takes N times MI, MI takes c times entropy, entropy uses marginalize and then does some operations that are probably O(c N)
 
 \subsubsection{Generating Random State Transitions}
 
@@ -153,101 +153,42 @@ There is no biological reason for this, hence we allow new connections to be in 
 We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 
 We aim to sample from the set of biologically possible transition tables by generating random GRN motifs.
-We do so using the algorithm described in figure~\ref{random_generation}.
+We do so using the algorithm described in algorithm~\ref{random_generation} in Appendix~\ref{codeappendix}.
 In this algorithm, \texttt{rmatrix} denotes the matrix of all correlations between the different genes in the motif.
-This defines the initial joint PDF of the system, and represents the the influence of the part of the GRN that is not part of the motif.
+The content of this variable is produced by the \texttt{GenerateCorrelations} function (algorithm~\ref{generate_correlations}).
+This defines an initial distribution of states for our random motif, and represents the the influence of the part of the GRN that is not part of the motif.
 The \texttt{GenerateRules} function is given in figure~\ref{generate_rules}, and produces a set of edges that is conform to a Barabási–Albert network.
-This function can be tweaked to prefer one-to-one edges over many-to-one edges, as these edges are much more common in real life than the many-to-one variant.
-Each edge in this network has a function linked to it, either inhibition or stimulation.
-The \texttt{GenerateCorrelations} function in figure~\ref{generate_correlations} generates the \texttt{rmatrix}.
-The \texttt{FindEdges} function simply produces a list of all possible edges between all nodes.
-
-% TODO: finish pseudocode
-\begin{algorithm}[H]
-    \label{random_generation}
-    \caption{Generating a random network}
-    \SetKwData{Edges}{edges}
-    \SetKwData{Rmatrix}{rmatrix}
-    \SetKwData{Rules}{rules}
-    \SetKwData{GRN}{grn}
-    \SetKwData{GRNs}{grns}
-    \SetKwData{Rules_cnt}{rules_cnt}
-    \SetKwFunction{FindEdges}{FindEdges}
-    \SetKwFunction{Pack}{Pack}
-    \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
-    \SetKwFunction{GenerateRules}{GenerateRules}
-
-    \Input{motif size, sample size and average indegree}
-    \Output{a list of GRN objects}
-    \BlankLine
-
-    \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
-    \For{$n \leftarrow 1$ \kwTo sample size}{
-    go to next section\;
-    }
-\end{algorithm}
-
-\begin{algorithm}[H]
-    \label{generate_rules}
-    \caption{Produce Barabási–Albert directed edges with a function attached}
-    \SetKwData{Edges}{edges}
-    \SetKwData{Rmatrix}{rmatrix}
-    \SetKwData{Rules}{rules}
-    \SetKwData{GRN}{grn}
-    \SetKwData{GRNs}{grns}
-    \SetKwData{Rules_cnt}{rules_cnt}
-    \SetKwFunction{FindEdges}{FindEdges}
-    \SetKwFunction{Pack}{Pack}
-    \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
-    \SetKwFunction{GenerateRules}{GenerateRules}
-
-    \Input{motif size, sample size and average indegree}
-    \Output{a list of GRN objects}
-    \BlankLine
-
-    \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
-    \For{$n \leftarrow 1$ \kwTo sample size}{
-    go to next section\;
-    }
-\end{algorithm}
-
-\begin{algorithm}[H]
-    \label{generate_correlations}
-    \caption{Generate a random set of gene correlations (to define a starting state)}
-    \SetKwData{Edges}{edges}
-    \SetKwData{Rmatrix}{rmatrix}
-    \SetKwData{Rules}{rules}
-    \SetKwData{GRN}{grn}
-    \SetKwData{GRNs}{grns}
-    \SetKwData{Rules_cnt}{rules_cnt}
-    \SetKwFunction{FindEdges}{FindEdges}
-    \SetKwFunction{Pack}{Pack}
-    \SetKwFunction{GenerateCorrelations}{GenerateCorrelations}
-    \SetKwFunction{GenerateRules}{GenerateRules}
-
-    \Input{motif size, sample size and average indegree}
-    \Output{a list of GRN objects}
-    \BlankLine
-
-    \Edges $\leftarrow$ \FindEdges{\Nodes} \tcp{find all possibles edges between \Nodes}
-    \For{$n \leftarrow 1$ \kwTo sample size}{
-    go to next section\;
-    }
-\end{algorithm}
+The algorithm is tweaked slightly in order to not exclude some realistic biological networks.
+First, we generate a list of all possible edges using the \texttt{FindEdges} function.
+We allow cyclical networks, which we realize by allowing a new edge to be either incoming or outgoing, instead of always making it an outgoing edge.
+We allow self-loops, as well as many-to-one edges.
+To factor many-to-one edges into the preferential attachment scheme, we count both incoming and outgoing edges in our attachment probabilities.
+As all edges have one target, we define the desired number of edges as the average indegree of the system.
+When adding an edge, we shuffle the list of possible edges.
+We then go through this list until we encounter an edges that contains the node that is being added, and that contains no nodes that have not been added yet.
+A downside of this method is that this heavily favors many-to-one edges, as these are more numerous.
+To prevent this, this function can be tweaked to prefer one-to-one edges over many-to-one edges, as these edges are much more common in real life than the many-to-one variant.
+Once an edge has been selected, a function is attached to it, such as inhibition or stimulation.
 
 \subsubsection{Parameter Nudging}
 
 %% Nudging
-% TODO: zie de paper van Derkjan 
-% TODO: should the nudge size be per nudged variable?
-This method of nudging is reminiscent of the signal-response curves popular in biological sciences \cite{tyson2010functional}.
-These, however, do not carry any mutual information naturally.
+The method of nudging used was based on an implementation by Riesthuis \ref{DJ_repository}.
+We pass our motifs, a list of variables that are to be nudged, and a nudge size $0 \le \epsilon \le 1$ that represents the fraction of the total probability that should be moved.
+We nudge our PDF in such a way that the joint of all non-nudged variables remains unchanged.
+For each possible configuration of our non-nudged variables, we produce a vector $z$ of probabilities that our system is in the state where our nudged variable is holding either of the possible expression levels.
+For instance, in a system of $n=2$ and $l=2$ we might find $z = [0.2, 0.4]$ if we nudge gene 0, meaning that before the nudge $p_\mathrm{g0 = 0, g1=0} = 0.2$ and $p_\mathrm{g0 = 0, g1=1} = 0.4$.
+To this vector $z$, a random nudge vector is applied where the total sum is zero, and the absolute sum being equal to $2 \epsilon \times \sum z$.
+The nudge vector is configured in such a way that that probabilities should always fall in the range $0 \le p \le 1$.
+We do this twice in this example, as this first only covers the system states where gene 1 is of the first expression level.
+The nudged version of the vector $z^\prime$ is plugged back into the jointPDF-object.
+In practice, a nudge of $\epsilon \ge \frac{1}{n}$ or higher is not safe to use.
+In some cases it will be possible, but if the states are about equally likely this will cause the nudge to not be properly applied, as not enough probability can be moved around.
+After all, if we have a simple case of a $[0.5, 0.5]$ split, it is impossible to find a nudge vector that we can add to this that satisfies $\epsilon > 0.5$ while also respecting the restraint that probabilities should always fall in the correct range.
 
 \subsection{Analytical methods}
 
 \subsubsection{Quantification Measures}
-
-% TODO: should I normalize with the entropy or MI?
 
 % Difference of two joint PDF objects
 To measure the effect of parameter nudging on a joint PMF, we use the Hellinger distance to quantify the difference between two distributions.
@@ -264,15 +205,23 @@ The mutual information is used to inspect information decay over time in the dis
 A mutual information of zero between the state of the system at $t=0$ and $t=1$ implies that knowledge of the former state provides no insight in the latter.
 Similarly, a mutual information equal to the system entropy would imply that everything is known about the system in the latter state when examining the former.
 It is implemented as described in Eq.~\ref{MI}, and imported from the jointPDF package \cite{jointpdf}.
+We normalize this by dividing by the entropy of the system at $t = 1$.
 
 % Synergy: WMS
 % Synergy: Quax
-We use two synergy measures in the testing of our hypotheses.
-First, we use the WMS-synergy (Eq.~\ref{WMS}) as a useful lower bound of synergy in the system.
-Second, we use the SRV-based synergy measure proposed by Quax et al. (Eq.~\ref{SRV}) \cite{quax2017quantifying}.
-The used implementations for both measures are imported from the jointPDF package \cite{jointpdf}.
-
-% TODO: noteer dat we vooral de average tussen de lower en upper bound gebruiken, de andere twee ondersteunen we wel (ook even aangeven wat er nog meer geimplementeerd is)
+We found that the SRV-based synergy measure proposed by Quax et al. (Eq.~\ref{SRV}) scales poorly with motif size larger than 2 genes \cite{quax2017quantifying}.
+As a result we use a simpler synergy measure that is based on the average between an upper- and lower bound estimate for the amount of synergy.
+We use the WMS-synergy (Eq.~\ref{WMS}) as a lower bound of synergy in the system.
+For an upper bound, we use the maximum MI between a single element of the system and the entire system
+%
+\begin{equation}
+\max_i (H(x_i, X))
+\end{equation}
+%
+where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
+This boundary cannot be exceeded, as % TODO: ask Rick, ook in lit, potentially switch to I-max synergy
+The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.
+We normalize this by dividing by the entropy of the system at $t = 1$.
 
 \subsubsection{Sample Space Visualization}
 
@@ -287,8 +236,8 @@ This was done as we found that for higher values the datapoints clumped up too m
 \subsubsection{Searching}
 
 As a validation method, we implemented a search function to explore random samples.
-This allows us to search sets of random motifs for a particular motif that is common in nature.
-This function takes a network-type motif as an input.
+This allows us to search sets of randomly generated motifs for a particular motif of our choosing, for instance one that is common in nature.
+This function takes a network-type motif as an input, as well as a set of motifs of any kind.
 First, it converts this input motif to a transition table.
 Then, all possible variations of the transition table that represent the same motif are produced.
 After all, if we switch the labels of two genes in the motif the transition table changes, while the network-motif stays the same.
@@ -296,7 +245,16 @@ For each transition table in the sample, we check if it is in the set of transit
 
 \subsubsection{Cycle Finding}
 
-% TODO: korte beschrijving van mijn cycle finding method
+Cyclicle sequences of state transitions are a key element of biological networks. % verwijzing naar literatuur eerder
+To recognize cycles, we include a cycle-finder in the our framework.
+The input for this function is a motif of either type, as well as a maximum cycle length $N_\mathrm{cycle,max}$.
+The maximum length, naturally, is limited in theory by the number of possible states.
+We work with deterministic systems, so for each state a subsequent state is defined.
+As a result, a cycle can at most visit every state once, giving it a length equal to the number of possible states ($N_\mathrm{states} = l^n$).
+For each possible initial state we do $N_\mathrm{cycle,max}$ time evaluation.
+If we return to the original state, we save this sequence of states as a cycle.
+If we encounter a state that is already in a known cycle, we do not return the same cycle twice.
+The return value is a list of cycles, each captured in a list of states.
 
 \subsubsection{Complexity Profile}
 
@@ -379,25 +337,22 @@ Finally, the plot is produced by plotting the $k$ against the corresponding meas
 
 We hypothesize that:
 
-% TODO: deze updaten
-% Hypotheses (move to end introduction)
 \begin{itemize}
-\item There is a correlation between synergy and nudge resilience in random GRN motifs
-\item There is significantly more synergy in a biological GRN motif versus a random GRN motif
-\item An actual GRN scores significantly better in memory than a random GRN motif
-\item An actual GRN scores significantly better in single-nudge resilience than a random GRN motif
-\item An actual GRN does not score significantly differently in multiple-nudge resilience to a random GRN motif
+\item There is a correlation between synergy and nudge resilience in network motifs
+\item There is a correlation between synergy and system memory in network motifs
+\item There is significantly more synergy in a biological GRN motif than in a random GRN motif
+\item A biologically possible GRN scores significantly better in memory than a random GRN motif
+\item A biologically possible GRN scores significantly better in single-nudge resilience than a random GRN motif
+\item A biologically possible GRN does not score significantly differently in multiple-nudge resilience to a random GRN motif
 \item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
 \end{itemize}
 
-% If I have more time...
-% \item An actual GRN motif is optimized for memory and resilience
-
-% If I have even more time...
-% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
-% \item Synergy is found at a low level in biological networks, the level of common network motifs 
-% \item Synergy is found at a low level in trained random GRNs
-% \item The (DJ graph) indicates a level of synergistic control that is greater than random
+In addition, we perform several sanity checks to validate our model.
+We check that the biologically feasible motifs are a sub-samplespace through a t-SNE visualization.
+We also look at the prevalence of cycles in both samples, as well as how common several real network motifs are in the samples.
+In both cases we expact a higher rate of occurence in the biologically feasible motifs.
+Finally, we validate our model and measurement methods by running a few transition tables through the model of which we know the expected result.
+An example is the X-OR, which should have high synergy and high resilience.
 
 \subsubsection{Parameter ranges}
 
@@ -410,8 +365,8 @@ Larger networks typically have higher average indegrees, but as Boolean networks
 The nudge size was limited to below 0.5 bits, as for higher values the nudging function stopped performing well.
 In many cases, the nudged PDF would not remain close to normalized.
 
-\begin{center}
 \begin{table}
+\begin{center}
 \label{parameters}
 \caption{The parameter ranges used for the experiments}
 \begin{tabular}{| l | c | c | c |}
@@ -420,12 +375,12 @@ Parameter & Start & End & Increment \\
 \hline
 Network size (\#) & 2 & 5 & 1 \\
 Logic size (\#) & 2 & 5 & 1 \\
-Nudge size (bits) & 0.1 & 0.5 & 0.1 \\
+Nudge size (fraction of probability) & 0.1 & 0.5 & 0.1 \\
 Average indegree (\#) & 2 & 4 & 1 \\
 \hline
 \end{tabular}
-\end{table}
 \end{center}
+\end{table}
 
 In addition to these parameter ranges, we also use the following set values:
 

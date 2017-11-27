@@ -22,3 +22,5 @@ bin/MatLab/
 *.m
 *.ipynb_checkpoints
 !./bin/*.pdf
+*.fls
+*.fdb_latexmk
