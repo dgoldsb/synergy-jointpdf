@@ -7,17 +7,21 @@ Generates random discrete motif objects and saves them.
 
 from copy import deepcopy
 import itertools
+import math
+import numpy as np
 import random
 
-import numpy as np
 
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
 
 
-def generate_correlation_matrix(gene_cnt):
+def generate_correlation_matrix(gene_cnt, betaparam = 10):
     """
     Generate a completely random gene correlation matrix.
+	We cannot just fill the diagonal band and derive from there, as the we asume the system labels
+	represent the flow of information.
+	We use the vine method from a paper by Lewandowski, Kurowicka, and Joe.
 
     PARAMETERS
     ---
@@ -27,23 +31,33 @@ def generate_correlation_matrix(gene_cnt):
     ---
     matrix: a gene_cnt x gene_cnt matrix (ndarray of floats)
     """
-    # make an empty correlation matrix
-    matrix = np.empty([gene_cnt, gene_cnt], dtype=float)
+    P = np.zeros((gene_cnt, gene_cnt))
+    S = np.eye(gene_cnt)
 
-    # fill the bands around the diagonal
-    for i in range(1, gene_cnt):
-        random_corr = np.random.uniform(low=-1.0, high=1.0)
-        matrix[i, i-1] = random_corr
-        matrix[i-1, i] = matrix[i, i-1]
+    for k in range(0, gene_cnt-1):
+        for i in range(k, gene_cnt):
+            P[k,i] = numpy.random.beta(betaparam,betaparam)
+            P[k,i] = (P[k,i]-0.5)*2;
+            p = P[k,i];
+            for l in reversed(range(0, k-1)):
+                p = p * math.sqrt((1-P[l,i]^2)*(1-P[l,k]^2)) + P[l,i]*P[l,k]
+            S[k,i] = p
+            S[i,k] = p
 
-    # fill the remaining values, compute them from the band
-    # these are the indirect correlations, e.g. gene 0 and 2
-    for i in range(2, gene_cnt):
-        for j in range(0, i-1):
-            matrix[i, j] = matrix[i, j+1] * matrix[j+1, j]
-            matrix[j, i] = matrix[i, j]
-
-    return matrix
+    # permute the matrix
+    permutation = range(0, gene_cnt)
+    random.shuffle(permutation)
+    S_permuted = np.eye(gene_cnt)
+	
+	iterator_i = 0
+	for i in permutation:
+		iterator_j = 0
+		for j in permutation:
+			iterator_j += 1
+			S_permuted[iterator_i, iterator_j] = S[i, j]
+		iterator_i += 1
+	
+	return S_permuted.tolist()
 
 
 def generate_rules(no_rules, no_nodes, chance_1to1):

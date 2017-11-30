@@ -55,7 +55,10 @@ The AND-variants are designed to mimic co-factors, two gene products that first 
 The minimum expression level is the bottleneck for this expression level, as the two gene products only work when formed into a complex.
 When a gene is not stimulated, it is assumed that the expression level decays by one every timestep.
 It is allowed for in the model for a gene to stimulate itself, which is commonly seen in GRNs \cite{}.
-A single graph form always corresponds to a single transition table, but one transition table could be obtained from several different networks.
+A single graph form can correspond to $n!$ different transition tables, depending on how we label the genes in the network.
+As all these $n!$ transition tables are in essence the same, we look at all different permutations of the transition table for a single network, and select the top table after sorting.
+Now, a graph form always corresponds to a single transition table. 
+However, one transition table could be obtained from several different networks.
 
 % Third, explain the time evolution, including the jointpdf
 In our study we consider synergetic properties, memory, and resilience of gene regulatory networks.
@@ -68,7 +71,7 @@ We can compare two PMFs at two different points in time, each representing a dis
 As such, we have consistently use the system $A_{t=0}$ as the input system, and system $A_{t=\delta t}$ as the output system.
 Here, $\delta t$ is an step in time in arbitrary units, where we usually chose the value $\delta t = 1$. 
 The jointPDF-framework supports the generation of a new joint PMF from a starting PMF paired with a transition table.
-As a result, we use the former of our two model definitions for a determinstic time evolution of the distribution of system states.
+As a result, we use the former of our two model definitions for a deterministic time evolution of the distribution of system states.
 The result of this is a new $l$-tree describing the joint PMF at time $t=t_0+dt$.
 
 % Turning a network into a transition table
@@ -133,6 +136,12 @@ The time evolution of the model runs in $O(l^{c \dot n})$, as each leaf-value of
 
 \subsubsection{Generating Random State Transitions}
 
+First, a covariance matrix desribing all correlations between the different genes in the motif is randomly generated.
+This defines an initial distribution of states for our random motif, and represents the the influence of the part of the GRN that is not part of the motif.
+An important feature of this matrix is that it is transitive, implying that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
+This is not a trivial task, and we use a Python implementation of the vine method \cite{lewandowski2009generating}.
+This method is good for generating random correlation matrices with large off-diagonal values.
+
 For the sake of comparison, we sample from the set of all possible transition tables.
 In this process, we consider all the expression levels in the future state of the transition table as a string of random variables.
 For each variable, we sample from the set $m \in \{0, 1, ..., l\}$ with equal probabilities.
@@ -143,38 +152,40 @@ As long as the present states are always represented in the same order in the tr
 In contrast drawing samples from the set of all possible transition tables, we also want to draw a sample from the sub-samplespace of all biologically possible transition tables.
 These should adhere to a set of network properties that are characteristic for GRN motifs, as well as be constructable from the stimulation and inhibition rules that exist in GRNs, but should otherwise be completely random.
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
-This algorithm can be configured by defining a set of possible rules, a number of nodes, and a set of possible indegrees for the motifs.
+This algorithm can be configured by defining a set of possible rules, a number of nodes, a fraction of the edges that should be 1-to-1, and a set of possible indegrees for the motifs.
+
+Again, we start by generating a covariance matrix. Then, a list of all possible edges is generated.
+We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
+An edge also is defined to always have only one target, as a many-to-many edge can be rewritten as multiple many-to-one edges.
+We do allow self-loops, as these do occur in nature.
+
+With this list, the network generation process is started.
 The network is constructed using preferential attachment, resulting in a scale-free network (or Barabási–Albert network).
 An Erdős–Rényi model would have also been a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
 In the literature, the Barabási–Albert seems to be a slightly more common choice.
 In addition, we argue that the choice does not make a large difference in the results, as our networks are typically so small that there is little difference between the two.
-We use a slightly modified version of the standard scheme, as for directed graphs the algorithm cannot create cyclic graphs.
-There is no biological reason for this, hence we allow new connections to be in either direction.
-We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 
-We aim to sample from the set of biologically possible transition tables by generating random GRN motifs.
-We do so using the algorithm described in algorithm~\ref{random_generation} in Appendix~\ref{codeappendix}.
-In this algorithm, \texttt{rmatrix} denotes the matrix of all correlations between the different genes in the motif.
-The content of this variable is produced by the \texttt{GenerateCorrelations} function (algorithm~\ref{generate_correlations}).
-This defines an initial distribution of states for our random motif, and represents the the influence of the part of the GRN that is not part of the motif.
-The \texttt{GenerateRules} function is given in figure~\ref{generate_rules}, and produces a set of edges that is conform to a Barabási–Albert network.
-The algorithm is tweaked slightly in order to not exclude some realistic biological networks.
-First, we generate a list of all possible edges using the \texttt{FindEdges} function.
-We allow cyclical networks, which we realize by allowing a new edge to be either incoming or outgoing, instead of always making it an outgoing edge.
-We allow self-loops, as well as many-to-one edges.
+We use a slightly modified version of the standard scheme, as for directed graphs the algorithm cannot create cyclic graphs, and we support many-to-one edges.
+As all edges have one target, but can have multiple sources, we define the desired number of edges as the average indegree of the system.
+Unlike the Barabási–Albert algorithm, we start with 0 nodes, instead of a connected network of $m_0$ nodes. 
+This was a conscious design choice; our algorithm was written in such a way that it can handle the first few added nodes, which cannot create enough connections yet for the desired indregree.
+If we were to start with a small, (fully) connected network we were worried that we would introduce a constant pattern in our randomly generated motifs.
+As we generate only small motifs, a constant element could have a large impact on the biological properties. % meh, revisit
+For each node we add to the network, we try to add edges until $k_\mathrm{in} \cdot n_\mathrm{nodes} \ge n_\mathrm{edges}$, where $k_\mathrm{in}$ is the desired indegree, or until no more edges fit the criteria.
 To factor many-to-one edges into the preferential attachment scheme, we count both incoming and outgoing edges in our attachment probabilities.
-As all edges have one target, we define the desired number of edges as the average indegree of the system.
-When adding an edge, we shuffle the list of possible edges.
-We then go through this list until we encounter an edges that contains the node that is being added, and that contains no nodes that have not been added yet.
+We then go through the list of possible edges until we encounter an edges that contains the node that is being added, and that contains no nodes that have not been added yet.
+We accept this edge with the probability $p_\mathrm{accept} = \frac{\sum_{\mathm{i in edge}} (k_{\mathrm{in},i} + k_{\mathrm{out},i})}{\sum_j (k_{\mathrm{in},j} + k_{\mathrm{out},j})}$
+There is no biological reason for an acyclic network, hence we allow new connections to be either originating from or pointing to the added node
 A downside of this method is that this heavily favors many-to-one edges, as these are more numerous.
-To prevent this, this function can be tweaked to prefer one-to-one edges over many-to-one edges, as these edges are much more common in real life than the many-to-one variant.
+To prevent this, this function can be tweaked to prefer one-to-one edges over many-to-one edges with the variable $0 \le p_\mathrm{1-to-1} \le 1$, as these edges are much more common in real life than the many-to-one variant.
 Once an edge has been selected, a function is attached to it, such as inhibition or stimulation.
+Then, the edge is removed from the list of possible edges, to avoid picking duplicates.
 
 \subsubsection{Parameter Nudging}
 
 %% Nudging
 The method of nudging used was based on an implementation by Riesthuis \ref{DJ_repository}.
-We pass our motifs, a list of variables that are to be nudged, and a nudge size $0 \le \epsilon \le 1$ that represents the fraction of the total probability that should be moved.
+We pass our motifs, a list of variables that are to be nudged, and a nudge size $0 \le \epsilon \le 1$ that represents the fraction of the total probability that should be moved as part of the nudge.
 We nudge our PDF in such a way that the joint of all non-nudged variables remains unchanged.
 For each possible configuration of our non-nudged variables, we produce a vector $z$ of probabilities that our system is in the state where our nudged variable is holding either of the possible expression levels.
 For instance, in a system of $n=2$ and $l=2$ we might find $z = [0.2, 0.4]$ if we nudge gene 0, meaning that before the nudge $p_\mathrm{g0 = 0, g1=0} = 0.2$ and $p_\mathrm{g0 = 0, g1=1} = 0.4$.
@@ -212,16 +223,17 @@ We normalize this by dividing by the entropy of the system at $t = 1$.
 We found that the SRV-based synergy measure proposed by Quax et al. (Eq.~\ref{SRV}) scales poorly with motif size larger than 2 genes \cite{quax2017quantifying}.
 As a result we use a simpler synergy measure that is based on the average between an upper- and lower bound estimate for the amount of synergy.
 We use the WMS-synergy (Eq.~\ref{WMS}) as a lower bound of synergy in the system.
-For an upper bound, we use the maximum MI between a single element of the system and the entire system
+For an upper bound, we use the maximum entropy of a single element of the system and the entropy of the entire system
 %
 \begin{equation}
-\max_i (H(x_i, X))
+H(X) - \max_i (H(x_i))
 \end{equation}
 %
 where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
-This boundary cannot be exceeded, as % TODO: ask Rick, ook in lit, potentially switch to I-max synergy
+This resembles the WMS-synergy lower bound, but whereas the WMS-synergy assumes that there is no redundancy between the elements in the system, this measure assumes there is full redundancy.
+If there would be full redundancy all the leftover information would be synergistic in nature, but if there is no full redundancy the amount synergistic information would be lower, making this a good upper bound.
 The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.
-We normalize this by dividing by the entropy of the system at $t = 1$.
+$ INCORRECT, AS WE LOOK FOR SYNERGY WITHIN ONE TIMESTEP: We normalize this to fall between 0 and 1 by dividing by the mutual information between of the system at $t = 0$ and $t = 1$.
 
 \subsubsection{Sample Space Visualization}
 
@@ -255,10 +267,10 @@ For each possible initial state we do $N_\mathrm{cycle,max}$ time evaluation.
 If we return to the original state, we save this sequence of states as a cycle.
 If we encounter a state that is already in a known cycle, we do not return the same cycle twice.
 The return value is a list of cycles, each captured in a list of states.
+A loop of size 1 is an attractor, a larger loop is a basin of attraction.
 
 \subsubsection{Complexity Profile}
 
-% TODO: herschrijven voor discrete dingen
 % Introduction to our synergy profile
 % Link to introduction
 In previous research, the mutual information within a system has been used to investigate complexity in systems of independent and dependent random variables.
@@ -299,29 +311,13 @@ C_\mathrm{mult}(k) = \frac{\max_{X_i \in [X]^k} [\mathrm{I}(X_i;Y)]}{\mathrm{I}(
 \end{equation}
 %
 to focus on extreme values within the set of subsets of size $k$.
-
-% We mainly do the discrete case
-% Go into the math behind it, using the NPEET library documentation
 In the discrete case, we can simply calculate the mutual information as
 %
 \begin{equation}
 	I(X;Y) = \sum_{y \in Y} \sum_{x \in X} p(x,y) \log (\frac{p(x,y)}{p(x)p(y)})
 \end{equation}
 %
-We can apply this complexity measure on continuous distributions, forcing us to use approximation methods for the mutual information term.
-In this scenario, we use the k-Nearest Neighbor method described by Kraskov, and implemented in Python by Ver Steeg et al. \cite{kraskov2004estimating, versteeg2013NPEET}.
-For this method, a set of $N$ of samples is drawn from the underlying distributions of both the input and the output system.
-This results in two matrices: an input sample matrix of size $N \times X$, and an output sample matrix of size $N \times Y$, filled with continuous values.
-In both matrices, the $N$-size dimension represents samples, and the $X$- or $Y$-sized dimension represents the variables of the respective system.
-These samples are used in the NPEET library for a multiple mutual information approximation.
-Specifically, Kraskov's first algorithm is used, with the addition of the division by a logarithm to report answers in bits.
-This is
-%
-\begin{equation}
-\mathrm{I}_\mathrm{kNN}(X;Y) = \frac{\psi(k) - < \psi(n_x + 1) + \psi(n_y + 1) > + \psi(N)}{\log(2)}
-\end{equation}
-%
-where $\psi(x)$ is the digamma function, and $n_x(i)$ and $n_y(i)$ respectively are the number of points within $\epsilon(i)/2$ of $x_i$ an $y_i$. Here, $\epsilon(i)/2$ is the distance to the $k$-th nearest neighbor of the point in $(X,Y)$-space.
+For a continuous case a complexity profile can be constructed using use k-Nearest Neighbor method described by Kraskov \cite{kraskov2004estimating}.
 
 % Subsets
 We now can approximate the total mutual information between the input- and the output system.
@@ -347,6 +343,9 @@ We hypothesize that:
 \item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
 \end{itemize}
 
+To support these test, we visualize the the distribution of both biologically possible- and completely random motif in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
+We also produce all 2D projections from this 3D distribution of our motifs, three in total, leaving out on of the three variables in each.
+
 In addition, we perform several sanity checks to validate our model.
 We check that the biologically feasible motifs are a sub-samplespace through a t-SNE visualization.
 We also look at the prevalence of cycles in both samples, as well as how common several real network motifs are in the samples.
@@ -359,6 +358,7 @@ An example is the X-OR, which should have high synergy and high resilience.
 We perform a parameter sweep over several key parameters.
 These parameters could be narrowed down to a range of interest, either due to limits regarding the time complexity of increasing it further, or by using ranges specified in the literature.
 The ranges, along with the increments with which we increase in our sweet, are shown in Table~\ref{parameters}.
+As part of the experiments all possible numbers of genes targeted by a nudge are evaluated, thus this was excluded from this table.
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
 With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
 Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.

@@ -93,6 +93,10 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         # nasty thing with the states intially taking over those of the last created object
         self.states = []
+		
+		# check
+		if self.transition_table is None:
+			raise RuntimeError("transition table not defined yet..."
 
         # add all the genes
         if self.grn_vars["correlations"] is None:
@@ -107,9 +111,17 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 row = self.grn_vars["correlations"][i]
                 correlation = row[self.numvariables - 1]
                 self.append_variable_correlation(correlation)
+			# resample the probabilities, otherwise they get messed up somehow
+			self.generate_random_joint_probabilities()
 
-        # resample the probabilities, otherwise they get messed up somehow
-        self.generate_random_joint_probabilities()
+		# permute the transition table
+		# there are n! possible  transition tables for the same motif
+		# as we can always switch labels around
+		# as such, we generate all permutations, sort them and pick the top one
+		permutations = permute_transition_table(self.transition_table)
+		permutations.sort()
+		self.transition_table = permutations[0] 
+		
         self.states.append(self.joint_probabilities.joint_probabilities)
 
     def append_variable_correlation(self, correlation):
@@ -387,67 +399,6 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         else:
             raise ValueError("no valid rule defined!")
 
-    def append_variable_grn_old(self, gene_index, transition_functions):
-        """
-        Can be removed if the transition table method works.
-
-        Appends a GRN-ruled variable.
-
-        PARAMETERS
-        ---
-        gene_index: index of the gene that should be added at the next timestep
-        """
-
-        # construct the leafcodes
-        states = list(range(self.numvalues))
-        leafcodes = list(itertools.product(states, repeat=self.numvariables))
-        for _leafcode in leafcodes:
-            # tally over all rules what state this should be
-            # this is always deterministic
-            tally = {}
-            for i in range(2*(-self.numvalues), 2*(self.numvalues + 1)):
-                tally[str(i)] = 0
-
-            # loop over all relevant rules
-            for _func in transition_functions:
-                # prepare inputs
-                inputs = []
-                for index_input in _func["inputs"]:
-                    inputs.append(_leafcode[index_input])
-
-                outputs = []
-                for index_output in _func["outputs"]:
-                    outputs.append(_leafcode[index_output])
-
-                # figure out the output state
-                output_value_func = _func["rulefunction"](inputs)
-
-                # add to the tally
-                tally[str(int(output_value_func))] += 1
-
-            # decide what it will be this leafcode
-            output_value = self.decide_outcome(tally,
-                                               self.grn_vars["conflict_rule"],
-                                               _leafcode[gene_index])
-
-            # update the leafcode
-            _leafcode = list(_leafcode) + [output_value]
-
-            # extend tree
-            self.joint_probabilities.joint_probabilities =\
-                self.deepen_leafcode_old(_leafcode, self.joint_probabilities.joint_probabilities)
-
-        # add the variable
-        self.numvariables = self.numvariables + 1
-
-        # very important: turn the thing back to a numpy array!
-        # this was not possible before, as in the process of extending the tree is unbalanced
-        self.joint_probabilities.joint_probabilities =\
-            np.array(self.joint_probabilities.joint_probabilities)
-
-        # validate everything is still normalized
-        self.check_normalization()
-
 
     def append_variable_grn(self, gene_index, transition_functions):
         """
@@ -698,6 +649,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
                 if np.array_equal(b, c):
                     # this is a static state, so we can quit looking
+                    cycles.append([b])
                     break
 
                 # check if we visited the state already in a cycle, if so this is part of the same cycle

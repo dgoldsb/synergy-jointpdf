@@ -214,7 +214,7 @@ def synergy_middleground(motif):
     genes = list(range(0, motif.grn_vars["gene_cnt"]))
     for _gene in genes:
         uppers.append(mutual_information(motif, genes_t0=[_gene]))
-    upper = max(uppers)
+    upper = motif.entropy - max(uppers)
     lower = synergy_wms(motif)
     return (upper + lower) / 2
 
