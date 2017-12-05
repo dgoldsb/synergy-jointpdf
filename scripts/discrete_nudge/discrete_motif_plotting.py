@@ -373,7 +373,7 @@ def create_mi_profile(motif, mode):
         for combination in combinations:
             combination = list(combination)
             entropy = motif.entropy(combination)
-            print("found entropy of "+str(entropy)+" for combination "+str(combination))
+            # print("found entropy of "+str(entropy)+" for combination "+str(combination))
             entropies.append(entropy)
         if mode == 'average':
             plot_data.append(np.average(entropies)/entropy_system)
@@ -382,24 +382,25 @@ def create_mi_profile(motif, mode):
 
     return plot_data
 
-def plot_mi_profile(motifs, mode='maximum', filename = None):
+def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
     '''
     This function plots a profile, or a set of profiles
     '''
-	plot_data = create_mi_profile(motif[0], mode)
-	system_size = len(plot_data)-1
-	x_ax = np.linspace(0, system_size, system_size+1)
-	y_ax = x_ax/system_size
-	for motif in motifs:
-		plot_data = create_mi_profile(motif, mode)
-		if isinstance(plot_data[0], list):
-			print('You supplied a list')
-		else:
-			plt.plot(x_ax, plot_data)
+    plot_data = create_mi_profile(motifs[0], mode)
+    system_size = len(plot_data)-1
+    x_ax = np.linspace(0, system_size, system_size+1)
+    y_ax = x_ax/system_size
+    for motif in motifs:
+        plot_data = create_mi_profile(motif, mode)
+        if isinstance(plot_data[0], list):
+            print('You supplied a list')
+        else:
+            plt.plot(x_ax, plot_data)
     axes_labels = ["MI (%s)" % mode, "System size"]
-    title = "Complexity profile of %d motifs" % len(motifs)
-	plt.plot(x_ax, y_ax, ls="--")
-	plt.title(title)
+    if title is None:
+        title = "Complexity profile of %d motifs" % len(motifs)
+    plt.plot(x_ax, y_ax, ls="--")
+    plt.title(title)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-	plt.show()
+    plt.show()

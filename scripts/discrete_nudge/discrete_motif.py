@@ -10,6 +10,7 @@ from __future__ import print_function
 from copy import deepcopy
 import itertools
 import json
+from operator import itemgetter
 import os
 import random
 import sys
@@ -93,10 +94,10 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         # nasty thing with the states intially taking over those of the last created object
         self.states = []
-		
-		# check
-		if self.transition_table is None:
-			raise RuntimeError("transition table not defined yet..."
+        
+        # check
+        if self.transition_table is None:
+            self.set_transition_table(self.grn_vars["conflict_rule"])
 
         # add all the genes
         if self.grn_vars["correlations"] is None:
@@ -111,17 +112,17 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 row = self.grn_vars["correlations"][i]
                 correlation = row[self.numvariables - 1]
                 self.append_variable_correlation(correlation)
-			# resample the probabilities, otherwise they get messed up somehow
-			self.generate_random_joint_probabilities()
+            # resample the probabilities, otherwise they get messed up somehow
+            self.generate_random_joint_probabilities()
 
-		# permute the transition table
-		# there are n! possible  transition tables for the same motif
-		# as we can always switch labels around
-		# as such, we generate all permutations, sort them and pick the top one
-		permutations = permute_transition_table(self.transition_table)
-		permutations.sort()
-		self.transition_table = permutations[0] 
-		
+        # permute the transition table
+        # there are n! possible  transition tables for the same motif
+        # as we can always switch labels around
+        # as such, we generate all permutations, sort them and pick the top one
+        permutations = self.find_transition_table_permutations()
+        permutations.sort()
+        self.transition_table = permutations[0] 
+        
         self.states.append(self.joint_probabilities.joint_probabilities)
 
     def append_variable_correlation(self, correlation):
@@ -784,7 +785,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
             # accumulate the new row
             row_new = np.concatenate((left_new, right_new), axis=0)
-            table_new.append(row_new)
+            table_new.append(row_new.tolist())
 
         # permutation done!
         return table_new

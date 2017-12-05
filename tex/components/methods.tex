@@ -2,7 +2,6 @@
 % In the end I decided to do discrete research, if I need the continuous stuff again go back to commits before Aug 2017
 
 \documentclass[../main.tex]{subfiles}
-\usepackage[]{algorithm2e}
 
 \begin{document}
 
@@ -174,7 +173,7 @@ As we generate only small motifs, a constant element could have a large impact o
 For each node we add to the network, we try to add edges until $k_\mathrm{in} \cdot n_\mathrm{nodes} \ge n_\mathrm{edges}$, where $k_\mathrm{in}$ is the desired indegree, or until no more edges fit the criteria.
 To factor many-to-one edges into the preferential attachment scheme, we count both incoming and outgoing edges in our attachment probabilities.
 We then go through the list of possible edges until we encounter an edges that contains the node that is being added, and that contains no nodes that have not been added yet.
-We accept this edge with the probability $p_\mathrm{accept} = \frac{\sum_{\mathm{i in edge}} (k_{\mathrm{in},i} + k_{\mathrm{out},i})}{\sum_j (k_{\mathrm{in},j} + k_{\mathrm{out},j})}$
+We accept this edge with the probability $p_\mathrm{accept} = \frac{\sum_{\mathrm{i in edge}} (k_{\mathrm{in},i} + k_{\mathrm{out},i})}{\sum_j (k_{\mathrm{in},j} + k_{\mathrm{out},j})}$
 There is no biological reason for an acyclic network, hence we allow new connections to be either originating from or pointing to the added node
 A downside of this method is that this heavily favors many-to-one edges, as these are more numerous.
 To prevent this, this function can be tweaked to prefer one-to-one edges over many-to-one edges with the variable $0 \le p_\mathrm{1-to-1} \le 1$, as these edges are much more common in real life than the many-to-one variant.
@@ -233,7 +232,7 @@ where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
 This resembles the WMS-synergy lower bound, but whereas the WMS-synergy assumes that there is no redundancy between the elements in the system, this measure assumes there is full redundancy.
 If there would be full redundancy all the leftover information would be synergistic in nature, but if there is no full redundancy the amount synergistic information would be lower, making this a good upper bound.
 The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.
-$ INCORRECT, AS WE LOOK FOR SYNERGY WITHIN ONE TIMESTEP: We normalize this to fall between 0 and 1 by dividing by the mutual information between of the system at $t = 0$ and $t = 1$.
+% INCORRECT, AS WE LOOK FOR SYNERGY WITHIN ONE TIMESTEP: We normalize this to fall between 0 and 1 by dividing by the mutual information between of the system at $t = 0$ and $t = 1$.
 
 \subsubsection{Sample Space Visualization}
 
@@ -382,13 +381,6 @@ Average indegree (\#) & 2 & 4 & 1 \\
 \end{center}
 \end{table}
 
-In addition to these parameter ranges, we also use the following set values:
-
-\begin{itemize}
-\item \textbf{Synergy function}: \texttt{}
-\item \textbf{Nudge function}: \texttt{}
-\item \textbf{Transition function}: \texttt{totaleffect}
-\item \textbf{Chance 1-to-1 edge}: 75\% 
-\end{itemize}
+In addition to these parameter ranges, we utiluize the \texttt{totaleffect} transition function decision rule, and a chance for a 1-to-1 edge of 75\%.
 
 \end{document}
