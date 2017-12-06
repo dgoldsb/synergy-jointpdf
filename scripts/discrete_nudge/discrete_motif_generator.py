@@ -6,14 +6,20 @@ Generates random discrete motif objects and saves them.
 """
 
 from copy import deepcopy
+from fractions import Fraction
 import itertools
 import math
 import numpy as np
+from operator import mul    # or mul=lambda x,y:x*y
 import random
 
 
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
+
+
+def nCk(n,k): 
+  return int( reduce(mul, (Fraction(n-i, i+1) for i in range(k)), 1) )
 
 
 def generate_correlation_matrix(gene_cnt, betaparam = 10):
@@ -35,7 +41,7 @@ def generate_correlation_matrix(gene_cnt, betaparam = 10):
     S = np.eye(gene_cnt)
 
     for k in range(0, gene_cnt-1):
-        for i in range(k, gene_cnt):
+        for i in range(k + 1, gene_cnt):
             P[k,i] = np.random.beta(betaparam,betaparam)
             P[k,i] = (P[k,i]-0.5)*2
             p = P[k,i]
@@ -60,31 +66,30 @@ def generate_correlation_matrix(gene_cnt, betaparam = 10):
     return S_permuted.tolist()
 
 
-def generate_rules(no_rules, no_nodes, chance_1to1):
+def generate_rules(no_rules, no_nodes, p_1to1):
     """
-    We use a scale-free approach, with preferential attachment.
+    We use a Erdos-Renyi approach, without preferential attachment.
     We only use 1-to-1 and 2-to-1 functions, and randomly select origins
     and targets.
+    We can consider every number of inputs a separate ER-network,
+    with an accept probability tweaked to get the correct indegree.
+    The 2-to-1 network effectively has n**2 nodes.
 
     The ratio 2-to-1 edges is way too high compared to the ratio of 1-to-1
     edges, the latter are much more common in nature.
     To compensate, we manually turn this to an approximately 25-75 ratio
     (configurable).
 
-
     PARAMETERS
     ---
     no_rules: the number of rules requested (int)
     no_nodes: the number of nodes requested (int)
-    chance_1to1: the chance that an edge is 1-to-1 (float)
+    p_1to1: the chance that an edge is 1-to-1 (float)
 
     RETURNS
     ---
     rules: a list of rule dictionaries
     """
-    print('FINDING RULES')
-    print("WANT %d" % no_rules)
-
     # we store all rule-dictionaries in this list
     rules = []
 
@@ -112,112 +117,40 @@ def generate_rules(no_rules, no_nodes, chance_1to1):
             combination.append(deepcopy(targets[j]))
             edges.append(combination)
 
-    print(edges)
+    # a list to store the accept probability for the number of input
+    # first values is 1-to-1, second 2-to-1 etcetera
+    accept_ps = [0.0] * 2
+    # indegrees for both number of inputs, they are essentially separate networks we add
+    ks = [0.0] * 2
 
-    # we use and adaptation of the Barabasi-Albert algorithm
-    # we slightly adapt the algorithm to function with a set number of relations
-    # and to utilize both 1-to-1 directed edges as 2-to-1 directed edges
+    # determine the indegrees for both networks
+    ks[0] = (no_rules/no_nodes) * p_1to1
+    ks[1] = (no_rules/no_nodes) * (1 - p_1to1)
 
-    # we keep track of how often each gene is referenced
-    genes_referenced_cnt = [0] * no_nodes
+    # determine the probabiliti es for both networks
+    accept_ps[0] = ks[0] / no_nodes
+    accept_ps[1] = ks[1] / nCk(no_nodes, 2)
 
-    # we keep track of the already inserted genes by our BA-algorithm
-    nodes_inserted = set([])
-    
-    # the BA algorithm loops over the nodes, adding one at a time
-    for i in range(0, no_nodes):
-        print("Adding gene %d" % i)
-        
-        # we calculate the number of rules that should be attached to this gene
-        rules_left = no_rules - len(rules)
-        nodes_left = no_nodes - len(nodes_inserted)
-        rules_add_cnt = rules_left // nodes_left
+    # loop over the edges and accept or reject
+    for edge in edges:
+        # draw random number
+        draw = np.random.random()
 
-        # add the node
-        nodes_inserted.add(i)
-        
-        # start adding rules, the number of rules to add is rules_add_cnt
-        for rule_added in range(0, rules_add_cnt):
-            print("Adding rule %d" % rule_added)
-            # we create an empty rule dictionary
+        # check if we accept
+        no_inputs = len(edge[0])
+        if draw < accept_ps[no_inputs - 1]:
+            # pick a random rule
+            # find the number of inputs and outputs required
+            choice = random.choice(functions_choices[no_inputs])
+
+            # set the values
             rule = {}
+            rule["inputs"] = deepcopy(edge[0])
+            rule["outputs"] = [deepcopy(edge[1])]
+            rule["rulefunction"] = choice["f"]
 
-            # we draw a number to  see the edge should be 1-to-1
-            if i == 0:
-                random_number_1to1 = 1
-            else:
-                random_number_1to1 = np.random.random()
-
-
-            # we shuffle the edges and pick the first that contains only added genes
-            random.shuffle(edges)
-
-            # we loop over the list of edges
-            for k in range(0, len(edges)):
-                # join the sets of inputs and outputs of the edge
-                joint_set = set(edges[k][0]).union(set([edges[k][1]]))
-
-                print("Joint set")
-                print(joint_set)
-
-                # see if the edge is of the correct type (1-to-1, many-to-1)
-                proceed = False
-                if random_number_1to1 < chance_1to1 and len(edges[k][0]) == 1:
-                    proceed = True
-                elif random_number_1to1 >= chance_1to1 and len(edges[k][0]) > 1:
-                    proceed = True
-                else:
-                    proceed = False
-
-                # only proceed if all inserted nodes are in the edge, and if the
-                # currently added node is in the set
-                # if this is false we quit the loop
-                if ((len(joint_set - nodes_inserted) == 0)
-                        and (len(set([i]) - joint_set) == 0)
-                        and proceed):
-                    # calculate the total number of edges
-                    # divide the mean of the number of edges that are not the
-                    # currently added edge by this number
-                    relevant_edge_cnt = 0
-                    for j in range(0, i+1):
-                        if len(set([j]) - joint_set) == 0:
-                            relevant_edge_cnt += genes_referenced_cnt[j]
-
-                    if sum(genes_referenced_cnt) == 0:
-                        accept_probability = 1
-                    else:
-                        accept_probability = relevant_edge_cnt / sum(genes_referenced_cnt)
-
-                    print("Probability %f.3" % accept_probability)
-
-                    # the random part
-                    random_number = np.random.random()
-                    if random_number < accept_probability:
-                        edge = deepcopy(edges[k])
-                        edges.pop(k)
-
-                        # find the no_actors
-                        no_actors = len(edge[0])
-
-                        # pick a random rule
-                        # find the number of inputs and outputs required
-                        choice = random.choice(functions_choices[no_actors])
-
-                        # set the values
-                        rule["inputs"] = deepcopy(edge[0])
-                        rule["outputs"] = [deepcopy(edge[1])]
-                        rule["rulefunction"] = choice["f"]
-
-                        # append to rules
-                        print(rule)
-                        rules.append(rule)
-
-                        # add one to all setmembers
-                        for m in joint_set:
-                            genes_referenced_cnt[m] += 1
-
-                        # we found a rule, so break
-                        break
+            # append to rules
+            rules.append(rule)
     return rules
 
 
@@ -252,7 +185,7 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_
     actors_tuples = []
     for i in range(1, 3):
         actors_tuples += itertools.combinations(targets, i)
-        actors = [list(t) for t in actors_tuples]
+    actors = [list(t) for t in actors_tuples]
 
     # for calculating the average indegree
     rules_total = 0

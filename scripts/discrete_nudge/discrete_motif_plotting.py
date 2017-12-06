@@ -5,6 +5,7 @@ and analysis on profiles.
 
 from __future__ import print_function
 
+from copy import deepcopy
 import itertools
 import math
 import matplotlib.pyplot as plt
@@ -350,6 +351,9 @@ def create_mi_profile(motif, mode):
     '''
     This function creates a MI profile from a system, which can be used later.
     '''
+    # reset and timestep
+    motif.evaluate_motif()
+
     if mode != 'maximum' and mode != 'average':
         print('Select the mode maximum or average.')
         return []
@@ -358,27 +362,32 @@ def create_mi_profile(motif, mode):
     plot_data = [0]
 
     # Determine the system size
-    system_size = motif.numvariables
+    system_size = motif.grn_vars["gene_cnt"]
 
     # Relabel to be sure
     labels = range(0, system_size)
     motif.set_labels(labels)
 
     # Calculate the system entropy, for normalization
-    entropy_system = motif.entropy(labels)
+    mi_system = measures.mutual_information(motif)
 
     for i in range(1, system_size+1):
         combinations = itertools.combinations(labels, r=i)
-        entropies = []
+        mis = []
         for combination in combinations:
             combination = list(combination)
-            entropy = motif.entropy(combination)
+            
+            mi = measures.mutual_information(motif, combination)
             # print("found entropy of "+str(entropy)+" for combination "+str(combination))
-            entropies.append(entropy)
+            mis.append(mi)
         if mode == 'average':
-            plot_data.append(np.average(entropies)/entropy_system)
+            plot_data.append(np.average(mis)/mi_system)
         elif mode == 'maximum':
-            plot_data.append(np.max(entropies)/entropy_system)
+            plot_data.append(np.max(mis)/mi_system)
+
+    # reset the motif
+    motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
     return plot_data
 

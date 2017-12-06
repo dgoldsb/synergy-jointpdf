@@ -542,7 +542,7 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         if index > (len(self.states) - 1):
             raise ValueError("state does not exist")
 
-        self.joint_probabilities.joint_probabilities = self.states[index]
+        self.joint_probabilities.joint_probabilities = deepcopy(self.states[index])
         self.numvariables = self.grn_vars["gene_cnt"]
 
     def set_transition_table(self, rule='totaleffect'):

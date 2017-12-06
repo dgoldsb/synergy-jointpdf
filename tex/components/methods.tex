@@ -3,6 +3,8 @@
 
 \documentclass[../main.tex]{subfiles}
 
+\usepackage{amsmath}
+
 \begin{document}
 
 \subsection{Model design}
@@ -135,7 +137,7 @@ The time evolution of the model runs in $O(l^{c \dot n})$, as each leaf-value of
 
 \subsubsection{Generating Random State Transitions}
 
-First, a covariance matrix desribing all correlations between the different genes in the motif is randomly generated.
+First, a correlation matrix desribing all correlations between the different genes in the motif is randomly generated.
 This defines an initial distribution of states for our random motif, and represents the the influence of the part of the GRN that is not part of the motif.
 An important feature of this matrix is that it is transitive, implying that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
 This is not a trivial task, and we use a Python implementation of the vine method \cite{lewandowski2009generating}.
@@ -153,32 +155,63 @@ These should adhere to a set of network properties that are characteristic for G
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
 This algorithm can be configured by defining a set of possible rules, a number of nodes, a fraction of the edges that should be 1-to-1, and a set of possible indegrees for the motifs.
 
-Again, we start by generating a covariance matrix. Then, a list of all possible edges is generated.
+Again, we start by generating a correlation matrix. Then, a list of all possible edges is generated.
 We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 An edge also is defined to always have only one target, as a many-to-many edge can be rewritten as multiple many-to-one edges.
 We do allow self-loops, as these do occur in nature.
 
 With this list, the network generation process is started.
-The network is constructed using preferential attachment, resulting in a scale-free network (or Barabási–Albert network).
-An Erdős–Rényi model would have also been a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
+The network is constructed using a scheme related to the Erdős–Rényi algorithm.
+A scale-free network (such as a Barabási–Albert network) would have been preferable, but generating one that allows some key characteristics of GRNs is not trivial.
+For instance, the Barabási–Albert does not naturally deal with 2-to-1 edges, cannot create cycles in directed graphs, and will not create edges with the same node as the source and target.
+An Erdős–Rényi model is a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
 In the literature, the Barabási–Albert seems to be a slightly more common choice.
 In addition, we argue that the choice does not make a large difference in the results, as our networks are typically so small that there is little difference between the two.
 
-We use a slightly modified version of the standard scheme, as for directed graphs the algorithm cannot create cyclic graphs, and we support many-to-one edges.
-As all edges have one target, but can have multiple sources, we define the desired number of edges as the average indegree of the system.
-Unlike the Barabási–Albert algorithm, we start with 0 nodes, instead of a connected network of $m_0$ nodes. 
-This was a conscious design choice; our algorithm was written in such a way that it can handle the first few added nodes, which cannot create enough connections yet for the desired indregree.
-If we were to start with a small, (fully) connected network we were worried that we would introduce a constant pattern in our randomly generated motifs.
-As we generate only small motifs, a constant element could have a large impact on the biological properties. % meh, revisit
-For each node we add to the network, we try to add edges until $k_\mathrm{in} \cdot n_\mathrm{nodes} \ge n_\mathrm{edges}$, where $k_\mathrm{in}$ is the desired indegree, or until no more edges fit the criteria.
-To factor many-to-one edges into the preferential attachment scheme, we count both incoming and outgoing edges in our attachment probabilities.
-We then go through the list of possible edges until we encounter an edges that contains the node that is being added, and that contains no nodes that have not been added yet.
-We accept this edge with the probability $p_\mathrm{accept} = \frac{\sum_{\mathrm{i in edge}} (k_{\mathrm{in},i} + k_{\mathrm{out},i})}{\sum_j (k_{\mathrm{in},j} + k_{\mathrm{out},j})}$
-There is no biological reason for an acyclic network, hence we allow new connections to be either originating from or pointing to the added node
-A downside of this method is that this heavily favors many-to-one edges, as these are more numerous.
-To prevent this, this function can be tweaked to prefer one-to-one edges over many-to-one edges with the variable $0 \le p_\mathrm{1-to-1} \le 1$, as these edges are much more common in real life than the many-to-one variant.
-Once an edge has been selected, a function is attached to it, such as inhibition or stimulation.
-Then, the edge is removed from the list of possible edges, to avoid picking duplicates.
+The Erdős–Rényi algorithm from itself is not equipped to deal with 2-to-1 edges.
+To solve this problem, we effectively apply the Erdős–Rényi algorithm two times; once for 1-to-1 edges, once for 2-to-1 edges.
+Our first step is to determine the desired indegree during each pass.
+If we have a $p_\mathrm{1-to-1}$ that describes the desired fraction of 1-to-1 edges, we find that
+%
+\begin{equation}
+k_\mathrm{1-to-1} = k_\mathrm{total} \cdot p_\mathrm{1-to-1}
+\end{equation}
+%
+and
+%
+\begin{equation}
+k_\mathrm{2-to-1} = k_\mathrm{total} \cdot (1 - p_\mathrm{1-to-1})
+\end{equation}
+%
+From this information, we can calculate the accept probabilities for edges in both the 1-to-1 set, and the 2-to-1 set.
+The distribution of the indegree of a node follows a binomial distribution, giving us for both sets the distributions
+%
+\begin{equation}
+P_\mathrm{1-to-1} (\mathrm{deg}(v) = k) = \binom{n}{k} p_\mathrm{1-to-1}^k (1 - p_\mathrm{1-to-1})^{n-k}
+\end{equation}
+%
+and
+%
+\begin{equation}
+P_\mathrm{2-to-1} (\mathrm{deg}(v) = k) = \binom{n^2}{k} p_\mathrm{2-to-1}^k (1 - p_\mathrm{2-to-1})^{\binom{n}{2}-k}
+\end{equation}
+%
+where we have to keep in mind that we allow self-referring edges.
+We can use the mean of a Binomial distribution to calculate the average indegree, which should match the previously calculated average indegrees.
+This way, we arrive at the acceptance probabilities of
+%
+\begin{equation}
+p_\mathrm{1-to-1} = \frac{k_\mathrm{1-to-1}}{n}
+\end{equation}
+%
+and
+%
+\begin{equation}
+p_\mathrm{2-to-1} = \frac{k_\mathrm{2-to-1}}{\binom{n}{2}}
+\end{equation}
+
+Having calculated the parameters for the Erdős–Rényi, we execute the algorithm two times; once for 1-to-1 edges, once for 2-to-1 edges.
+Once an edge has been selected, a random function is attached to it, such as inhibition or stimulation.
 
 \subsubsection{Parameter Nudging}
 
@@ -209,6 +242,9 @@ H(X, Y) = \frac{1}{\sqrt{2}} \sqrt{\sum^k_{i=1} (\sqrt{x_i} - \sqrt{y_i})^2}
 \end{equation}
 %
 where ${x_1 ... x_k}$ are probabilities of states of $X$ occurring, and ${y_1 ... y_k}$ for states of $Y$.
+When testing the sensitivity to nudges, we always take the average Hellinger distance after applying every possible nudge of the correct 'width'.
+For instance, when we apply a nudge on a single target in a system of 4 genes we take the average of 4 values.
+This prevents interference of randomness in picking a target gene in our result.
 
 % Mutual information
 The mutual information is used to inspect information decay over time in the distribution of states in the GRN system.
@@ -225,14 +261,14 @@ We use the WMS-synergy (Eq.~\ref{WMS}) as a lower bound of synergy in the system
 For an upper bound, we use the maximum entropy of a single element of the system and the entropy of the entire system
 %
 \begin{equation}
-H(X) - \max_i (H(x_i))
+I(X_{t=0}; X_{t=1}) - \max_i (I(x_{t=0,i};X_{t=1}))
 \end{equation}
 %
 where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
 This resembles the WMS-synergy lower bound, but whereas the WMS-synergy assumes that there is no redundancy between the elements in the system, this measure assumes there is full redundancy.
 If there would be full redundancy all the leftover information would be synergistic in nature, but if there is no full redundancy the amount synergistic information would be lower, making this a good upper bound.
 The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.
-% INCORRECT, AS WE LOOK FOR SYNERGY WITHIN ONE TIMESTEP: We normalize this to fall between 0 and 1 by dividing by the mutual information between of the system at $t = 0$ and $t = 1$.
+We normalize this to fall between 0 and 1 by dividing by the mutual information between of the system at $t = 0$ and $t = 1$.
 
 \subsubsection{Sample Space Visualization}
 
@@ -361,7 +397,7 @@ As part of the experiments all possible numbers of genes targeted by a nudge are
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
 With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
 Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
-The nudge size was limited to below 0.5 bits, as for higher values the nudging function stopped performing well.
+The nudge size was limited to below 0.5 units, as for higher values the nudging function stopped performing well.
 In many cases, the nudged PDF would not remain close to normalized.
 
 \begin{table}
@@ -375,12 +411,12 @@ Parameter & Start & End & Increment \\
 Network size (\#) & 2 & 5 & 1 \\
 Logic size (\#) & 2 & 5 & 1 \\
 Nudge size (fraction of probability) & 0.1 & 0.5 & 0.1 \\
-Average indegree (\#) & 2 & 4 & 1 \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
 
 In addition to these parameter ranges, we utiluize the \texttt{totaleffect} transition function decision rule, and a chance for a 1-to-1 edge of 75\%.
+We pick a random average indegree, which is uniformly distributed between 2 and 4.
 
 \end{document}

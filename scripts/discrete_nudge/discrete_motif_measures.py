@@ -4,12 +4,15 @@ This file contains some of the common measures used on discrete motifs.
 
 from __future__ import print_function
 
+from copy import deepcopy
+import itertools
 import math
-
 import numpy as np
 from scipy.linalg import norm
 from scipy.optimize import minimize
 from scipy.stats import entropy
+
+import discrete_motif_operations as operations
 
 
 def total_correlation(motif, indices):
@@ -214,7 +217,7 @@ def synergy_middleground(motif):
     genes = list(range(0, motif.grn_vars["gene_cnt"]))
     for _gene in genes:
         uppers.append(mutual_information(motif, genes_t0=[_gene]))
-    upper = motif.entropy() - max(uppers)
+    upper = mutual_information(motif) - max(uppers)
     lower = synergy_wms(motif)
     return (upper + lower) / 2
 
@@ -239,6 +242,80 @@ def mi_decay(motif, no_steps=8):
         current = range(i*motif.grn_vars["gene_cnt"], motif.numvariables)
         memory.append(motif.mutual_information(first, current))
 
-    # reset state
+    # reset the motif
     motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+
+    return memory
+
+
+def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
+    """
+    Find the average nudge effect over all possible nudges.
+    """
+    # print(motif.grn_vars["correlations"])
+    # print(motif.transition_table)
+    impacts = []
+
+    # find all possible targets of this nudge_width
+    targets_list = [list(t) for t in itertools.combinations(list(range(0, motif.grn_vars["gene_cnt"])), nudge_width)]
+
+    for targets in targets_list:
+        targets.sort()
+
+        # make sure the motif is pristine (remove if this is secured by every operation)
+        # motif.reset_to_state(0)
+        # motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+
+        # find the nudge impact
+        motif.evaluate_motif()
+        motif.reset_to_state(0)
+        operations.nudge_variable(motif, targets, nudge_size, nudge_method)
+        motif.evaluate_motif()
+
+        # we compare the two evolved states
+        impact = abs_diff(motif.states[-3], motif.states[-1])
+        # print("Attacked %s, impact %f" % (str(targets), impact))
+        impacts.append(impact)
+    
+    # reset the motif
+    motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+
+    return sum(impacts)/len(impacts)
+
+
+def normalized_synergy(motif, synergy_measure):
+    """
+    Normalized synergy, leaves motif prestine.
+    """
+    # find the synergy
+    motif.evaluate_motif()
+    synergy = synergy_measure(motif)
+
+    # normalize by dividing by the total entropy (not mutual information)
+    if float(mutual_information(motif)) != 0:
+        synergy = float(synergy)/float(mutual_information(motif))
+    else:
+        # No mutual information means no synergy following this measure
+        synergy = 0
+
+    # reset the motif
+    motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+
+    return synergy
+
+def normalized_memory(motif):
+    """
+    Normalized synergy, leaves motif prestine.
+    """
+    # calculate the memory
+    decay = mi_decay(motif, 1)
+    memory = decay[1] / decay[0]
+
+    # reset the motif
+    motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+
     return memory
