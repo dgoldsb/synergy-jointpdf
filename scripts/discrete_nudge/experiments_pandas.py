@@ -124,7 +124,7 @@ def main():
         shutil.copytree(data_location, archive_folder)
         shutil.rmtree(data_location)
         os.mkdir(data_location)
-        shutil.copy(os.path.join(archive_folder, ".gitignore"), os.path.join(data_location, ".gitignore"))
+        shutil.copy(os.path.join(archive_location, ".gitignore"), os.path.join(data_location, ".gitignore"))
 
     # save the experiment parameters
     parameters = {}
