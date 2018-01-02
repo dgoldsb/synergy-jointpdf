@@ -119,6 +119,7 @@ def main():
     handler1.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
     mylogger.addHandler(handler1)
 
+    # create the file locations and archive
     if not os.path.isdir(data_location):
         os.mkdir(data_location)
     else:
@@ -128,6 +129,17 @@ def main():
         shutil.copytree(data_location, archive_folder)
         shutil.rmtree(data_location)
         os.mkdir(data_location)
+
+    # save the experiment parameters
+    parameters = {}
+    parameters["synergy_measure"] = synergy_measure
+    parameters["nudge_method"] = nudge_method
+    parameters["sample_size"] = sample_size * 2 # because we take two samples
+    parameters["network_sizes"] = network_sizes
+    parameters["logic_sizes"] = logic_sizes
+    parameters["nudge_sizes"] = nudge_sizes
+    with open(os.path.join(data_location, "parameters.pkl"), 'wb') as output:
+        pickle.dump(parameters, output, pickle.HIGHEST_PROTOCOL)
 
     # draw a few completely random samples, with different parameters
     for network_size in network_sizes:
@@ -152,17 +164,6 @@ def main():
                 end = time.time()
                 mylogger.debug("sampled %d motifs" % sample_size)
                 mylogger.debug("sample took %d seconds" % (end - start))
-
-    # save the experiment parameters
-    parameters = {}
-    parameters["synergy_measure"] = synergy_measure
-    parameters["nudge_method"] = nudge_method
-    parameters["sample_size"] = sample_size * 2 # because we take two samples
-    parameters["network_sizes"] = network_sizes
-    parameters["logic_sizes"] = logic_sizes
-    parameters["nudge_sizes"] = nudge_sizes
-    with open(os.path.join(data_location, "parameters.pkl"), 'wb') as output:
-        pickle.dump(dataframe, output, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
     main()

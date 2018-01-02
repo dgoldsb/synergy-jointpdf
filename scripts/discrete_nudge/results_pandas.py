@@ -5,9 +5,8 @@
 
 import os
 import pandas as pd
+import pickle
 import re
-
-
 
 # set folders
 data_location = "../../data_pandas"
@@ -304,6 +303,20 @@ def main():
     if not os.path.isdir(result_location):
         os.mkdir(result_location)
 
+    # get the parameters, unpack and store
+    sample_size = -1
+    with open(os.path.join(data_location, "parameters.pkl"), 'rb') as input:
+        parameters = pickle.load(input)
+        outfile = open(os.path.join(result_location, "parameters.txt"), "w")
+        print(parameters)
+        outfile.write("sample size: %d \n" % parameters["sample_size"])
+        outfile.write("system sizes: %s \n" % str(parameters["system_sizes"]))
+        outfile.write("logic sizes: %s \n" % str(parameters["logic_sizes"]))
+        outfile.write("nudge sizes: %s \n" % str(parameters["nudge_sizes"]))
+        outfile.write("nudge method: %s \n" % str(parameters["nudge_method"]))
+        outfile.write("synergy measure: %s \n" % str(parameters["synergy_measure"]))
+        sample_size = parameters["sample_size"]
+
     # load data back, append the dataframes
     dataframe = pd.DataFrame(columns=["system_size", "logic_size", "nudge_size", "type", "motif", "synergy", "memory", "impacts"])
     for root, dirnames, filenames in os.walk(data_location):
@@ -317,6 +330,7 @@ def main():
     # now let's get rolling and do our tests!
     visualize_TSNE(dataframe)
     visualize_scatters(dataframe)
+    sys.exit(0)
     #visualize_profile(dataframe)
     #visualize_memory(dataframe)
     #test_synergy(dataframe)
@@ -327,13 +341,12 @@ def main():
     df = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "nudge_size", "p_value", "color"])
 
     loc_counter = 0
-    samplesize = "0"
     
-    for root, dirs, files in os.walk("../../data"):
+    for root, dirs, files in os.walk(data_location):
         for file in files:
             if file.endswith('.txt'):
                 # this is an experiment, to be added to our tables
-                cgs = list(re.findall('n=([0-9]+)_l=([0-9]+)_e=([0-9]+.[0-9]+)', root)[0])
+                cgs = list(re.findall('k=([0-9]+)_l=([0-9]+)_e=([0-9]+.[0-9]+)', root)[0])
                 experiment = re.findall('more_([a-z _]+)', file)
                 with open(os.path.join(root, file), 'r') as f:
                     result = f.readline()
@@ -350,14 +363,11 @@ def main():
                         color = "green"
                     df.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(cgs[2]), float(p_value[0]), color]
                     loc_counter += 1
-                
-                samplesize = re.findall('nosamples=([0-9]+)', root)[0]
-                    
     
     # create the 4 tables
     for experiment in list(df.experiment.unique()):
-        caption = "(n=" + samplesize + ")"
-        create_table(df, experiment, samplesize)
+        caption = "(n=" + sample_size + ")"
+        create_table(df, experiment, sample_size)
     
 if __name__ == '__main__':
     main()
