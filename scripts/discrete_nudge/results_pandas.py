@@ -3,10 +3,15 @@
 #\usepackage{multirow}
 #\usepackage[table]{xcolor}
 
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pandas as pd
 import pickle
+import random
+import scipy.stats
 import re
+from sklearn.manifold import TSNE
 
 # set folders
 data_location = "../../data_pandas"
@@ -310,7 +315,7 @@ def main():
         outfile = open(os.path.join(result_location, "parameters.txt"), "w")
         print(parameters)
         outfile.write("sample size: %d \n" % parameters["sample_size"])
-        outfile.write("system sizes: %s \n" % str(parameters["system_sizes"]))
+        outfile.write("system sizes: %s \n" % str(parameters["network_sizes"]))
         outfile.write("logic sizes: %s \n" % str(parameters["logic_sizes"]))
         outfile.write("nudge sizes: %s \n" % str(parameters["nudge_sizes"]))
         outfile.write("nudge method: %s \n" % str(parameters["nudge_method"]))

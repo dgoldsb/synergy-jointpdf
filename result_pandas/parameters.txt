@@ -1,0 +1,6 @@
+sample size: 300 
+system sizes: [2, 3, 4, 5] 
+logic sizes: [2, 3, 4] 
+nudge sizes: [0.1, 0.25, 0.5] 
+nudge method: DJ 
+synergy measure: <function synergy_middleground at 0x7fd8f18fd1b8> 
