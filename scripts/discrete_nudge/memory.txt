@@ -1,0 +1,38 @@
+\begin{figure}[h]
+\label{memory}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 4.453e-08*** \cellcolor{green!60} & 1.148e-12*** \cellcolor{green!60} & 3.975e-04*** \cellcolor{green!60}\\
+\cline{2-5}
+  & 3.0 & 3.901e-01 & 9.203e-01 & 1.188e-02* \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 & 2.864e-05*** \cellcolor{yellow!60} & 1.486e-02* \cellcolor{yellow!20} & 1.388e-04*** \cellcolor{yellow!60}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 1.454e-11*** \cellcolor{green!60} & 9.835e-08*** \cellcolor{green!60} & 1.107e-11*** \cellcolor{green!60}\\
+\cline{2-5}
+  & 3.0 & 4.083e-01 & 4.923e-04*** \cellcolor{yellow!60} & 1.060e-03** \cellcolor{yellow!40}\\
+\cline{2-5}
+  & 4.0 & 2.784e-06*** \cellcolor{yellow!60} & 1.310e-09*** \cellcolor{yellow!60} & 4.754e-11*** \cellcolor{yellow!60}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 1.697e-17*** \cellcolor{green!60} & 4.715e-21*** \cellcolor{green!60} & 9.415e-16*** \cellcolor{green!60}\\
+\cline{2-5}
+  & 3.0 & 6.034e-01 & 5.647e-04*** \cellcolor{yellow!60} & 4.551e-02* \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 & 3.936e-12*** \cellcolor{yellow!60} & 2.778e-13*** \cellcolor{yellow!60} & 5.096e-09*** \cellcolor{yellow!60}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 2.944e-25*** \cellcolor{green!60} & 2.326e-23*** \cellcolor{green!60} & 6.851e-21*** \cellcolor{green!60}\\
+\cline{2-5}
+  & 3.0 & 1.243e-01 & 1.001e-01 & 5.650e-02\\
+\cline{2-5}
+  & 4.0 &  &  & \\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\caption{Experiment memory, green implies higher value in biological networks, yellow higher in random networks (n=5)}
+\end{figure}
