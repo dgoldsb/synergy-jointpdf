@@ -16,6 +16,14 @@ Much research is done on Boolean models, which simply work with a binary activat
 With the addition of reaction rates, the model used captures reality better than these Boolean models.
 Furthermore, we think that the addition of reaction rates, even when not fully corresponding to reality, will add enough extra informaton to bridge the problem that network motifs only do not predict function.
 
+In the current implementation, there is no support for non-linear correlations that describe the initial joint PMF of the system.
+In our methodology we generate a non-transitive correlation matrix.
+We only utilize the band above the diagonal from this matrix, and treat the remaining values as if the matrix were transitive.
+This implies that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
+This is not how genes necessarilly correlate in reality: gene A and C might have another direct interaction that is not captured by the indirect correlation through gene B.
+As we did not work with emperical data this approach was deemed good enough, as the purpose of reducing the overall entropy is achieved.
+However, for future research with emperical data support for non-transitive correlation matrices should be added.
+
 % TODO: too slow for 5-sized motifs
 % TODO: experimental setting 0 really does not work, even without using Rick's synergy (but with his nudge)
 

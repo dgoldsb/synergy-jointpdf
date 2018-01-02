@@ -294,8 +294,9 @@ def normalized_synergy(motif, synergy_measure):
     synergy = synergy_measure(motif)
 
     # normalize by dividing by the total entropy (not mutual information)
-    if float(mutual_information(motif)) != 0:
-        synergy = float(synergy)/float(mutual_information(motif))
+    mutual_information_calculated = float(mutual_information(motif))
+    if mutual_information_calculated != 0:
+        synergy = float(synergy)/mutual_information_calculated
     else:
         # No mutual information means no synergy following this measure
         synergy = 0

@@ -101,7 +101,7 @@ The Python package offers both a uniform and random initialization.
 However, in the event that we want to insert a real motif into the model, we added the option to initialize the jointPDF-object in a manner that represents the prevalence of true system states.
 For real GRNs, we often have some data about correlations between genes available from empirical studies \cite{}.
 For instance, gene A and gene B might rarely be activated together.
-Our model can take a matrix representing the gene-to-gene correlations, and base an initial distribution on this.
+Our model can take be configured to use a set of gene-to-gene correlations, and base an initial distribution on this.
 In this particular scenario, the PMF will be close to zero for all states where gene A and gene B are activated together.
 
 % Explain how to get a PMF from a correlation matrix
@@ -111,7 +111,15 @@ To overcome this scaling issue, we isolate a motif from the network.
 The rest of the network is inferred through the correlation matrix.
 As the correlation matrix is only applied in the first timestep, this model is not suitable for long simulations.
 
-The correlation matrix is converted to a joint PMF by assuming that the first gene has an equal chance of being in each state.
+In this study, we focus on generating random networks, with random initial correlations.
+The key difference between a joint PMFs with correlations as opposed to a uniform PMF is that the initial entropy is lower; after all, the uncertainty in the distribution is maximized if all states have an equal chance of occuring.
+As such, the primary goal is to produce initial joint PMFs that are lower in entropy than a uniform distribution. 
+For this purpose we do not need a sophisticated model that samples and applies all possible first-order correlations in the network.
+We assume a system that can be rewritten as a linear system, where each gene correlates with the previous and the next gene in the system.
+As the order of the labels is arbitrary, in practice we assume that our system can be written as a linear system.
+This implies that each gene is correlated with at most two other genes, and that there are no correlation loops.
+
+The correlation list is converted to a joint PMF by assuming that the first gene has an equal chance of being in each state.
 The result is a tree of depth 1, where each leaf has the same value.
 With each subsequent gene that is added, the tree is made one deeper.
 The ratio in which the probability of each branch is divided over the new leafs is decided by the correlation between the last gene to be added, and the new gene.
@@ -137,11 +145,11 @@ The time evolution of the model runs in $O(l^{c \dot n})$, as each leaf-value of
 
 \subsubsection{Generating Random State Transitions}
 
-First, a correlation matrix desribing all correlations between the different genes in the motif is randomly generated.
+First, a correlation matrix describing all correlations between the different genes in the motif is randomly generated.
 This defines an initial distribution of states for our random motif, and represents the the influence of the part of the GRN that is not part of the motif.
-An important feature of this matrix is that it is transitive, implying that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
-This is not a trivial task, and we use a Python implementation of the vine method \cite{lewandowski2009generating}.
+We use a Python implementation of the vine method \cite{lewandowski2009generating}.
 This method is good for generating random correlation matrices with large off-diagonal values.
+We then use values on the band above the diagonal as our correlation list.
 
 For the sake of comparison, we sample from the set of all possible transition tables.
 In this process, we consider all the expression levels in the future state of the transition table as a string of random variables.
@@ -155,7 +163,8 @@ These should adhere to a set of network properties that are characteristic for G
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
 This algorithm can be configured by defining a set of possible rules, a number of nodes, a fraction of the edges that should be 1-to-1, and a set of possible indegrees for the motifs.
 
-Again, we start by generating a correlation matrix. Then, a list of all possible edges is generated.
+Again, we start by generating a correlation list.
+Then, a list of all possible edges is generated.
 We limit many-to-one connections to 2-to-1; any higher number of inputs is hard to explain biologically, as it would require 3 gene products to form a complex together.
 An edge also is defined to always have only one target, as a many-to-many edge can be rewritten as multiple many-to-one edges.
 We do allow self-loops, as these do occur in nature.
@@ -245,6 +254,8 @@ where ${x_1 ... x_k}$ are probabilities of states of $X$ occurring, and ${y_1 ..
 When testing the sensitivity to nudges, we always take the average Hellinger distance after applying every possible nudge of the correct 'width'.
 For instance, when we apply a nudge on a single target in a system of 4 genes we take the average of 4 values.
 This prevents interference of randomness in picking a target gene in our result.
+We chose the Hellinger distance of the Kullback-Leibler divergence as the latter cannot handle zeros.
+Our distributions frequently develop states that have zero probabilities, as GRNs can have unstable states that cannot be reached from any other state.
 
 % Mutual information
 The mutual information is used to inspect information decay over time in the distribution of states in the GRN system.

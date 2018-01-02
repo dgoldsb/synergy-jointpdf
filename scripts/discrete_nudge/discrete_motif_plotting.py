@@ -406,6 +406,8 @@ def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
         else:
             plt.plot(x_ax, plot_data)
     axes_labels = ["MI (%s)" % mode, "System size"]
+    plt.xlabel(axes_labels[0])
+    plt.ylabel(axes_labels[1])
     if title is None:
         title = "Complexity profile of %d motifs" % len(motifs)
     plt.plot(x_ax, y_ax, ls="--")
