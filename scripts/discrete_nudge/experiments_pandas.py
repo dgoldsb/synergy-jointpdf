@@ -27,9 +27,9 @@ from time import gmtime, strftime
 # settings for the experiment
 synergy_measure = measures.synergy_middleground
 nudge_method = "DJ"
-sample_size = 2 # in practice this is times two
-network_sizes = [2]
-logic_sizes = [2, 3]
+sample_size = 150 # in practice this is times two, we draw a random and a GRN sample
+network_sizes = [2, 3, 4, 5]
+logic_sizes = [2, 3, 4]
 nudge_sizes = [0.1, 0.25, 0.5]
 
 # set folders
@@ -138,9 +138,9 @@ def main():
                 dataframe, samples_grn, samples_random = draw_sample(sample_size, network_size, logic_size, nudge_size)
                 
                 # save the data for future use/reruns
-                name_df = "experiment_k=%d_l=%d_e=%f_n=%d_df.pkl" % (network_size, logic_size, nudge_size, sample_size * 2)
-                name_grn = "samples_grn_k=%d_l=%d_n=%d.pkl" % (network_size, logic_size, sample_size * 2)
-                name_random = "samples_random_k=%d_l=%d_n=%d.pkl" % (network_size, logic_size, sample_size * 2)
+                name_df = "experiment_k=%d_l=%d_e=%f_df.pkl" % (network_size, logic_size, nudge_size)
+                name_grn = "samples_grn_k=%d_l=%d.pkl" % (network_size, logic_size)
+                name_random = "samples_random_k=%d_l=%d.pkl" % (network_size, logic_size)
                 with open(os.path.join(data_location, name_df), 'wb') as output:
                     pickle.dump(dataframe, output, pickle.HIGHEST_PROTOCOL)
                 with open(os.path.join(data_location, name_grn), 'wb') as output:
