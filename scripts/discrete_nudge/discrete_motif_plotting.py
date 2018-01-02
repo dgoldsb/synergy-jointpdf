@@ -54,7 +54,8 @@ def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
     bar_width = 0.35
 
     # make plot
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     if axes_labels is not None:
         plt.xlabel(axes_labels[0])
         plt.ylabel(axes_labels[1])
@@ -69,10 +70,12 @@ def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
     index_data = [(x + ((group_cnt - 1) * bar_width)/group_cnt) for x in index]
     plt.xticks(index_data, index)
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
+    plt.tight_layout()
     if filename is not None:
         plt.savefig(filename, format='pdf')
-    plt.tight_layout()
-    plt.show()
+        plt.gcf().clear()
+    else:
+        plt.show()
 
 
 def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
@@ -86,7 +89,8 @@ def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
     :param filename: the file to save to
     :param axes_labels: labels for the axes
     """
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     if axes_labels is not None:
         plt.xlabel(axes_labels[0])
         plt.ylabel(axes_labels[1])
@@ -113,7 +117,9 @@ def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-    plt.show()
+        plt.gcf().clear()
+    else:
+        plt.show()
 
 
 def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=None):
@@ -127,7 +133,8 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
     :param filename: the file to save to
     :param axes_labels: labels for the axes
     """
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     if axes_labels is not None:
         plt.xlabel(axes_labels[0])
         plt.ylabel(axes_labels[1])
@@ -145,7 +152,9 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-    plt.show()
+        plt.gcf().clear()
+    else:
+        plt.show()
 
 
 def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=None):
@@ -161,7 +170,8 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
     """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     if axes_labels is not None:
         ax.set_xlabel(axes_labels[0])
         ax.set_ylabel(axes_labels[1])
@@ -177,10 +187,12 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
         ax.scatter(x_plot[:, 0], x_plot[:, 1], x_plot[:, 2], c=col_plot[0], label=lab_plot[0], marker="x")
-    plt.legend(loc='lower right', numpoints=1, ncol=3, fontsize=8)
+    plt.legend(loc='upper right', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-    plt.show()
+        plt.gcf().clear()
+    else:
+        plt.show()
 
 
 # TODO: below obsolete?
@@ -408,10 +420,13 @@ def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
     axes_labels = ["MI (%s)" % mode, "System size"]
     plt.xlabel(axes_labels[0])
     plt.ylabel(axes_labels[1])
-    if title is None:
+    if title is not None:
         title = "Complexity profile of %d motifs" % len(motifs)
     plt.plot(x_ax, y_ax, ls="--")
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-    plt.show()
+        plt.gcf().clear()
+    else:
+        plt.show()
