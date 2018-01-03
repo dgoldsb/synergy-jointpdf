@@ -73,7 +73,7 @@ def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
     plt.tight_layout()
     if filename is not None:
         plt.savefig(filename, format='pdf')
-        plt.gcf().clear()
+        plt.close()
     else:
         plt.show()
 
@@ -117,7 +117,7 @@ def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-        plt.gcf().clear()
+        plt.close()
     else:
         plt.show()
 
@@ -152,7 +152,7 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-        plt.gcf().clear()
+        plt.close()
     else:
         plt.show()
 
@@ -190,12 +190,12 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
     plt.legend(loc='upper right', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-        plt.gcf().clear()
+        plt.close()
     else:
         plt.show()
 
 
-# TODO: below obsolete?
+# TODO: below obsolete? no... this seems to work, in contrast to the actual implementation in the class
 def state_transition_table(motif, rule):
     """
     Find the state transition table, and return it as a list of list.
@@ -427,6 +427,6 @@ def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
         plt.title(title)
     if filename is not None:
         plt.savefig(filename, format='pdf')
-        plt.gcf().clear()
+        plt.close()
     else:
         plt.show()

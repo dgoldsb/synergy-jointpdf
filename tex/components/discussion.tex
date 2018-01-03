@@ -41,4 +41,14 @@ However, for future research with emperical data support for non-transitive corr
 discussie beter synergy measure, for now fine
 % discussiëren on: in fact I am seeing if the restraint to go fron network to trans table explaibs hiigher resiliencenand memory, and if it is paired with synergy. 4 possible results: if synergy does not match the resukt it is not part of resilienvr and memory, id it does either positive result or negative with ansuggestion for further research: optimizing bron i networks
 
+
+% model needs a selective pressure, now few cycles and no long cycles within our samples
+de fix hiervoor was heel simpel, maar ik merk nog wel dat er in biologische netwerken veel minder cycles voorkomen dan compleet random netwerken
+ik kan hiervoor twee verklaringen bedenken, namelijk (1) dat mijn model een groot deel van het genregulatienetwerk buiten beschouwing laat, waardoor een cruciaal deel van een cycle kan ontbreken uit mijn transition functie, en (2) dat dit een indicatie is dat dit model nog te simpel is
+ik kan namelijk makkelijk biologische motieven bedenken met langere cycles, maar het kan zijn dat dit een superklein deel is van de sample space van alle biologische netwerken, en dat er dus nog een soort selectiedruk zou moeten zijn bij het random generen van biologisch-achtige netwerken
+dit is niet iets wat ik nu verder nog wil doen, maar iets wat ik in de discussie sterk naar voren zou willen laten komen
+een voorbeeld van een netwerk dat een langere cycle heeft is een cirkel met een positieve stimulatie clockwise, en evt (niet nodig) een negatieve zelf-stimulatie
+dit is echter super fragiel, dus de kans om dit te samplen is erg klein - 1 verkeerde link of extra link verpest dit al
+snelle experimenten zagen dat een iets hogere indegree dit wat beter maakt
+
 \end{document}

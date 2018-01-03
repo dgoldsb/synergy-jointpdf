@@ -593,12 +593,14 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     for index_output in _func["outputs"]:
                         outputs.append(_leafcode[index_output])
 
+                    # TODO: if I want to allow self-activation, I should switch this around again... Although honestly this implementation is stupid, it makes self-references super static.
                     # figure out the output state
-                    if set(_func["inputs"]) == set(_func["outputs"]):
-                        # this means it is self-activating
-                        output_value_func = _func["rulefunction"]([self.numvalues-1])
-                    else:
-                        output_value_func = _func["rulefunction"](inputs)
+                    #if set(_func["inputs"]) == set(_func["outputs"]):
+                    #    # this means it is self-activating
+                    #    output_value_func = _func["rulefunction"]([self.numvalues-1])
+                    #else:
+                    #    output_value_func = _func["rulefunction"](inputs)
+                    output_value_func = _func["rulefunction"](inputs)
 
                     # add to the tally
                     tally[str(int(output_value_func))] += 1
@@ -640,36 +642,36 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             # we now loop, making a time step every time
             # we start at the start state, to preserve the start state we copy by values
             state_current = deepcopy(state_start)
+            a = np.array(state_start, dtype=np.int16)
+            journey = []
             for i in range(0, max_cycle_length):
                 state_next = self.match_row(state_current)
 
                 # use numpy to compare
-                a = np.array(state_start, dtype=np.int16)
                 b = np.array(state_current, dtype=np.int16)
                 c = np.array(state_next, dtype=np.int16)
 
-                if np.array_equal(b, c):
-                    # this is a static state, so we can quit looking
-                    cycles.append([b])
-                    break
+                journey.append(b)
 
-                # check if we visited the state already in a cycle, if so this is part of the same cycle
+                # check if we visited the state already in a cycle, if so this is part of the same cycle or part of a runoff to the same cycle
                 found_cycle = False
                 for cycle in cycles:
                     for state in cycle:
-                        if np.array_equal(c, state):
-                            cycle.append(a)
+                        if np.array_equal(b, state):
                             found_cycle = True
-
                 if found_cycle:
                     break
 
                 if np.array_equal(a, c):
                     # this is a loop!
-                    cycles.append([a])
+                    cycles.append(journey)
                     break
-                else:
-                    state_current = state_next
+
+                if np.array_equal(b, c):
+                    # this is a static state, so we can quit looking if no cycle was found yer
+                    break
+                
+                state_current = state_next
 
         # the number of states that are in a cycle is len(cyclical_states)
         return cycles

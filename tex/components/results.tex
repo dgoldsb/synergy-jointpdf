@@ -5,55 +5,265 @@
 \usepackage{diagbox}
 \usepackage{multirow}
 \usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
 
 \begin{document}
 
+\subsection{Sanity Checks}
+
+% TSNE
+
+% Cycles
+
+% Finding flower motifs, skip for now
+
 It makes sense that memory  rises to 100\% over multiple timesteps, after all the system lapses into the available attractors, leaving a predictable determinstic system.
 This is a limitation of the model, and a reason to not do multiple timesteps/switch to a stochastic model.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2/cycles.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/cycles.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
+
+There is always a cycle or a sink, per definition.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4/tsne2D.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/tsne2D.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
+
+\subsection{Assumption Checks}
+
+Is data normal? Maybe?
+Equal variances? Hell no.
+Outliers? Yes.
+So we use wilcoxon rank test, outliers are not problematic (information is thrownm away), non-normal is also no problemo.
+
+\subsection{Wilcoxon Results}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \caption{Hidden layer biases}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
 
 Here comes some text.
 
 \begin{figure}[h]
 \label{synergy}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
+\hline
+2.0 & 2.314e-03** \cellcolor{yellow!40} & 3.112e-16*** \cellcolor{yellow!60} & 1.411e-11*** \cellcolor{yellow!60}\\
+\hline
+3.0 & 6.202e-18*** \cellcolor{yellow!60} & 4.961e-10*** \cellcolor{yellow!60} & 5.036e-02\\
+\hline
+\end{tabular}
+\centering
+\caption{Experiment synergy, green implies higher value in biological networks, yellow higher in random networks (n=900).}
+\end{figure}
+
+\begin{figure}[h]
+\label{memory}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
+\hline
+2.0 & 5.584e-47*** \cellcolor{yellow!60} & 2.112e-149*** \cellcolor{yellow!60} & 4.030e-172*** \cellcolor{yellow!60}\\
+\hline
+3.0 & 6.338e-93*** \cellcolor{yellow!60} & 1.765e-211*** \cellcolor{yellow!60} & 8.143e-235*** \cellcolor{yellow!60}\\
+\hline
+\end{tabular}
+\centering
+\caption{Experiment memory, green implies higher value in biological networks, yellow higher in random networks (n=900).}
+\end{figure}
+
+\begin{figure}[h]
+\label{resilience_single}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & 4.096e-09*** \cellcolor{green!60} & 9.291e-12*** \cellcolor{green!60} & 2.859e-05*** \cellcolor{green!60}\\
+\multirow{3}{*}{2.0} & 2.0 & 1.312e-01 & 6.893e-01 & 8.899e-01\\
 \cline{2-5}
-  & 3.0 & 5.547e-01 & 4.728e-02* \cellcolor{green!20} & 4.296e-01\\
+  & 3.0 & 5.451e-07*** \cellcolor{green!60} & 6.659e-04*** \cellcolor{green!60} & 8.704e-05*** \cellcolor{green!60}\\
 \cline{2-5}
-  & 4.0 & 2.714e-02* \cellcolor{yellow!20} & 5.721e-01 & 5.636e-02\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 5.217e-01 & 2.454e-01 & 5.906e-01\\
-\cline{2-5}
-  & 3.0 & 1.291e-25*** \cellcolor{yellow!60} & 1.654e-32*** \cellcolor{yellow!60} & 1.939e-32*** \cellcolor{yellow!60}\\
-\cline{2-5}
-  & 4.0 & 2.743e-43*** \cellcolor{yellow!60} & 4.616e-41*** \cellcolor{yellow!60} & 1.170e-48*** \cellcolor{yellow!60}\\
+  & 4.0 & 6.540e-08*** \cellcolor{green!60} & 1.364e-06*** \cellcolor{green!60} & 8.607e-03* \cellcolor{green!20}\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{4.0} & 2.0 & 2.239e-22*** \cellcolor{yellow!60} & 4.976e-16*** \cellcolor{yellow!60} & 6.617e-19*** \cellcolor{yellow!60}\\
+\multirow{3}{*}{3.0} & 2.0 & 9.114e-01 & 4.634e-01 & 8.417e-01\\
 \cline{2-5}
-  & 3.0 & 4.101e-102*** \cellcolor{yellow!60} & 2.869e-101*** \cellcolor{yellow!60} & 6.397e-101*** \cellcolor{yellow!60}\\
+  & 3.0 & 1.490e-02* \cellcolor{green!20} & 1.001e-02* \cellcolor{green!20} & 2.817e-01\\
 \cline{2-5}
-  & 4.0 & 1.364e-113*** \cellcolor{yellow!60} & 2.231e-116*** \cellcolor{yellow!60} & 4.247e-106*** \cellcolor{yellow!60}\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{5.0} & 2.0 & 2.055e-66*** \cellcolor{yellow!60} & 2.534e-79*** \cellcolor{yellow!60} & 2.098e-71*** \cellcolor{yellow!60}\\
-\cline{2-5}
-  & 3.0 & 2.343e-159*** \cellcolor{yellow!60} & 2.300e-168*** \cellcolor{yellow!60} & 3.309e-158*** \cellcolor{yellow!60}\\
-\cline{2-5}
-  & 4.0 &  &  & \\
+  & 4.0 & 5.709e-07*** \cellcolor{green!60} & 1.489e-06*** \cellcolor{green!60} & 3.273e-03** \cellcolor{green!40}\\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment synergy, green implies higher value in biological networks, yellow higher in random networks (n=5)}
+\caption{Experiment resilience single, green implies higher value in biological networks, yellow higher in random networks (n=300).}
+\end{figure}
+
+
+\begin{figure}[h]
+\label{resilience_multiple}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 2.255e-02* \cellcolor{green!20} & 2.558e-03** \cellcolor{green!40} & 2.836e-01\\
+\cline{2-5}
+  & 3.0 & 1.156e-07*** \cellcolor{green!60} & 3.501e-05*** \cellcolor{green!60} & 6.819e-04*** \cellcolor{green!60}\\
+\cline{2-5}
+  & 4.0 & 1.426e-08*** \cellcolor{green!60} & 1.264e-07*** \cellcolor{green!60} & 6.532e-07*** \cellcolor{green!60}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 4.436e-02* \cellcolor{green!20} & 6.399e-02 & 1.813e-03** \cellcolor{green!40}\\
+\cline{2-5}
+  & 3.0 & 1.525e-03** \cellcolor{green!40} & 5.173e-04*** \cellcolor{green!60} & 1.615e-03** \cellcolor{green!40}\\
+\cline{2-5}
+  & 4.0 & 3.155e-07*** \cellcolor{green!60} & 1.145e-07*** \cellcolor{green!60} & 7.732e-05*** \cellcolor{green!60}\\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\caption{Experiment resilience multiple, green implies higher value in biological networks, yellow higher in random networks (n=300).}
+\end{figure}
+
+% rest of plots in git release
+
+\subsection{MI Profile and Varying Nudge Width}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_random.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_GRN.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
+    \caption{Hidden layer output}
+    \label{fig:ugh}
+\end{figure}
+
+\subsection{Spread and Contrasts}
+
+% contrasts, to appendix
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4/scatter2D_synergy_memory.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/scatter2D_synergy_memory.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4_e=0.250000/scatter2D_synergy_resilience_width=1.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter2D_synergy_resilience_width=1.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
 \end{figure}
 
 
 
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4_e=0.250000/scatter2D_memory_resilience_width=1.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter2D_memory_resilience_width=1.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
 
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter2D_memory_resilience_width=1.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/scatter2D_memory_resilience_width=3.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.100000/scatter2D_memory_resilience_width=1.pdf}
+        \caption{Hidden layer output}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.500000/scatter2D_memory_resilience_width=1.pdf}
+        \caption{Hidden layer weights}
+    \end{subfigure}
+    \caption{Histograms for the MLP model with the standard hyperparameters}
+    \label{fig:regular_hid}
+\end{figure}
 
 \end{document}

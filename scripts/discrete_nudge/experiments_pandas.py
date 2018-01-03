@@ -23,7 +23,7 @@ from time import gmtime, strftime
 synergy_measure = measures.synergy_middleground
 nudge_method = "DJ"
 sample_size = 150 # in practice this is times two, we draw a random and a GRN sample
-network_sizes = [2, 3, 4, 5]
+network_sizes = [2, 3]
 logic_sizes = [2, 3, 4]
 nudge_sizes = [0.1, 0.25, 0.5]
 
@@ -57,7 +57,7 @@ def draw_sample(sample_size, network_size, logic_size, nudge_size):
 
     # we generate our samples
     samples_random = generator.generate_random(sample_size, network_size, logic_size)
-    samples_grn = generator.generate_motifs(sample_size, network_size, logic_size)[0]
+    samples_grn = generator.generate_motifs(sample_size, network_size, logic_size, [4])[0]
 
     # draw the samples
     print("Sampling with %s nodes and %s-valued logic" % (network_size, logic_size))
