@@ -424,11 +424,11 @@ def test_synergy(dataframe):
         if prob < 0.05:
             result = "Using %s nodes and %s-valued logic, we found a significant difference between the mean synergy"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         else:
             result = "Using %s nodes and %s-valued logic, we found no significant difference between the mean synergy"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         
         # do some normality testing
         both_normal = True
@@ -501,11 +501,11 @@ def test_memory(dataframe):
         if prob < 0.05:
             result = "Using %s nodes and %s-valued logic, we found a significant difference between the mean memory"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         else:
             result = "Using %s nodes and %s-valued logic, we found no significant difference between the mean memory"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         
         # do some normality testing
         both_normal = True
@@ -583,12 +583,12 @@ def test_resilience(dataframe):
             result = "Using %s nodes, %s-valued logic, and %s-epsilon %s-target nudge, we found a significant"\
                     " difference between the mean nudge impact"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         else:
             result = "Using %s nodes, %s-valued logic, and %s-epsilon %s-target nudge, we found no significant"\
                     " difference between the mean nudge impact"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         
         # do some normality testing
         both_normal = True
@@ -635,12 +635,12 @@ def test_resilience(dataframe):
             result = "Using %s nodes, %s-valued logic, and %s-epsilon %s-target nudge, we found a significant"\
                     " difference between the mean nudge impact"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         else:
             result = "Using %s nodes, %s-valued logic, and %s-epsilon %s-target nudge, we found no significant"\
                     " difference between the mean nudge impact"\
                     " in random transition tables (%s) and biological transition"\
-                    " table (%s), with W=%s and p=%s.\n" % args
+                    " table (%s), with Z=%s and p=%s.\n" % args
         
         # do some normality testing
         both_normal = True
@@ -673,7 +673,7 @@ def test_resilience(dataframe):
             text_file.write(result)
 
 
-def create_table_3v(df, experiment, samplesize):
+def create_table_3v(df, experiment, caption):
     outfile = open(os.path.join(result_location, experiment + ".tex"), "w")
     outfile.write(r"\begin{figure}[h]" + "\n")
     outfile.write(r"\label{%s}" % experiment)
@@ -727,6 +727,7 @@ def create_table_3v(df, experiment, samplesize):
                 d = df["experiment"] == experiment
                 print_row = len(list(df[a & b & c & d].p_value.unique())) != 0
                 p_value = list(df[a & b & c & d].p_value.unique())
+                z_value = list(df[a & b & c & d].statistic_value.unique())
                 color = list(df[a & b & c & d].color.unique())
                 if len(p_value) > 0:
                     # truncate
@@ -734,13 +735,13 @@ def create_table_3v(df, experiment, samplesize):
                     color = color[0]
                     
                     # add column
-                    row += r" & " + p_value
+                    row += r" & " + str(z_value[0])
                     
                     # add stars based on significance
                     if float(p_value) < 0.001:
-                        row += r"*** \cellcolor{%s!60}" % color
+                        row += r"*** \cellcolor{%s!20}" % color
                     elif float(p_value) < 0.005:
-                        row += r"** \cellcolor{%s!40}" % color
+                        row += r"** \cellcolor{%s!20}" % color
                     elif float(p_value) < 0.05:
                         row += r"* \cellcolor{%s!20}" % color
                 else:
@@ -751,13 +752,13 @@ def create_table_3v(df, experiment, samplesize):
         
     outfile.write(r"\end{tabular}" + "\n")
     outfile.write(r"\centering" + "\n")
-    outfile.write(re.sub("_", " ", r"\caption{Experiment %s, green implies higher value in biological networks, yellow higher in random networks (n=%s).}" % (experiment, samplesize)))
+    outfile.write(caption)
     outfile.write("\n" + r"\end{figure}"+ "\n")
     outfile.close()
     return 0
 
 
-def create_table_2v(df, experiment, samplesize):
+def create_table_2v(df, experiment, caption):
     outfile = open(os.path.join(result_location, experiment + ".tex"), "w")
     outfile.write(r"\begin{figure}[h]" + "\n")
     outfile.write(r"\label{%s}" % experiment)
@@ -801,6 +802,7 @@ def create_table_2v(df, experiment, samplesize):
             d = df["experiment"] == experiment
             print_row = len(list(df[a & b & d].p_value.unique())) != 0
             p_value = list(df[a & b & d].p_value.unique())
+            z_value = list(df[a & b & d].statistic_value.unique())
             color = list(df[a & b & d].color.unique())
             if len(p_value) > 0:
                 # truncate
@@ -808,13 +810,13 @@ def create_table_2v(df, experiment, samplesize):
                 color = color[0]
                 
                 # add column
-                row += r" & " + p_value
+                row += r" & " + str(z_value[0])
                 
                 # add stars based on significance
                 if float(p_value) < 0.001:
-                    row += r"*** \cellcolor{%s!60}" % color
+                    row += r"*** \cellcolor{%s!20}" % color
                 elif float(p_value) < 0.005:
-                    row += r"** \cellcolor{%s!40}" % color
+                    row += r"** \cellcolor{%s!20}" % color
                 elif float(p_value) < 0.05:
                     row += r"* \cellcolor{%s!20}" % color
             else:
@@ -824,7 +826,7 @@ def create_table_2v(df, experiment, samplesize):
         
     outfile.write(r"\end{tabular}" + "\n")
     outfile.write(r"\centering" + "\n")
-    outfile.write(re.sub("_", " ", r"\caption{Experiment %s, green implies higher value in biological networks, yellow higher in random networks (n=%s).}" % (experiment, samplesize)))
+    outfile.write(caption)
     outfile.write("\n" + r"\end{figure}"+ "\n")
     outfile.close()
     return 0
@@ -875,9 +877,167 @@ def main():
     visualize_profile(dataframe)
     print("proceeding to LaTeX")
 
-    # now create our latex tables
-    df_3 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "nudge_size", "p_value", "color"])
-    df_2 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "p_value", "color"])
+    # now also do our spearman tests
+    # immediatiely put in LaTeX
+    # we use the same table as later, to reuse tables
+    df_2 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "p_value", "statistic_value", "color"])
+    loc_df2 = 0
+    df_3 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "nudge_size", "p_value", "statistic_value", "color"])
+    loc_df3 = 0
+    
+    # doe the loop
+    nudge_sizes = list(set(dataframe.nudge_size))
+    system_sizes = list(set(dataframe.system_size))
+    logic_sizes = list(set(dataframe.logic_size))
+    for system_size in system_sizes:
+        for logic_size in logic_sizes:
+            # correlate memory synergy
+            a = dataframe["logic_size"] == logic_size
+            b = dataframe["system_size"] == system_size
+            c = dataframe["type"] == "random"
+            selected_dataframe = dataframe[a & b & c]
+            samples = selected_dataframe[["type", "synergy", "memory"]].values.tolist()
+            synergies = []
+            memories = []
+            for sample in samples:
+                synergies.append(sample[1])
+                memories.append(sample[2])
+            rho, p_value = scipy.stats.spearmanr(synergies, memories)
+            df_2.loc[loc_df2] = ["random_rho_syn_mem", system_size, logic_size, p_value, rho, "white"]
+            loc_df2 += 1
+
+            # now do the nudge-involving experiments
+            for nudge_size in nudge_sizes:
+                # correlate synergy single nudge
+                a = dataframe["logic_size"] == logic_size
+                b = dataframe["system_size"] == system_size
+                c = dataframe["type"] == "random"
+                d = dataframe["nudge_size"] == nudge_size
+                selected_dataframe = dataframe[a & b & c & d]
+                samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
+                synergies = []
+                impacts = []
+                for sample in samples:
+                    synergies.append(sample[1])
+                    impacts.append(sample[2][0][1])
+                rho, p_value = scipy.stats.spearmanr(synergies, impacts)
+                df_3.loc[loc_df3] = ["random_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate synergy multiple nudge
+                samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
+                synergies = []
+                impacts = []
+                for sample in samples:
+                    synergies.append(sample[1])
+                    impacts.append(sample[2][-1][1])
+                rho, p_value = scipy.stats.spearmanr(synergies, impacts)
+                df_3.loc[loc_df3] = ["random_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate memory single nudge
+                samples = selected_dataframe[["type", "memory", "impacts"]].values.tolist()
+                memories = []
+                impacts = []
+                for sample in samples:
+                    memories.append(sample[1])
+                    impacts.append(sample[2][0][1])
+                rho, p_value = scipy.stats.spearmanr(memories, impacts)
+                df_3.loc[loc_df3] = ["random_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate memory multiple nudge
+                samples = selected_dataframe[["type", "memory", "impacts"]].values.tolist()
+                memories = []
+                impacts = []
+                for sample in samples:
+                    memories.append(sample[1])
+                    impacts.append(sample[2][-1][1])
+                rho, p_value = scipy.stats.spearmanr(memories, impacts)
+                df_3.loc[loc_df3] = ["random_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+    for system_size in system_sizes:
+        for logic_size in logic_sizes:
+            # correlate memory synergy
+            a = dataframe["logic_size"] == logic_size
+            b = dataframe["system_size"] == system_size
+            c = dataframe["type"] == "GRN"
+            selected_dataframe = dataframe[a & b & c]
+            samples = selected_dataframe[["type", "synergy", "memory"]].values.tolist()
+            synergies = []
+            memories = []
+            for sample in samples:
+                synergies.append(sample[1])
+                memories.append(sample[2])
+            rho, p_value = scipy.stats.spearmanr(synergies, memories)
+            df_2.loc[loc_df2] = ["GRN_rho_syn_mem", system_size, logic_size, p_value, rho, "white"]
+            loc_df2 += 1
+
+            # now do the nudge-involving experiments
+            for nudge_size in nudge_sizes:
+                # correlate synergy single nudge
+                a = dataframe["logic_size"] == logic_size
+                b = dataframe["system_size"] == system_size
+                c = dataframe["type"] == "random"
+                d = dataframe["nudge_size"] == nudge_size
+                selected_dataframe = dataframe[a & b & c & d]
+                samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
+                synergies = []
+                impacts = []
+                for sample in samples:
+                    synergies.append(sample[1])
+                    impacts.append(sample[2][0][1])
+                rho, p_value = scipy.stats.spearmanr(synergies, impacts)
+                df_3.loc[loc_df3] = ["GRN_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate synergy multiple nudge
+                samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
+                synergies = []
+                impacts = []
+                for sample in samples:
+                    synergies.append(sample[1])
+                    impacts.append(sample[2][-1][1])
+                rho, p_value = scipy.stats.spearmanr(synergies, impacts)
+                df_3.loc[loc_df3] = ["GRN_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate memory single nudge
+                samples = selected_dataframe[["type", "memory", "impacts"]].values.tolist()
+                memories = []
+                impacts = []
+                for sample in samples:
+                    memories.append(sample[1])
+                    impacts.append(sample[2][0][1])
+                rho, p_value = scipy.stats.spearmanr(memories, impacts)
+                df_3.loc[loc_df3] = ["GRN_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+
+                # correlate memory multiple nudge
+                samples = selected_dataframe[["type", "memory", "impacts"]].values.tolist()
+                memories = []
+                impacts = []
+                for sample in samples:
+                    memories.append(sample[1])
+                    impacts.append(sample[2][-1][1])
+                rho, p_value = scipy.stats.spearmanr(memories, impacts)
+                df_3.loc[loc_df3] = ["GRN_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                loc_df3 += 1
+            
+    # create the tables
+    compression_factor = len(list(set(df_3.nudge_size)))
+    for experiment in list(df_3.experiment.unique()):
+        caption = re.sub("_", " ", r"\caption{Experiment %s, $r_S$ and significance per experiment for random/GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=%s.}" % (experiment, sample_size))
+        create_table_3v(df_3, experiment, caption)
+    for experiment in list(df_2.experiment.unique()):
+        sample_size_2v = compression_factor * sample_size
+        caption = re.sub("_", " ", r"\caption{Experiment %s, $r_S$ and significance per experiment for random/GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=%s.}" % (experiment, sample_size_2v))
+        create_table_2v(df_2, experiment, caption)
+
+    # now create our latex tables of the wilcoxon rank test
+    df_3 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "nudge_size", "p_value", "statistic_value", "color"])
+    df_2 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "p_value", "statistic_value", "color"])
 
     loc_counter = 0
     
@@ -889,7 +1049,8 @@ def main():
                 experiment = re.findall('more_([a-z _]+)', file)
                 with open(os.path.join(root, file), 'r') as f:
                     result = f.readline()
-                    p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]+)', result)
+                    z_value = re.findall('Z=([0-9]+.[0-9]+e?-?[0-9]*)', result)
+                    p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]*)', result)
                     color = None
                     if len(re.findall("no significant", result)) > 0:
                         color = "white"
@@ -900,7 +1061,7 @@ def main():
                         color = "yellow"
                     else:
                         color = "green"
-                    df_3.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(cgs[2]), float(p_value[0]), color]
+                    df_3.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(cgs[2]), float(p_value[0]), float(z_value[0]), color]
                     loc_counter += 1
             elif file.endswith('.txt') and not file.endswith('parameters.txt') and (re.search('k=[0-9]+_l=[0-9]+', root) is not None):
                 # this is an experiment, to be added to our tables
@@ -908,27 +1069,31 @@ def main():
                 experiment = re.findall('more_([a-z _]+)', file)
                 with open(os.path.join(root, file), 'r') as f:
                     result = f.readline()
-                    p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]+)', result)
+                    z_value = re.findall('Z=([0-9]+.[0-9]+e?-?[0-9]*)', result)
+                    p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]*)', result)
                     color = None
                     if len(re.findall("no significant", result)) > 0:
                         color = "white"
                     else:
                         value_bio = float(re.findall('table \(([0-9]+.[0-9]+)\)', result)[0])
                         value_ran = float(re.findall('tables \(([0-9]+.[0-9]+)\)', result)[0])
+                    # TODO: change this to dashed/solid background
                     if value_ran > value_bio:
                         color = "yellow"
                     else:
                         color = "green"
-                    df_2.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(p_value[0]), color]
+                    df_2.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(p_value[0]), float(z_value[0]), color]
                     loc_counter += 1
     
     # create the 4 tables
     compression_factor = len(list(set(df_3.nudge_size)))
     for experiment in list(df_3.experiment.unique()):
-        create_table_3v(df_3, experiment, sample_size)
+        caption = re.sub("_", " ", r"\caption{Experiment %s, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=%s. Green background implies higher mean in the biological network, yellow higher mean in the random network.}" % (experiment, sample_size))
+        create_table_3v(df_3, experiment, caption)
     for experiment in list(df_2.experiment.unique()):
         sample_size_2v = compression_factor * sample_size
-        create_table_2v(df_2, experiment, sample_size_2v)
+        caption = re.sub("_", " ", r"\caption{Experiment %s, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=%s. Green background implies higher mean in the biological network, yellow higher mean in the random network.}" % (experiment, sample_size_2v))
+        create_table_2v(df_2, experiment, caption)
     
 if __name__ == '__main__':
     main()
