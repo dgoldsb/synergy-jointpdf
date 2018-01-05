@@ -1,0 +1,1 @@
+Using 4 nodes and 3-valued logic, we found no significant difference between the mean memory in random transition tables (0.881096200683) and biological transition table (0.878971485999), with t=0.51989864199 and p=0.603423259409.
