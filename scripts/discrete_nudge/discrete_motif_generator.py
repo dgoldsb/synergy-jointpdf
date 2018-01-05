@@ -207,7 +207,7 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_
             max_edges = len(targets) * 4
             no_rules = random.randint(min_edges, max_edges)
         else:
-            no_rules = np.random.choice(indegrees)
+            no_rules = np.random.choice(indegrees) * len(targets)
         rules_total += no_rules
 
         # the rules are not part of the original framework

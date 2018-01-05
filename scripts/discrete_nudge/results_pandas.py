@@ -878,9 +878,9 @@ def main():
 
     # now let's get rolling and do our tests!
     print("doing cyclesearch")
-    histogram_cycles(dataframe)
+    #histogram_cycles(dataframe)
     print("doing TSNE")
-    visualize_TSNE(dataframe)
+    #visualize_TSNE(dataframe)
     print("doing tests")
     test_synergy(dataframe)
     test_memory(dataframe)
@@ -888,9 +888,9 @@ def main():
     print("doing scatters")
     visualize_scatters(dataframe)
     print("doing impacts")
-    visualize_impacts(dataframe)
+    #visualize_impacts(dataframe)
     print("doing profile")
-    visualize_profile(dataframe)
+    #visualize_profile(dataframe)
     print("proceeding to LaTeX")
 
     # now also do our spearman tests
