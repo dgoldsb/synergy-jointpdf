@@ -177,7 +177,7 @@ def visualize_scatters(dataframe):
             for sample in samples:
                 if len(sample[2]) > 0:
                     if sample[1] is not None and sample[2][i][1] is not None:
-                        x_values.append([sample[2][i][1], sample[1]])
+                        x_values.append([sample[1], sample[2][i][1]])
                         if sample[0] == "random":
                             colors.append("red")
                             labels.append("Random transition table")
@@ -192,7 +192,7 @@ def visualize_scatters(dataframe):
             if not os.path.isdir(folderpath):
                 os.mkdir(folderpath)
             title = None
-            axes_labels = ["Nudge impact", "Synergy"]
+            axes_labels = ["Synergy", "Nudge impact"]
             filename = "scatter2D_synergy_resilience_width=%s.pdf" % str(i+1)
             visualize.plot_scatter(x_values, colors, labels, title, os.path.join(folderpath, filename), axes_labels)
 
@@ -206,7 +206,7 @@ def visualize_scatters(dataframe):
             for sample in samples:
                 if len(sample[2]) > 0:
                     if sample[3] is not None and sample[2][i][1] is not None:
-                        x_values.append([sample[2][i][1], sample[3]])
+                        x_values.append([sample[3], sample[2][i][1]])
                         if sample[0] == "random":
                             colors.append("red")
                             labels.append("Random transition table")
@@ -217,7 +217,7 @@ def visualize_scatters(dataframe):
 
             # plot and save
             title = None
-            axes_labels = ["Nudge impact", "Memory"]
+            axes_labels = ["Memory", "Nudge impact"]
             filename = "scatter2D_memory_resilience_width=%s.pdf" % str(i+1)
             visualize.plot_scatter(x_values, colors, labels, title, os.path.join(folderpath, filename), axes_labels)
 
@@ -231,7 +231,7 @@ def visualize_scatters(dataframe):
             for sample in samples:
                 if len(sample[2]) > 0:
                     if sample[1] is not None and sample[2][i][1] is not None:
-                        x_values.append([sample[2][j][1], sample[1], sample[3]])
+                        x_values.append([sample[1], sample[3], sample[2][j][1]])
                         if sample[0] == "random":
                             colors.append("red")
                             labels.append("Random transition table")
@@ -241,7 +241,7 @@ def visualize_scatters(dataframe):
             x_values = np.array(x_values)
             
             title = None
-            axes_labels = ["Nudge impact", "Synergy", "Memory"]
+            axes_labels = ["Synergy", "Memory", "Nudge impact"]
             filename = "scatter3D_memory_synergy_resilience.pdf"
             visualize.plot_scatter_3d(x_values, colors, labels, title, os.path.join(folderpath, filename), axes_labels)
 
@@ -878,9 +878,9 @@ def main():
 
     # now let's get rolling and do our tests!
     print("doing cyclesearch")
-    #histogram_cycles(dataframe)
+    histogram_cycles(dataframe)
     print("doing TSNE")
-    #visualize_TSNE(dataframe)
+    visualize_TSNE(dataframe)
     print("doing tests")
     test_synergy(dataframe)
     test_memory(dataframe)
@@ -888,9 +888,9 @@ def main():
     print("doing scatters")
     visualize_scatters(dataframe)
     print("doing impacts")
-    #visualize_impacts(dataframe)
+    visualize_impacts(dataframe)
     print("doing profile")
-    #visualize_profile(dataframe)
+    visualize_profile(dataframe)
     print("proceeding to LaTeX")
 
     # now also do our spearman tests
@@ -1073,10 +1073,10 @@ def main():
                     else:
                         value_bio = float(re.findall('table \(([0-9]+.[0-9]+)\)', result)[0])
                         value_ran = float(re.findall('tables \(([0-9]+.[0-9]+)\)', result)[0])
-                    if value_ran > value_bio:
-                        color = "yellow"
-                    else:
-                        color = "green"
+                        if value_ran > value_bio:
+                            color = "yellow"
+                        else:
+                            color = "green"
                     df_3.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(cgs[2]), float(p_value[0]), float(z_value[0]), color]
                     loc_counter += 1
             elif file.endswith('.txt') and not file.endswith('parameters.txt') and (re.search('k=[0-9]+_l=[0-9]+', root) is not None):
@@ -1093,11 +1093,11 @@ def main():
                     else:
                         value_bio = float(re.findall('table \(([0-9]+.[0-9]+)\)', result)[0])
                         value_ran = float(re.findall('tables \(([0-9]+.[0-9]+)\)', result)[0])
-                    # TODO: change this to dashed/solid background
-                    if value_ran > value_bio:
-                        color = "yellow"
-                    else:
-                        color = "green"
+                        # TODO: change this to dashed/solid background
+                        if value_ran > value_bio:
+                            color = "yellow"
+                        else:
+                            color = "green"
                     df_2.loc[loc_counter] = [experiment[0], int(cgs[0]), int(cgs[1]), float(p_value[0]), float(z_value[0]), color]
                     loc_counter += 1
     

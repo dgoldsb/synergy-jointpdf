@@ -4,17 +4,24 @@
 
 \begin{document}
 
-Ideally, we would use a sample of empirically obtained datasets.
-However, due to the limited availability of datasets that are both suitable (i.e. an ODE model) and small enough for analysis, this was not possible.
-Our resort to generated GRN-like networks was the next best alternative, but raises doubts about the extend to which our results can be generalized to all biological complex systems.
-The use of correlations to replace the rest of the network makes it so that the framework is not suited for prolonged simulations.
+% section: limitations with the model
+% I try to logically walk through the steps of getting to my transition table
+We use an Erdos Renyi model.
+Complete gene regulatory networks use Barabasi-Albers.
+Hard to implement, and very similar, as the scale is still small.
+However, I could not find information on te network structure on the scale of motifs.
 
-As the accurate description of GRNs as ODE systems is relatively new territory, networks are not very accurate yet.
-The ODE system used in this study has a corresponence of nearly 50\% to emperical data.
-We think that, while these models are still not truly representative for real systems, these sytems should represent the type of dynamics in GRNs fairly well.
-Much research is done on Boolean models, which simply work with a binary activation/deactivation system.
-With the addition of reaction rates, the model used captures reality better than these Boolean models.
-Furthermore, we think that the addition of reaction rates, even when not fully corresponding to reality, will add enough extra informaton to bridge the problem that network motifs only do not predict function.
+Many different choices in the conversion of network to transition table.
+Chosen method seemed to yield the best results cycle-wise (best sanity check).
+Also closest to literature.
+However, multi-valued logic is kind of unknown territory.
+I extended it to work here.
+The similar results are comforting, but I am still not sure if the translation should be different.
+
+The use of correlations to replace the rest of the network makes it so that the framework is not suited for prolonged simulations.
+Lack of cycles.
+This is a limitation of the model, and a reason to not do multiple timesteps/switch to a stochastic model.
+It makes sense that follows that memory rises to 100\% over multiple timesteps, after all the system lapses into the available attractors, leaving a predictable determinstic system.
 
 In the current implementation, there is no support for non-linear correlations that describe the initial joint PMF of the system.
 In our methodology we generate a non-transitive correlation matrix.
@@ -24,29 +31,7 @@ This is not how genes necessarilly correlate in reality: gene A and C might have
 As we did not work with emperical data this approach was deemed good enough, as the purpose of reducing the overall entropy is achieved.
 However, for future research with emperical data support for non-transitive correlation matrices should be added.
 
-
-It makes sense that memory  rises to 100\% over multiple timesteps, after all the system lapses into the available attractors, leaving a predictable determinstic system.
-This is a limitation of the model, and a reason to not do multiple timesteps/switch to a stochastic model.
-
-% TODO: too slow for 5-sized motifs
-% TODO: experimental setting 0 really does not work, even without using Rick's synergy (but with his nudge)
-
-% If I have more time...
-% \item An actual GRN motif is optimized for memory and resilience
-
-% If I have even more time...
-% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
-% \item Synergy is found at a low level in biological networks, the level of common network motifs 
-% \item Synergy is found at a low level in trained random GRNs
-% \item The (DJ graph) indicates a level of synergistic control that is greater than random
-
-% Ratios van relaties niet realistisch per definitie
-% krrn thesis: io heb twee modelleb, een supernaif en een een beetje naief, ik kihk of het verschil in eigebschappen de resilience en memory verklaard, en of sit verschil ook synergygerschio oplveret
-discussie beter synergy measure, for now fine
-% discussiëren on: in fact I am seeing if the restraint to go fron network to trans table explaibs hiigher resiliencenand memory, and if it is paired with synergy. 4 possible results: if synergy does not match the resukt it is not part of resilienvr and memory, id it does either positive result or negative with ansuggestion for further research: optimizing bron i networks
-
-
-% model needs a selective pressure, now few cycles and no long cycles within our samples
+model needs a selective pressure, now few cycles and no long cycles within our samples
 de fix hiervoor was heel simpel, maar ik merk nog wel dat er in biologische netwerken veel minder cycles voorkomen dan compleet random netwerken
 ik kan hiervoor twee verklaringen bedenken, namelijk (1) dat mijn model een groot deel van het genregulatienetwerk buiten beschouwing laat, waardoor een cruciaal deel van een cycle kan ontbreken uit mijn transition functie, en (2) dat dit een indicatie is dat dit model nog te simpel is
 ik kan namelijk makkelijk biologische motieven bedenken met langere cycles, maar het kan zijn dat dit een superklein deel is van de sample space van alle biologische netwerken, en dat er dus nog een soort selectiedruk zou moeten zijn bij het random generen van biologisch-achtige netwerken
@@ -55,4 +40,36 @@ een voorbeeld van een netwerk dat een langere cycle heeft is een cirkel met een 
 dit is echter super fragiel, dus de kans om dit te samplen is erg klein - 1 verkeerde link of extra link verpest dit al
 snelle experimenten zagen dat een iets hogere indegree dit wat beter maakt
 
+% section: limitations in experiments
+too slow for 6-sized motifs, size 5 took more than a day each on a desktop computer
+reimplement not possible due to dependencies, nasty time complexity makes it so that it gets wrose quickly.
+it is probably better to find ways to approximate te rest of the network each timestep, perhaps with a stochastic element
+
+discussie beter synergy measure, for now fine
+experimental setting 0 really does not work, even without using Rick's synergy (but with his nudge) > we used rough approximations
+
+Ratios van relaties niet realistisch per definitie, want free paramater
+
+% section: limitations in scope of the study
+Ideally, we would use a sample of empirically obtained datasets.
+However, due to the limited availability of datasets that are both suitable (i.e. an ODE model) and small enough for analysis, this was not possible.
+Our resort to generated GRN-like networks was the next best alternative, but raises doubts about the extend to which our results can be generalized to all biological complex systems.
+
+% section: future research
+Add a selective pressure: more complex model
+
+However, for future research with emperical data support for non-transitive correlation matrices should be added.
+
+experimental setting 0 really does not work, even without using Rick's synergy (but with his nudge) > we used rough approximations % TODO: also in future
+
+larger system of betere approximation rest van het netwerk
+
+% graveyard
+% If I have more time...
+% \item An actual GRN motif is optimized for memory and resilience
+% If I have even more time...
+% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
+% \item Synergy is found at a low level in biological networks, the level of common network motifs 
+% \item Synergy is found at a low level in trained random GRNs
+% \item The (DJ graph) indicates a level of synergistic control that is greater than random
 \end{document}
