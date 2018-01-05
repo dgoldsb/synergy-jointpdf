@@ -1,15 +1,6 @@
 % Version: 0.0
 
 \documentclass[../main.tex]{subfiles}
-\usepackage{array}
-\usepackage{diagbox}
-\usepackage{multirow}
-\usepackage{colortbl}
-\usepackage{graphicx}
-\usepackage{caption}
-\usepackage{subcaption}
-\usepackage{float}
-\usepackage{url}
 
 \begin{document}
 
@@ -24,11 +15,11 @@ The fact that here and there a random system is mixed in with the biologically i
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4/tsne2D.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=4/tsne2D.pdf}
         \caption{t-SNE for $k=2$ and $l=4$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=4/tsne2D.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=4/tsne2D.pdf}
         \caption{t-SNE for $k=4$ and $l=4$ ($n=900$)}
     \end{subfigure}
     \caption{t-SNE plots for varying experiments}
@@ -46,11 +37,11 @@ As there is always either a cycle or a sink, a maximum cycle length of 1 is the 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2/cycles.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2/cycles.pdf}
         \caption{Distribution for $k=2$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/cycles.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/cycles.pdf}
         \caption{Distribution for $k=3$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \caption{Histograms of the maximum cycle length distribution}
@@ -67,7 +58,6 @@ As such, we do not meet the assumptions for a t-test for comparing means, and fo
 To handle the sample correctly we use non-parametric statistics in all further analysis, such as the Wilcoxon signed-rank test and the Spearson test of correlation. % these tests throw away the actual values, so outliers  are no problem either, they will simply get the highest/lowest rank
 
 \subsection{Comparisons GRN and Random Systems}
-% TODO: Should I report the tables different, include the means and only do the stars? Move them to the appendix?
 
 We compared the level of synergy measured in random and biologically inspired systems for varying system sizes and number of states.
 We found that completely random systems carry significantly more synergy than the biological systems in all cases.
@@ -79,13 +69,17 @@ These results are compiled in Table~\ref{synergy}.
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & 3.792e-14*** \cellcolor{yellow!60} & 1.948e-24*** \cellcolor{yellow!60} & 1.873e-26*** \cellcolor{yellow!60}\\
+2.0 & 32478.0*** \cellcolor{yellow!20} & 25229.0*** \cellcolor{yellow!20} & 21135.0*** \cellcolor{yellow!20}\\
 \hline
-3.0 & 2.803e-44*** \cellcolor{yellow!60} & 1.065e-66*** \cellcolor{yellow!60} & 2.103e-67*** \cellcolor{yellow!60}\\
+3.0 & 9135.0*** \cellcolor{yellow!20} & 2759.0*** \cellcolor{yellow!20} & 2066.0*** \cellcolor{yellow!20}\\
+\hline
+4.0 & 356.0*** \cellcolor{yellow!20} & 115.0*** \cellcolor{yellow!20} & 434.0*** \cellcolor{yellow!20}\\
+\hline
+5.0 & 11.0*** \cellcolor{yellow!20} & 0.0*** \cellcolor{yellow!20} & \\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment synergy, green implies higher value in biological networks, yellow higher in random networks (n=900).}
+\caption{Experiment synergy, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \end{figure}
 
 We similarly compared the level of synergy measured in random and biologically inspired systems for varying experiments.
@@ -98,13 +92,17 @@ These results are compiled in Table~\ref{memory}.
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & 1.760e-05*** \cellcolor{yellow!60} & 2.935e-60*** \cellcolor{yellow!60} & 1.726e-66*** \cellcolor{yellow!60}\\
+2.0 & 40878.5*** \cellcolor{yellow!20} & 6442.0*** \cellcolor{yellow!20} & 2509.0*** \cellcolor{yellow!20}\\
 \hline
-3.0 & 1.702e-01 & 5.996e-52*** \cellcolor{yellow!60} & 8.109e-63*** \cellcolor{yellow!60}\\
+3.0 & 44352.0* \cellcolor{yellow!20} & 10494.0*** \cellcolor{yellow!20} & 3890.0*** \cellcolor{yellow!20}\\
+\hline
+4.0 & 30656.0*** \cellcolor{yellow!20} & 3652.0*** \cellcolor{yellow!20} & 1011.0*** \cellcolor{yellow!20}\\
+\hline
+5.0 & 0.0*** \cellcolor{green!20} & 0.0*** \cellcolor{green!20} & \\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment memory, green implies higher value in biological networks, yellow higher in random networks (n=900).}
+\caption{Experiment memory, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \end{figure}
 
 We did not find a consistent difference in the impact of nudging a single variable.
@@ -119,24 +117,39 @@ These experiments are closer to reality, as gene regulatory networks consist of 
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & 2.663e-01 & 4.356e-01 & 8.402e-01\\
+\multirow{3}{*}{2.0} & 2.0 & 5300.0 & 5399.0 & 5466.0\\
 \cline{2-5}
-  & 3.0 & 1.670e-02* \cellcolor{green!20} & 4.133e-03** \cellcolor{green!40} & 1.183e-01\\
+  & 3.0 & 4257.0* \cellcolor{green!20} & 4691.0 & 4645.0\\
 \cline{2-5}
-  & 4.0 & 5.686e-05*** \cellcolor{green!60} & 4.923e-05*** \cellcolor{green!60} & 5.165e-03* \cellcolor{green!20}\\
+  & 4.0 & 3357.0*** \cellcolor{green!20} & 3840.0*** \cellcolor{green!20} & 4312.0* \cellcolor{green!20}\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{3.0} & 2.0 & 2.520e-01 & 4.615e-01 & 3.193e-03** \cellcolor{yellow!40}\\
+\multirow{3}{*}{3.0} & 2.0 & 5290.0 & 3745.0*** \cellcolor{yellow!20} & 5270.0\\
 \cline{2-5}
-  & 3.0 & 1.951e-01 & 8.299e-01 & 5.665e-01\\
+  & 3.0 & 4145.0** \cellcolor{green!20} & 5241.0 & 5033.0\\
 \cline{2-5}
-  & 4.0 & 6.777e-02 & 4.718e-01 & 9.305e-01\\
+  & 4.0 & 4469.0* \cellcolor{green!20} & 5450.0 & 5301.0\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 5316.0 & 4356.0* \cellcolor{yellow!20} & 4177.0* \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 5489.0 & 5489.0 & 5503.0\\
+\cline{2-5}
+  & 4.0 & 5143.0 & 5546.0 & 5136.0\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 3102.0*** \cellcolor{yellow!20} & 5295.0 & 4480.0* \cellcolor{green!20}\\
+\cline{2-5}
+  & 3.0 & 3527.0*** \cellcolor{yellow!20} & 5458.0 & 5436.0\\
+\cline{2-5}
+  & 4.0 &  &  & \\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment resilience single, green implies higher value in biological networks, yellow higher in random networks (n=300).}
+\caption{Experiment resilience single, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \end{figure}
+
 
 We did find a consistent difference in the impact of nudging all variables.
 As shown in Table~\ref{resilience_multiple}, the nudge impact is consistently higher in biological networks.
@@ -148,28 +161,43 @@ It appears that models with a higher resolution, by virtue of having more expres
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & 9.402e-02 & 7.950e-01 & 8.226e-01\\
+\multirow{3}{*}{2.0} & 2.0 & 5300.0 & 4726.0 & 4714.0\\
 \cline{2-5}
-  & 3.0 & 2.007e-03** \cellcolor{green!40} & 1.326e-05*** \cellcolor{green!60} & 1.279e-01\\
+  & 3.0 & 4095.0** \cellcolor{green!20} & 4389.0* \cellcolor{green!20} & 4152.0** \cellcolor{green!20}\\
 \cline{2-5}
-  & 4.0 & 5.043e-05*** \cellcolor{green!60} & 1.245e-09*** \cellcolor{green!60} & 5.790e-06*** \cellcolor{green!60}\\
+  & 4.0 & 3190.0*** \cellcolor{green!20} & 2864.0*** \cellcolor{green!20} & 3135.0*** \cellcolor{green!20}\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{3.0} & 2.0 & 6.049e-02 & 2.259e-01 & 7.690e-01\\
+\multirow{3}{*}{3.0} & 2.0 & 5225.0 & 4490.0* \cellcolor{yellow!20} & 5658.0\\
 \cline{2-5}
-  & 3.0 & 3.174e-03** \cellcolor{green!40} & 1.453e-02* \cellcolor{green!20} & 5.113e-02\\
+  & 3.0 & 3518.0*** \cellcolor{green!20} & 4816.0 & 5157.0\\
 \cline{2-5}
-  & 4.0 & 1.565e-03** \cellcolor{green!40} & 4.308e-03** \cellcolor{green!40} & 3.550e-04*** \cellcolor{green!60}\\
+  & 4.0 & 3741.0*** \cellcolor{green!20} & 3949.0** \cellcolor{green!20} & 3370.0*** \cellcolor{green!20}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 5207.0 & 5448.0 & 5360.0\\
+\cline{2-5}
+  & 3.0 & 3618.0*** \cellcolor{green!20} & 4045.0** \cellcolor{green!20} & 4594.0* \cellcolor{green!20}\\
+\cline{2-5}
+  & 4.0 & 3653.0*** \cellcolor{green!20} & 3820.0*** \cellcolor{green!20} & 4349.0* \cellcolor{green!20}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 397.0*** \cellcolor{yellow!20} & 2029.0*** \cellcolor{yellow!20} & 4156.0** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 577.0*** \cellcolor{yellow!20} & 2360.0*** \cellcolor{yellow!20} & 4743.0\\
+\cline{2-5}
+  & 4.0 &  &  & \\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment resilience multiple, green implies higher value in biological networks, yellow higher in random networks (n=300).}
+\caption{Experiment resilience multiple, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \end{figure}
 
-In Fig.~\ref{fig:3dscatterl} we provide two scatterplots of experiments, one with few expression level states, and one with many.
+In Fig.~\ref{fig:3dscatter} we provide several scatterplots of experiments, with varying system sizes and numbers of expression levels.
 We find that the variance reduces significantly when increasing the number of possible states, showing a much clearer pattern.
-The same effect is not seen when increasing the system size (Fig.~\ref{fig:3dscatterk}).
+The same effect is seen in a lesser extend when increasing the system size.
+This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
 We notice that random systems are very tightly clustered, and typically have an extremely high memory paired with high synergy.
 The biological systems are much more spread out, and while there are outliers with higher memory than any random system, most samples have a lower memory and synergy.
 The spread of nudge impacts is also much high in biological systems than in random systems.
@@ -177,20 +205,20 @@ The spread of nudge impacts is also much high in biological systems than in rand
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=2$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=2$ and $l=4$ ($n=900$)}
     \end{subfigure}
 \bigskip
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=4$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=4$ and $l=4$ ($n=900$)}
     \end{subfigure}
     \caption{Scatterplots of synergy, memory and nudge impact (varying $l$ and $k$)}
@@ -198,10 +226,17 @@ The spread of nudge impacts is also much high in biological systems than in rand
 \end{figure}
 
 \subsection{Spearman Results}
+% TODO: report min/max somewhere?
 
-Only in one of the two samples.
-Maybe similar tables
-we see that some combinations never occur (high synergy high memory)
+In our correlation experiments we find a strong correlation between the synergy and the memory in a system.
+Interestingly, the correlation is reversed in sign when comparing random networks and biologically-inspired networks.
+In Table~\ref{GRN_rho_syn_mem}, we find that there is a highly significant, mostly positive correlation between synergy and memory.
+In the 5 system size experiment, only memory values of 1 where reported, indicating that something went wrong in this experimental setup. % TODO: look into code what happens
+In Fig.~\ref{fig:3dscatter} we see that the range over which the observed synergy varies is very large for biological networks.
+Combinations of low synergy and high memory never occur.
+In Table~\ref{random_rho_syn_mem}, we find a highly significant and strong relationship between synergy and memory.
+However, the random sample only covers the high synergy-range.
+As such, the random networks also do not populate the low synergy-high memory space.
 
 \begin{figure}[h]
 \label{GRN_rho_syn_mem}
@@ -209,17 +244,17 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & 0.0559558109581 & -0.1159865617* \cellcolor{white!20} & -0.217570812797*** \cellcolor{white!20}\\
+2.0 & 0.06 & -0.12*  & -0.22*** \\
 \hline
-3.0 & 0.617894462289*** \cellcolor{white!20} & 0.222817753377*** \cellcolor{white!20} & 0.26601579797*** \cellcolor{white!20}\\
+3.0 & 0.62***  & 0.22***  & 0.27*** \\
 \hline
-4.0 & 0.673904038552*** \cellcolor{white!20} & 0.350787506114*** \cellcolor{white!20} & 0.423257875024*** \cellcolor{white!20}\\
+4.0 & 0.67***  & 0.35***  & 0.42*** \\
 \hline
-5.0 & -0.0192765714729 & -0.0660014725235 & nan\\
+5.0 & -0.02 & -0.07 & nan\\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment GRN rho syn mem, $r S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900.}
+\caption{Experiment GRN rho syn mem, $r_S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900.}
 \end{figure}
 
 \begin{figure}[h]
@@ -228,18 +263,25 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & -0.0284577011955 & -0.277224941029*** \cellcolor{white!20} & -0.395419302482*** \cellcolor{white!20}\\
+2.0 & -0.03 & -0.28***  & -0.40*** \\
 \hline
-3.0 & -0.181921622658*** \cellcolor{white!20} & -0.555146708543*** \cellcolor{white!20} & -0.73342103747*** \cellcolor{white!20}\\
+3.0 & -0.18***  & -0.56***  & -0.73*** \\
 \hline
-4.0 & -0.464575462924*** \cellcolor{white!20} & -0.667547066076*** \cellcolor{white!20} & -0.770693583672*** \cellcolor{white!20}\\
+4.0 & -0.46***  & -0.67***  & -0.77*** \\
 \hline
-5.0 & -0.531099182383*** \cellcolor{white!20} & -0.725597986492*** \cellcolor{white!20} & nan\\
+5.0 & -0.53***  & -0.73***  & nan\\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment random rho syn mem, $r S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900.}
+\caption{Experiment random rho syn mem, $r_S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900.}
 \end{figure}
+
+We do not find a significant relationship between synergy and the impact of a single target nudge (Table~\ref{GRN_rho_syn_singleimpact} and Table~\ref{random_rho_syn_singleimpact}).
+This result is the same in both random networks and GRN networks.
+We find that both sets of experiments only contain a few significant results.
+However, these $p$-values are relatively high, as they fall in the range $0.05 > p > 0.005$.
+As we do close to 40 experiments, we should be wary of false positives by chance; with this number of experiments, results with a $p$-value of $p < 0.001$ should be considered with care.
+Furthermore, the found correlations are weak, implying that even if they are significant they might not be relevant. % TODO: move this to results?
 
 \begin{figure}[h]
 \label{GRN_rho_syn_singleimpact}
@@ -247,37 +289,37 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & -0.0542015200676 & -0.00632917581153 & -0.165397720252* \cellcolor{white!20}\\
+\multirow{3}{*}{2.0} & 2.0 & -0.05 & -0.01 & -0.17* \\
 \cline{2-5}
-  & 3.0 & -0.0120343126361 & -0.0416818525268 & -0.0806738077248\\
+  & 3.0 & -0.01 & -0.04 & -0.08\\
 \cline{2-5}
-  & 4.0 & -0.00318769723099 & 0.0414791768523 & 0.0705755811369\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 0.101357393662 & -0.0455682474777 & -0.0398542157429\\
-\cline{2-5}
-  & 3.0 & -0.0574727765678 & -0.00403395706476 & 0.111910751589\\
-\cline{2-5}
-  & 4.0 & 0.147318547491 & -0.0400782256989 & -0.0562958353705\\
+  & 4.0 & -0.00 & 0.04 & 0.07\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{4.0} & 2.0 & -0.17064047291* \cellcolor{white!20} & -0.0166140717365 & -0.0242410773812\\
+\multirow{3}{*}{3.0} & 2.0 & 0.10 & -0.05 & -0.04\\
 \cline{2-5}
-  & 3.0 & -0.0363233921508 & -0.0526476732299 & 0.122076536735\\
+  & 3.0 & -0.06 & -0.00 & 0.11\\
 \cline{2-5}
-  & 4.0 & 0.0222925463354 & 0.0322627672341 & 0.0994515311792\\
+  & 4.0 & 0.15 & -0.04 & -0.06\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{5.0} & 2.0 & 0.0595066447398 & 0.0522174318859 & -0.167308769279* \cellcolor{white!20}\\
+\multirow{3}{*}{4.0} & 2.0 & -0.17*  & -0.02 & -0.02\\
 \cline{2-5}
-  & 3.0 & 0.0853175696698 & -0.123569936442 & -0.175486910529* \cellcolor{white!20}\\
+  & 3.0 & -0.04 & -0.05 & 0.12\\
+\cline{2-5}
+  & 4.0 & 0.02 & 0.03 & 0.10\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.06 & 0.05 & -0.17* \\
+\cline{2-5}
+  & 3.0 & 0.09 & -0.12 & -0.18* \\
 \cline{2-5}
   & 4.0 & nan & nan & nan\\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment GRN rho syn singleimpact, $r S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\caption{Experiment GRN rho syn singleimpact, $r_S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
 \end{figure}
 
 \begin{figure}[h]
@@ -286,38 +328,51 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & -0.0542015200676 & -0.00632917581153 & -0.165397720252* \cellcolor{white!20}\\
+\multirow{3}{*}{2.0} & 2.0 & -0.05 & -0.01 & -0.17* \\
 \cline{2-5}
-  & 3.0 & -0.0120343126361 & -0.0416818525268 & -0.0806738077248\\
+  & 3.0 & -0.01 & -0.04 & -0.08\\
 \cline{2-5}
-  & 4.0 & -0.00318769723099 & 0.0414791768523 & 0.0705755811369\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 0.101357393662 & -0.0455682474777 & -0.0398542157429\\
-\cline{2-5}
-  & 3.0 & -0.0574727765678 & -0.00403395706476 & 0.111910751589\\
-\cline{2-5}
-  & 4.0 & 0.147318547491 & -0.0400782256989 & -0.0562958353705\\
+  & 4.0 & -0.00 & 0.04 & 0.07\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{4.0} & 2.0 & -0.17064047291* \cellcolor{white!20} & -0.0166140717365 & -0.0242410773812\\
+\multirow{3}{*}{3.0} & 2.0 & 0.10 & -0.05 & -0.04\\
 \cline{2-5}
-  & 3.0 & -0.0363233921508 & -0.0526476732299 & 0.122076536735\\
+  & 3.0 & -0.06 & -0.00 & 0.11\\
 \cline{2-5}
-  & 4.0 & 0.0222925463354 & 0.0322627672341 & 0.0994515311792\\
+  & 4.0 & 0.15 & -0.04 & -0.06\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{5.0} & 2.0 & 0.0595066447398 & 0.0522174318859 & -0.167308769279* \cellcolor{white!20}\\
+\multirow{3}{*}{4.0} & 2.0 & -0.17*  & -0.02 & -0.02\\
 \cline{2-5}
-  & 3.0 & 0.0853175696698 & -0.123569936442 & -0.175486910529* \cellcolor{white!20}\\
+  & 3.0 & -0.04 & -0.05 & 0.12\\
+\cline{2-5}
+  & 4.0 & 0.02 & 0.03 & 0.10\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.06 & 0.05 & -0.17* \\
+\cline{2-5}
+  & 3.0 & 0.09 & -0.12 & -0.18* \\
 \cline{2-5}
   & 4.0 & nan & nan & nan\\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment random rho syn singleimpact, $r S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\caption{Experiment random rho syn singleimpact, $r_S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
 \end{figure}
+
+No significant relationship synergy and single nudge impact (Table~\ref{GRN_rho_syn_multimpact} and Table~\ref{random_rho_syn_multimpact})
+Only a few hits, and with a 0.05 > p-value > 0.005
+We do 36 experiments, so this is not unexpected
+Also not hugh correlations
+We can wonder about the relevance % RESULTS
+alfa lager,
+significant en relevantie
+
+
+We do not find a significant relationship between synergy and the impact of a nudge that targets all variables in the system (Table~\ref{GRN_rho_syn_singleimpact} and Table~\ref{random_rho_syn_singleimpact}).
+This result is the same in both random networks and GRN networks.
+Again, we find only several experiments with a $p$-value in the range $0.05 > p > 0.005$, and with a low correlation $r_S$.
 
 \begin{figure}[h]
 \label{GRN_rho_syn_multimpact}
@@ -325,37 +380,37 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & -0.0892501888973 & -0.0856433742485 & -0.066308783776\\
+\multirow{3}{*}{2.0} & 2.0 & -0.09 & -0.09 & -0.07\\
 \cline{2-5}
-  & 3.0 & 0.0113800613361 & 0.0844926441175 & 0.0538779501311\\
+  & 3.0 & 0.01 & 0.08 & 0.05\\
 \cline{2-5}
-  & 4.0 & -0.0207529223521 & 0.0435806035824 & 0.126837637228\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 0.190972043202* \cellcolor{white!20} & -0.0685452686786 & -0.0627245655362\\
-\cline{2-5}
-  & 3.0 & 0.0357829236855 & -0.0746006489177 & 0.186584292635* \cellcolor{white!20}\\
-\cline{2-5}
-  & 4.0 & 0.226984310414* \cellcolor{white!20} & 0.0697897684342 & 0.0416534068181\\
+  & 4.0 & -0.02 & 0.04 & 0.13\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{4.0} & 2.0 & -0.0572345437575 & -0.0155224676652 & -0.219325303347* \cellcolor{white!20}\\
+\multirow{3}{*}{3.0} & 2.0 & 0.19*  & -0.07 & -0.06\\
 \cline{2-5}
-  & 3.0 & 0.082558335926 & 0.124131739188 & 0.172873461043* \cellcolor{white!20}\\
+  & 3.0 & 0.04 & -0.07 & 0.19* \\
 \cline{2-5}
-  & 4.0 & 0.101357393662 & 0.051182719232 & 0.0240775145562\\
+  & 4.0 & 0.23*  & 0.07 & 0.04\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{5.0} & 2.0 & 0.114015734033 & 0.066258944842 & 0.024070403129\\
+\multirow{3}{*}{4.0} & 2.0 & -0.06 & -0.02 & -0.22* \\
 \cline{2-5}
-  & 3.0 & 0.0998817725232 & -0.00579759100404 & -0.0891470732033\\
+  & 3.0 & 0.08 & 0.12 & 0.17* \\
+\cline{2-5}
+  & 4.0 & 0.10 & 0.05 & 0.02\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.11 & 0.07 & 0.02\\
+\cline{2-5}
+  & 3.0 & 0.10 & -0.01 & -0.09\\
 \cline{2-5}
   & 4.0 & nan & nan & nan\\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment GRN rho syn multimpact, $r S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\caption{Experiment GRN rho syn multimpact, $r_S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
 \end{figure}
 
 \begin{figure}[h]
@@ -364,42 +419,45 @@ we see that some combinations never occur (high synergy high memory)
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & -0.0892501888973 & -0.0856433742485 & -0.066308783776\\
+\multirow{3}{*}{2.0} & 2.0 & -0.09 & -0.09 & -0.07\\
 \cline{2-5}
-  & 3.0 & 0.0113800613361 & 0.0844926441175 & 0.0538779501311\\
+  & 3.0 & 0.01 & 0.08 & 0.05\\
 \cline{2-5}
-  & 4.0 & -0.0207529223521 & 0.0435806035824 & 0.126837637228\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 0.190972043202* \cellcolor{white!20} & -0.0685452686786 & -0.0627245655362\\
-\cline{2-5}
-  & 3.0 & 0.0357829236855 & -0.0746006489177 & 0.186584292635* \cellcolor{white!20}\\
-\cline{2-5}
-  & 4.0 & 0.226984310414* \cellcolor{white!20} & 0.0697897684342 & 0.0416534068181\\
+  & 4.0 & -0.02 & 0.04 & 0.13\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{4.0} & 2.0 & -0.0572345437575 & -0.0155224676652 & -0.219325303347* \cellcolor{white!20}\\
+\multirow{3}{*}{3.0} & 2.0 & 0.19*  & -0.07 & -0.06\\
 \cline{2-5}
-  & 3.0 & 0.082558335926 & 0.124131739188 & 0.172873461043* \cellcolor{white!20}\\
+  & 3.0 & 0.04 & -0.07 & 0.19* \\
 \cline{2-5}
-  & 4.0 & 0.101357393662 & 0.051182719232 & 0.0240775145562\\
+  & 4.0 & 0.23*  & 0.07 & 0.04\\
 \cline{2-5}
 \hline
-\multirow{3}{*}{5.0} & 2.0 & 0.114015734033 & 0.066258944842 & 0.024070403129\\
+\multirow{3}{*}{4.0} & 2.0 & -0.06 & -0.02 & -0.22* \\
 \cline{2-5}
-  & 3.0 & 0.0998817725232 & -0.00579759100404 & -0.0891470732033\\
+  & 3.0 & 0.08 & 0.12 & 0.17* \\
+\cline{2-5}
+  & 4.0 & 0.10 & 0.05 & 0.02\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.11 & 0.07 & 0.02\\
+\cline{2-5}
+  & 3.0 & 0.10 & -0.01 & -0.09\\
 \cline{2-5}
   & 4.0 & nan & nan & nan\\
 \cline{2-5}
 \hline
 \end{tabular}
 \centering
-\caption{Experiment random rho syn multimpact, $r S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\caption{Experiment random rho syn multimpact, $r_S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
 \end{figure}
 
-Memory - impact does not matter, due to relation with synergy.
+We provide similar tables to Table~\ref{GRN_rho_syn_singleimpact}-~\ref{random_rho_syn_multimpact} in the appendix for memory instead of synergy.
+The results, however, where found to be similar.
+This is not unsurprising; synergy and memory where found to be highly correlated.
+It appears from this result that the information in the random variable memory that is uncorrelated with the synergy is not correlated with nudge impact either.
 
-% rest of plots in git release
+% rest of plots in git release, footnote
 
 \subsection{MI-Profile}
 
@@ -407,17 +465,17 @@ In the MI-profiles, we find that the synergy-redundancy ratio is less balanced i
 Like in previous experiments, we find that increasing the number of possible expression levels $l$ makes the difference between the two system types more pronounced.
 In Fig.~\ref{fig:profilel4}, we show the ensembles of MI-profiles for both random and GRN-like systems.
 We find that random systems stay much closer to a straight line than GRN-like systems, implying that at all levels similar amounts of redundancy and synergy occur.
-In biological systems, this balance is less present, as we see that in many samples there is much more redundancy or synergy at some levels.
+In biological systems, this balance is less present, as we see that in many samples there is much more redundancy oynergy at some levels.
 This is less present, but still noticable, for fewer expression levels (Fig.~\ref{fig:profilel2}).
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/MIprofile_random.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/MIprofile_random.pdf}
         \caption{Profile ensemble of random systems}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/MIprofile_GRN.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/MIprofile_GRN.pdf}
         \caption{Profile ensemble of biology-like systems}
     \end{subfigure}
     \caption{MI-profiles with $k=3$ and $l=2$ ($n=900$)}
@@ -427,11 +485,11 @@ This is less present, but still noticable, for fewer expression levels (Fig.~\re
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_random.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4/MIprofile_random.pdf}
         \caption{Profile ensemble of random systems}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_GRN.pdf}
+        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4/MIprofile_GRN.pdf}
         \caption{Profile ensemble of biology-like systems}
     \end{subfigure}
     \caption{MI-profiles with $k=3$ and $l=4$ ($n=900$)}
@@ -442,7 +500,7 @@ This is less present, but still noticable, for fewer expression levels (Fig.~\re
 % we also already include the nudge width in a table, which proves enough of a point
 %\begin{figure}[H]
 %    \centering
-%    \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
+%    \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
 %    \caption{Hidden layer output}
 %    \label{fig:ugh}
 %\end{figure}

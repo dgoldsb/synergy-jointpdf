@@ -445,8 +445,8 @@ def test_synergy(dataframe):
         if both_normal:
             mu1, std1 = scipy.stats.norm.fit(random_synergies)
             mu2, std2 = scipy.stats.norm.fit(bio_synergies)
-            result += "found sigmas %f.2 (random) and %f.2 (GRN)\n" % (std1, std2)
-            print("found sigmas %f.2 (random) and %f.2 (GRN)" % (std1, std2))
+            result += "found sigmas %.2f (random) and %.2f (GRN)\n" % (std1, std2)
+            print("found sigmas %.2f (random) and %.2f (GRN)" % (std1, std2))
         outs = outliers_iqr(random_synergies)
         if len(outs) > 0:
             result += "found outliers in random synergies %s\n" % str(outs)
@@ -522,8 +522,8 @@ def test_memory(dataframe):
         if both_normal:
             mu1, std1 = scipy.stats.norm.fit(random_memories)
             mu2, std2 = scipy.stats.norm.fit(bio_memories)
-            result += "found sigmas %f.2 (random) and %f.2 (GRN)\n" % (std1, std2)
-            print("found sigmas %f.2 (random) and %f.2 (GRN)" % (std1, std2))
+            result += "found sigmas %.2f (random) and %.2f (GRN)\n" % (std1, std2)
+            print("found sigmas %.2f (random) and %.2f (GRN)" % (std1, std2))
         outs = outliers_iqr(random_memories)
         if len(outs) > 0:
             result += "found outliers in random memories %s\n" % str(outs)
@@ -605,8 +605,8 @@ def test_resilience(dataframe):
         if both_normal:
             mu1, std1 = scipy.stats.norm.fit(random_resiliences)
             mu2, std2 = scipy.stats.norm.fit(bio_resiliences)
-            result += "found sigmas %f.2 (random) and %f.2 (GRN)\n" % (std1, std2)
-            print("found sigmas %f.2 (random) and %f.2 (GRN)" % (std1, std2))
+            result += "found sigmas %.2f (random) and %.2f (GRN)\n" % (std1, std2)
+            print("found sigmas %.2f (random) and %.2f (GRN)" % (std1, std2))
         outs = outliers_iqr(random_resiliences)
         if len(outs) > 0:
             result += "found outliers in random resiliences %s\n" % str(outs)
@@ -657,8 +657,8 @@ def test_resilience(dataframe):
         if both_normal:
             mu1, std1 = scipy.stats.norm.fit(random_resiliences)
             mu2, std2 = scipy.stats.norm.fit(bio_resiliences)
-            result += "found sigmas %f.2 (random) and %f.2 (GRN)\n" % (std1, std2)
-            print("found sigmas %f.2 (random) and %f.2 (GRN)" % (std1, std2))
+            result += "found sigmas %.2f (random) and %.2f (GRN)\n" % (std1, std2)
+            print("found sigmas %.2f (random) and %.2f (GRN)" % (std1, std2))
         outs = outliers_iqr(random_resiliences)
         if len(outs) > 0:
             result += "found outliers in random resiliences %s\n" % str(outs)
@@ -735,15 +735,23 @@ def create_table_3v(df, experiment, caption):
                     color = color[0]
                     
                     # add column
-                    row += r" & " + str(z_value[0])
+                    row += r" & %.2f" % z_value[0]
                     
                     # add stars based on significance
-                    if float(p_value) < 0.001:
-                        row += r"*** \cellcolor{%s!20}" % color
-                    elif float(p_value) < 0.005:
-                        row += r"** \cellcolor{%s!20}" % color
-                    elif float(p_value) < 0.05:
-                        row += r"* \cellcolor{%s!20}" % color
+                    if color is not None:
+                        if float(p_value) < 0.001:
+                            row += r"*** \cellcolor{%s!20}" % color
+                        elif float(p_value) < 0.005:
+                            row += r"** \cellcolor{%s!20}" % color
+                        elif float(p_value) < 0.05:
+                            row += r"* \cellcolor{%s!20}" % color
+                    else:
+                        if float(p_value) < 0.001:
+                            row += r"*** "
+                        elif float(p_value) < 0.005:
+                            row += r"** " 
+                        elif float(p_value) < 0.05:
+                            row += r"* " 
                 else:
                     row += r" & "
             outfile.write(row + r"\\" + "\n")
@@ -810,15 +818,23 @@ def create_table_2v(df, experiment, caption):
                 color = color[0]
                 
                 # add column
-                row += r" & " + str(z_value[0])
+                row += r" & %.2f" % z_value[0]
                 
                 # add stars based on significance
-                if float(p_value) < 0.001:
-                    row += r"*** \cellcolor{%s!20}" % color
-                elif float(p_value) < 0.005:
-                    row += r"** \cellcolor{%s!20}" % color
-                elif float(p_value) < 0.05:
-                    row += r"* \cellcolor{%s!20}" % color
+                if color is not None:
+                    if float(p_value) < 0.001:
+                        row += r"*** \cellcolor{%s!20}" % color
+                    elif float(p_value) < 0.005:
+                        row += r"** \cellcolor{%s!20}" % color
+                    elif float(p_value) < 0.05:
+                        row += r"* \cellcolor{%s!20}" % color
+                else:
+                    if float(p_value) < 0.001:
+                        row += r"*** "
+                    elif float(p_value) < 0.005:
+                        row += r"** " 
+                    elif float(p_value) < 0.05:
+                        row += r"* " 
             else:
                 row += r" & "
         outfile.write(row + r"\\" + "\n")
@@ -903,7 +919,7 @@ def main():
                 synergies.append(sample[1])
                 memories.append(sample[2])
             rho, p_value = scipy.stats.spearmanr(synergies, memories)
-            df_2.loc[loc_df2] = ["random_rho_syn_mem", system_size, logic_size, p_value, rho, "white"]
+            df_2.loc[loc_df2] = ["random_rho_syn_mem", system_size, logic_size, p_value, rho, None]
             loc_df2 += 1
 
             # now do the nudge-involving experiments
@@ -921,7 +937,7 @@ def main():
                     synergies.append(sample[1])
                     impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
-                df_3.loc[loc_df3] = ["random_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["random_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate synergy multiple nudge
@@ -932,7 +948,7 @@ def main():
                     synergies.append(sample[1])
                     impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
-                df_3.loc[loc_df3] = ["random_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["random_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate memory single nudge
@@ -943,7 +959,7 @@ def main():
                     memories.append(sample[1])
                     impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
-                df_3.loc[loc_df3] = ["random_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["random_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate memory multiple nudge
@@ -954,7 +970,7 @@ def main():
                     memories.append(sample[1])
                     impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
-                df_3.loc[loc_df3] = ["random_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["random_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
     for system_size in system_sizes:
@@ -971,7 +987,7 @@ def main():
                 synergies.append(sample[1])
                 memories.append(sample[2])
             rho, p_value = scipy.stats.spearmanr(synergies, memories)
-            df_2.loc[loc_df2] = ["GRN_rho_syn_mem", system_size, logic_size, p_value, rho, "white"]
+            df_2.loc[loc_df2] = ["GRN_rho_syn_mem", system_size, logic_size, p_value, rho, None]
             loc_df2 += 1
 
             # now do the nudge-involving experiments
@@ -989,7 +1005,7 @@ def main():
                     synergies.append(sample[1])
                     impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
-                df_3.loc[loc_df3] = ["GRN_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["GRN_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate synergy multiple nudge
@@ -1000,7 +1016,7 @@ def main():
                     synergies.append(sample[1])
                     impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
-                df_3.loc[loc_df3] = ["GRN_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["GRN_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate memory single nudge
@@ -1011,7 +1027,7 @@ def main():
                     memories.append(sample[1])
                     impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
-                df_3.loc[loc_df3] = ["GRN_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["GRN_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
                 # correlate memory multiple nudge
@@ -1022,7 +1038,7 @@ def main():
                     memories.append(sample[1])
                     impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
-                df_3.loc[loc_df3] = ["GRN_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, "white"]
+                df_3.loc[loc_df3] = ["GRN_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
             
     # create the tables
@@ -1053,7 +1069,7 @@ def main():
                     p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]*)', result)
                     color = None
                     if len(re.findall("no significant", result)) > 0:
-                        color = "white"
+                        color = None
                     else:
                         value_bio = float(re.findall('table \(([0-9]+.[0-9]+)\)', result)[0])
                         value_ran = float(re.findall('tables \(([0-9]+.[0-9]+)\)', result)[0])
@@ -1073,7 +1089,7 @@ def main():
                     p_value = re.findall('p=([0-9]+.[0-9]+e?-?[0-9]*)', result)
                     color = None
                     if len(re.findall("no significant", result)) > 0:
-                        color = "white"
+                        color = None
                     else:
                         value_bio = float(re.findall('table \(([0-9]+.[0-9]+)\)', result)[0])
                         value_ran = float(re.findall('tables \(([0-9]+.[0-9]+)\)', result)[0])
