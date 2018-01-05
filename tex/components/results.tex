@@ -55,7 +55,7 @@ In our parameter sweep we drew a large number of separate samples containting th
 We found that most of these sample where not normally distributed.
 Furthermore, those that did fit a normal distribution often contained outliers, and had wildly varying variances.
 As such, we do not meet the assumptions for a t-test for comparing means, and for the Pearson test of correlation.
-To handle the sample correctly we use non-parametric statistics in all further analysis, such as the Wilcoxon signed-rank test and the Spearson test of correlation. % these tests throw away the actual values, so outliers  are no problem either, they will simply get the highest/lowest rank
+To handle the sample correctly we use non-parametric statistics in all further analysis, such as the Wilcoxon signed-rank test and the Spearman test of correlation. % these tests throw away the actual values, so outliers  are no problem either, they will simply get the highest/lowest rank
 
 \subsection{Comparisons GRN and Random Systems}
 
@@ -107,9 +107,9 @@ These results are compiled in Table~\ref{memory}.
 
 We did not find a consistent difference in the impact of nudging a single variable.
 As shown in Table~\ref{resilience_single}, the nudge impact is slightly higher in some cases for biological networks.
-However, in most experiments there was no significant difference, or a difference in the other direction.
-Furthermore, all experiments with larger system sizes showed no difference.
-These experiments are closer to reality, as gene regulatory networks consist of many genes.
+However, in most experiments there was no significant difference, and in some others a difference in the other direction.
+%Larger system experiments are closer to reality, as gene regulatory networks consist of many genes.
+% TODO: mention means
 
 \begin{figure}[h]
 \label{resilience_single}
@@ -153,6 +153,7 @@ These experiments are closer to reality, as gene regulatory networks consist of 
 
 We did find a consistent difference in the impact of nudging all variables.
 As shown in Table~\ref{resilience_multiple}, the nudge impact is consistently higher in biological networks.
+An exceptio is in the largest networks, those with 5 nodes: in these networks random tables where more strongly affected by nudges. % TODO: but these results where weird, so I need to doublecheck this
 It appears that models with a higher resolution, by virtue of having more expression levels, show a stronger difference in the nudge impact.
 
 \begin{figure}[h]
@@ -196,7 +197,7 @@ It appears that models with a higher resolution, by virtue of having more expres
 
 In Fig.~\ref{fig:3dscatter} we provide several scatterplots of experiments, with varying system sizes and numbers of expression levels.
 We find that the variance reduces significantly when increasing the number of possible states, showing a much clearer pattern.
-The same effect is seen in a lesser extend when increasing the system size.
+The same effect is seen in when increasing the system size.
 This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
 We notice that random systems are very tightly clustered, and typically have an extremely high memory paired with high synergy.
 The biological systems are much more spread out, and while there are outliers with higher memory than any random system, most samples have a lower memory and synergy.
