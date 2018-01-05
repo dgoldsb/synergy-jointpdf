@@ -1,1 +1,0 @@
-Using 4 nodes and 4-valued logic, we found a significant difference between the mean synergy in random transition tables (0.310771540239) and biological transition table (0.274626099381), with t=33.1061715994 and p=2.23094049512e-116.

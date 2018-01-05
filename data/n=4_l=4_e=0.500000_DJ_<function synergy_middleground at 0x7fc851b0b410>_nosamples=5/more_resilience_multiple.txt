@@ -1,1 +1,0 @@
-Using 4 nodes, 4-valued logic, and 0.5-epsilon 4-target nudge, we found no significant difference between the mean nudge impact in random transition tables (0.00412983194562) and biological transition table (0.0054209818833), with t=-1.74097587954 and p=0.0824605582209.

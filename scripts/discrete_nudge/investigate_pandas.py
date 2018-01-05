@@ -26,11 +26,16 @@ log_location = "../../log"
 
 
 def main():
-    samples = generator.generate_motifs(1, 3, 2, [4])[0]
+    samples = generator.generate_motifs(1, 5, 2, [4])[0]
     print(samples[0].grn_vars["rules"])
     print(len(samples[0].grn_vars["rules"]))
+    print(samples[0].transition_table)
+    print(samples[0].is_cyclical())
+    print(measures.normalized_memory(samples[0]))
+    print(measures.normalized_synergy(samples[0], measures.synergy_middleground))
 
     # problem demonstrated below, the number of rules is waaaay too low
+    # TODO: fixed this, this can be deleted
     sys.exit(0)
     with open(os.path.join(data_location, "experiment_k=5_l=2_e=0.100000_df.pkl"), 'rb') as input:
         df = pickle.load(input)
