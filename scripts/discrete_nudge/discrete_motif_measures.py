@@ -268,14 +268,27 @@ def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
         # motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
         # find the nudge impact
-        motif.evaluate_motif()
-        unnudged = motif.states[-1]
         motif.reset_to_state(0)
+        motif.evaluate_motif()
+
+        ## save the unnudged state
+        indices = range(motif.grn_vars["gene_cnt"], motif.numvariables)
+        marginalized_object = motif.marginalize_distribution(indices)
+        unnudged = marginalized_object.joint_probabilities.joint_probabilities
+
+        motif.reset_to_state(0)
+        #print("START NUDGE")
+        #print(motif.joint_probabilities.joint_probabilities)
         operations.nudge_variable(motif, targets, nudge_size, nudge_method)
+        #print(motif.joint_probabilities.joint_probabilities)
+        #print("END NUDGE")
         motif.evaluate_motif()
 
         # we compare the two evolved states
+        #print(unnudged)
+        #print(motif.states[-1])
         impact = hellinger(unnudged, motif.states[-1])
+        #print(impact)
         # print("Attacked %s, impact %f" % (str(targets), impact))
         impacts.append(impact)
     
@@ -283,7 +296,6 @@ def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
     motif.reset_to_state(0)
     motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
-    print(impacts)
     return sum(impacts)/len(impacts)
 
 
@@ -291,6 +303,9 @@ def normalized_synergy(motif, synergy_measure):
     """
     Normalized synergy, leaves motif prestine.
     """
+    # reset
+    motif.reset_to_state(0)
+
     # find the synergy
     motif.evaluate_motif()
     synergy = synergy_measure(motif)
@@ -313,6 +328,9 @@ def normalized_memory(motif):
     """
     Normalized synergy, leaves motif prestine.
     """
+    # reset
+    motif.reset_to_state(0)
+    
     # calculate the memory
     decay = mi_decay(motif, 1)
     memory = decay[1] / decay[0]

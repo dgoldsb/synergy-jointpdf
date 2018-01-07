@@ -21,7 +21,8 @@ import sys
 
 
 def main():
-    # COPY
+    # XOR
+    print("XOR")
     motif = generator.generate_random(samplesize=1, no_nodes=2, numvalues=2)[0]
     motif.transition_table = [[1, 1, 0, 0],[1, 0, 1, 1], [0, 1, 1, 1], [0, 0, 0, 0]]
     # experiment: set to equal chances
@@ -38,8 +39,11 @@ def main():
     print(measures.hellinger(unnudged, motif.states[-1]))
     print("The averaged nudge impact: ")
     print(measures.average_nudge_impact(motif, 1, 0.25, 'DJ'))
+    print("Synergy")
+    print(measures.normalized_synergy(motif, measures.synergy_middleground))
 
     # COPY
+    print("\n\nCopy")
     motif = generator.generate_random(samplesize=1, no_nodes=2, numvalues=2)[0]
     motif.transition_table = [[1, 1, 1, 1],[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 0, 0]]
     # experiment: set to equal chances
@@ -56,6 +60,8 @@ def main():
     print(measures.hellinger(unnudged, motif.states[-1]))
     print("The averaged nudge impact: ")
     print(measures.average_nudge_impact(motif, 1, 0.25, 'DJ'))
+    print("Synergy")
+    print(measures.normalized_synergy(motif, measures.synergy_middleground))
 
 if __name__ == '__main__':
     main()
