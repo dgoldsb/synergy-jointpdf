@@ -269,12 +269,13 @@ def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
 
         # find the nudge impact
         motif.evaluate_motif()
+        unnudged = motif.states[-1]
         motif.reset_to_state(0)
         operations.nudge_variable(motif, targets, nudge_size, nudge_method)
         motif.evaluate_motif()
 
         # we compare the two evolved states
-        impact = abs_diff(motif.states[-3], motif.states[-1])
+        impact = hellinger(unnudged, motif.states[-1])
         # print("Attacked %s, impact %f" % (str(targets), impact))
         impacts.append(impact)
     
@@ -282,6 +283,7 @@ def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
     motif.reset_to_state(0)
     motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
+    print(impacts)
     return sum(impacts)/len(impacts)
 
 
