@@ -263,33 +263,25 @@ def average_nudge_impact(motif, nudge_width, nudge_size, nudge_method):
     for targets in targets_list:
         targets.sort()
 
-        # make sure the motif is pristine (remove if this is secured by every operation)
-        # motif.reset_to_state(0)
-        # motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
+        # make sure the motif is pristine
+        motif.reset_to_state(0)
+        motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
         # find the nudge impact
-        motif.reset_to_state(0)
         motif.evaluate_motif()
 
-        ## save the unnudged state
+        # save the unnudged state
         indices = range(motif.grn_vars["gene_cnt"], motif.numvariables)
         marginalized_object = motif.marginalize_distribution(indices)
         unnudged = marginalized_object.joint_probabilities.joint_probabilities
 
+        # reset and find the nudged state
         motif.reset_to_state(0)
-        #print("START NUDGE")
-        #print(motif.joint_probabilities.joint_probabilities)
         operations.nudge_variable(motif, targets, nudge_size, nudge_method)
-        #print(motif.joint_probabilities.joint_probabilities)
-        #print("END NUDGE")
         motif.evaluate_motif()
 
         # we compare the two evolved states
-        #print(unnudged)
-        #print(motif.states[-1])
         impact = hellinger(unnudged, motif.states[-1])
-        #print(impact)
-        # print("Attacked %s, impact %f" % (str(targets), impact))
         impacts.append(impact)
     
     # reset the motif
@@ -305,6 +297,7 @@ def normalized_synergy(motif, synergy_measure):
     """
     # reset
     motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
 
     # find the synergy
     motif.evaluate_motif()
@@ -330,6 +323,7 @@ def normalized_memory(motif):
     """
     # reset
     motif.reset_to_state(0)
+    motif.states = [deepcopy(motif.joint_probabilities.joint_probabilities)]
     
     # calculate the memory
     decay = mi_decay(motif, 1)
