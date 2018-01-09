@@ -384,7 +384,7 @@ We hypothesize that:
 \item A biologically possible GRN scores significantly better in memory than a random GRN motif
 \item A biologically possible GRN scores significantly better in single-nudge resilience than a random GRN motif
 \item A biologically possible GRN does not score significantly differently in multiple-nudge resilience to a random GRN motif
-\item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
+%\item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
 \end{itemize}
 
 To support these test, we visualize the the distribution of both biologically possible- and completely random motif in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
@@ -409,10 +409,8 @@ Larger networks typically have higher average indegrees, but as Boolean networks
 The nudge size was limited to below 0.5 units, as for higher values the nudging function stopped performing well.
 In many cases, the nudged PDF would not remain close to normalized.
 
+
 \begin{table}
-\begin{center}
-\label{parameters}
-\caption{The parameter ranges used for the experiments}
 \begin{tabular}{| l | c | c | c |}
 \hline
 Parameter & Start & End & Increment \\
@@ -422,7 +420,9 @@ Logic size (\#) & 2 & 5 & 1 \\
 Nudge size (fraction of probability) & 0.1 & 0.5 & 0.1 \\
 \hline
 \end{tabular}
-\end{center}
+\centering
+\caption{The parameter ranges used for the experiments}
+\label{parameters}
 \end{table}
 
 In addition to these parameter ranges, we utiluize the \texttt{totaleffect} transition function decision rule, and a chance for a 1-to-1 edge of 75\%.

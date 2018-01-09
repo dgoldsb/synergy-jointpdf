@@ -366,9 +366,9 @@ def visualize_impacts(dataframe):
             for sample in samples:
                 if sample[2][j][1] is not None:
                     if sample[0] == "random":
-                        y_values_random.append(sample[2][j][1])
+                        y_values_random.append(float(sample[2][j][1]))
                     elif sample[0] == "GRN":
-                        y_values_grn.append(sample[2][j][1])
+                        y_values_grn.append(float(sample[2][j][1]))
 
             values.append([x_value, y_values_random])
             colors.append("red")
@@ -412,11 +412,12 @@ def test_synergy(dataframe):
         bio_synergies = []
         for sample in samples:
             if sample[0] == "random":
-                random_synergies.append(sample[1])
+                random_synergies.append(float(sample[1]))
             elif sample[0] == "GRN":
-                bio_synergies.append(sample[1])
+                bio_synergies.append(float(sample[1]))
 
         t, prob = scipy.stats.wilcoxon(random_synergies, bio_synergies)
+        print("test Z = %.22f and p = %.22f" % (t, prob)) 
         random_mean = np.average(random_synergies)
         bio_mean = np.average(bio_synergies)
         
@@ -489,13 +490,17 @@ def test_memory(dataframe):
         bio_memories = []
         for sample in samples:
             if sample[0] == "random":
-                random_memories.append(sample[1])
+                random_memories.append(float(sample[1]))
             elif sample[0] == "GRN":
-                bio_memories.append(sample[1])
+                bio_memories.append(float(sample[1]))
 
         random_mean = np.average(random_memories)
         bio_mean = np.average(bio_memories)
         t, prob = scipy.stats.wilcoxon(random_memories, bio_memories)
+        if t == 0.0:
+            print(random_memories)
+            print(bio_memories)
+        print("test Z = %.22f and p = %.22f" % (t, prob)) 
         
         args = (system_size, logic_size, random_mean, bio_mean, t, prob)
         if prob < 0.05:
@@ -572,10 +577,11 @@ def test_resilience(dataframe):
         bio_resiliences = []
         for sample in samples:
             if sample[0] == "random":
-                random_resiliences.append(sample[1][0][1])
+                random_resiliences.append(float(sample[1][0][1]))
             elif sample[0] == "GRN":
-                bio_resiliences.append(sample[1][0][1])
+                bio_resiliences.append(float(sample[1][0][1]))
         t, prob = scipy.stats.wilcoxon(random_resiliences, bio_resiliences)
+        print("test Z = %.22f and p = %.22f" % (t, prob)) 
         random_mean = np.average(random_resiliences)
         bio_mean = np.average(bio_resiliences)
         args = (system_size, logic_size, nudge_size, "1", random_mean, bio_mean, t, prob)
@@ -624,10 +630,11 @@ def test_resilience(dataframe):
         bio_resiliences = []
         for sample in samples:
             if sample[0] == "random":
-                random_resiliences.append(sample[1][-1][1])
+                random_resiliences.append(float(sample[1][-1][1]))
             elif sample[0] == "GRN":
-                bio_resiliences.append(sample[1][-1][1])
+                bio_resiliences.append(float(sample[1][-1][1]))
         t, prob = scipy.stats.wilcoxon(random_resiliences, bio_resiliences)
+        print("test Z = %.22f and p = %.22f" % (t, prob))
         random_mean = np.average(random_resiliences)
         bio_mean = np.average(bio_resiliences)
         args = (system_size, logic_size, nudge_size, str(len(samples[0][1])), random_mean, bio_mean, t, prob)
@@ -675,8 +682,7 @@ def test_resilience(dataframe):
 
 def create_table_3v(df, experiment, caption):
     outfile = open(os.path.join(result_location, experiment + ".tex"), "w")
-    outfile.write(r"\begin{figure}[h]" + "\n")
-    outfile.write(r"\label{%s}" % experiment)
+    outfile.write(r"\begin{table}[h]" + "\n")
     
     # find the column definitions
     column_cnt = 2 + len(list(df.nudge_size.unique()))
@@ -761,15 +767,15 @@ def create_table_3v(df, experiment, caption):
     outfile.write(r"\end{tabular}" + "\n")
     outfile.write(r"\centering" + "\n")
     outfile.write(caption)
-    outfile.write("\n" + r"\end{figure}"+ "\n")
+    outfile.write(r"\label{%s}" % experiment)
+    outfile.write("\n" + r"\end{table}"+ "\n")
     outfile.close()
     return 0
 
 
 def create_table_2v(df, experiment, caption):
     outfile = open(os.path.join(result_location, experiment + ".tex"), "w")
-    outfile.write(r"\begin{figure}[h]" + "\n")
-    outfile.write(r"\label{%s}" % experiment)
+    outfile.write(r"\begin{table}[h]" + "\n")
     
     # find the column definitions
     column_cnt = 1 + len(list(df.logic_size.unique()))
@@ -843,7 +849,8 @@ def create_table_2v(df, experiment, caption):
     outfile.write(r"\end{tabular}" + "\n")
     outfile.write(r"\centering" + "\n")
     outfile.write(caption)
-    outfile.write("\n" + r"\end{figure}"+ "\n")
+    outfile.write(r"\label{%s}" % experiment)
+    outfile.write("\n" + r"\end{table}"+ "\n")
     outfile.close()
     return 0
 
@@ -878,19 +885,19 @@ def main():
 
     # now let's get rolling and do our tests!
     print("doing cyclesearch")
-    histogram_cycles(dataframe)
+    #histogram_cycles(dataframe)
     print("doing TSNE")
-    visualize_TSNE(dataframe)
+    #visualize_TSNE(dataframe)
     print("doing tests")
-    #test_synergy(dataframe)
-    #test_memory(dataframe)
-    #test_resilience(dataframe)
+    test_synergy(dataframe)
+    test_memory(dataframe)
+    test_resilience(dataframe)
     print("doing scatters")
-    visualize_scatters(dataframe)
+    #visualize_scatters(dataframe)
     print("doing impacts")
-    visualize_impacts(dataframe)
+    #visualize_impacts(dataframe)
     print("doing profile")
-    visualize_profile(dataframe)
+    #visualize_profile(dataframe)
     print("proceeding to LaTeX")
 
     # now also do our spearman tests
@@ -901,7 +908,7 @@ def main():
     df_3 = pd.DataFrame(columns=["experiment", "system_size", "logic_size", "nudge_size", "p_value", "statistic_value", "color"])
     loc_df3 = 0
     
-    # doe the loop
+    # do the loop
     nudge_sizes = list(set(dataframe.nudge_size))
     system_sizes = list(set(dataframe.system_size))
     logic_sizes = list(set(dataframe.logic_size))
@@ -916,8 +923,9 @@ def main():
             synergies = []
             memories = []
             for sample in samples:
-                synergies.append(sample[1])
-                memories.append(sample[2])
+                if sample[0] == "random":
+                    synergies.append(sample[1])
+                    memories.append(sample[2])
             rho, p_value = scipy.stats.spearmanr(synergies, memories)
             df_2.loc[loc_df2] = ["random_rho_syn_mem", system_size, logic_size, p_value, rho, None]
             loc_df2 += 1
@@ -934,8 +942,9 @@ def main():
                 synergies = []
                 impacts = []
                 for sample in samples:
-                    synergies.append(sample[1])
-                    impacts.append(sample[2][0][1])
+                    if sample[0] == "random":
+                        synergies.append(sample[1])
+                        impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
                 df_3.loc[loc_df3] = ["random_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -945,8 +954,9 @@ def main():
                 synergies = []
                 impacts = []
                 for sample in samples:
-                    synergies.append(sample[1])
-                    impacts.append(sample[2][-1][1])
+                    if sample[0] == "random":
+                        synergies.append(sample[1])
+                        impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
                 df_3.loc[loc_df3] = ["random_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -956,8 +966,9 @@ def main():
                 memories = []
                 impacts = []
                 for sample in samples:
-                    memories.append(sample[1])
-                    impacts.append(sample[2][0][1])
+                    if sample[0] == "random":
+                        memories.append(sample[1])
+                        impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
                 df_3.loc[loc_df3] = ["random_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -967,8 +978,9 @@ def main():
                 memories = []
                 impacts = []
                 for sample in samples:
-                    memories.append(sample[1])
-                    impacts.append(sample[2][-1][1])
+                    if sample[0] == "random":
+                        memories.append(sample[1])
+                        impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
                 df_3.loc[loc_df3] = ["random_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -984,8 +996,9 @@ def main():
             synergies = []
             memories = []
             for sample in samples:
-                synergies.append(sample[1])
-                memories.append(sample[2])
+                if sample[0] == "GRN":
+                    synergies.append(sample[1])
+                    memories.append(sample[2])
             rho, p_value = scipy.stats.spearmanr(synergies, memories)
             df_2.loc[loc_df2] = ["GRN_rho_syn_mem", system_size, logic_size, p_value, rho, None]
             loc_df2 += 1
@@ -995,15 +1008,16 @@ def main():
                 # correlate synergy single nudge
                 a = dataframe["logic_size"] == logic_size
                 b = dataframe["system_size"] == system_size
-                c = dataframe["type"] == "random"
+                c = dataframe["type"] == "GRN"
                 d = dataframe["nudge_size"] == nudge_size
                 selected_dataframe = dataframe[a & b & c & d]
                 samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
                 synergies = []
                 impacts = []
                 for sample in samples:
-                    synergies.append(sample[1])
-                    impacts.append(sample[2][0][1])
+                    if sample[0] == "GRN":
+                        synergies.append(sample[1])
+                        impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
                 df_3.loc[loc_df3] = ["GRN_rho_syn_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -1013,8 +1027,9 @@ def main():
                 synergies = []
                 impacts = []
                 for sample in samples:
-                    synergies.append(sample[1])
-                    impacts.append(sample[2][-1][1])
+                    if sample[0] == "GRN":
+                        synergies.append(sample[1])
+                        impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(synergies, impacts)
                 df_3.loc[loc_df3] = ["GRN_rho_syn_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -1024,8 +1039,9 @@ def main():
                 memories = []
                 impacts = []
                 for sample in samples:
-                    memories.append(sample[1])
-                    impacts.append(sample[2][0][1])
+                    if sample[0] == "GRN":
+                        memories.append(sample[1])
+                        impacts.append(sample[2][0][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
                 df_3.loc[loc_df3] = ["GRN_rho_mem_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
@@ -1035,8 +1051,9 @@ def main():
                 memories = []
                 impacts = []
                 for sample in samples:
-                    memories.append(sample[1])
-                    impacts.append(sample[2][-1][1])
+                    if sample[0] == "GRN":
+                        memories.append(sample[1])
+                        impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
                 df_3.loc[loc_df3] = ["GRN_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1

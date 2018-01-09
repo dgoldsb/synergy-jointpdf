@@ -11,6 +11,7 @@
 \usepackage{tikz}
 \usepackage[toc,page]{appendix}
 \usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
+\usepackage{appendix}
 
 % results
 \usepackage{array}
@@ -82,12 +83,14 @@
 
 \subfile{components/discussion.tex}
 
-%\begin{appendices}
-%\chapter{Pseudocode}
-
-%\subfile{appendix_code.tex}
-
-%\end{appendices}
-
 \bibliography{sources}
+
+\newpage
+
+\begin{appendices}
+
+\subfile{components/appendix.tex}
+
+\end{appendices}
+
 \end{document}

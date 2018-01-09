@@ -6,6 +6,18 @@
 
 \begin{abstract}
 
+In this study, we compare the level of synergy and memory, as well as the sensitivity to various nudges in gene regulation opposed to a completely random system.
+We model a system through a joint probability mass functions, that evolves in discrete timesteps using a deterministic transition table. 
+Random systems are initialized with a completely random transition table, whereas tables converted from a random gene regulatory network (GRN) are used for gene regulation systems.
+Our hypothesis was that increased synergy might result in a lower nudge impact in biological networks.
+It was observed that the sample space of GRN-based transition tables is a small subspace of all transition tables.
+We found that random networks are significantly higher in synergy and memory, but that they also suffer a higher impact from nudges.
+A strong positive correlation was observed between the system memory and the impact of a nudge, and it was also found that in some systems a higher synergy lead to a lower nudge impact.
+Random systems where found to be well-balanced between synergy and redundancy at all levels, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
+We suggest that the type of relations in gene regulatory networks are less likely to lead to duplications in the next timesteps (a high memory) and yield a lower synergy, resulting in an on average lower nudge impact.
+For future research, we suggest that it is investigated whether similar levels of synergy are found in real networks.
+If not, this would suggest that our model for generating GRNs is not complex enough.
+
 \end{abstract}
 
 \end{document}
