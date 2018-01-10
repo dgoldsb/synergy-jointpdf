@@ -5,6 +5,7 @@
 \begin{document}
 
 \subsection{Assumption Checks}
+% TODO: is wilcoxon a Z or W stat?
 
 % TSNE
 The t-SNE plots do support our assumption that we are sampling only a subspace of all possible systems with our GRN-like random systems.
@@ -87,7 +88,7 @@ We found that completely random systems carry significantly more memory than the
 These results are compiled in Table~\ref{memory}.
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
@@ -111,7 +112,7 @@ As shown in Table~\ref{resilience_single}, the nudge impact is higher in random 
 % TODO: mention means
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
@@ -199,7 +200,7 @@ However, the random sample only covers the high synergy-range.
 As such, the random networks also do not populate the low synergy-high memory space.
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
@@ -218,7 +219,7 @@ As such, the random networks also do not populate the low synergy-high memory sp
 \end{table}
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
@@ -254,7 +255,7 @@ This result is also observed in the correlation between memory and the impact of
 %It appears from this result that the information in the random variable memory that is uncorrelated with the synergy is not correlated with nudge impact either.
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
@@ -293,7 +294,7 @@ This result is also observed in the correlation between memory and the impact of
 \end{table}
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
@@ -332,7 +333,7 @@ This result is also observed in the correlation between memory and the impact of
 \end{table}
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
@@ -371,7 +372,7 @@ This result is also observed in the correlation between memory and the impact of
 \end{table}
 
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline

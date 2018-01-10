@@ -498,8 +498,11 @@ def test_memory(dataframe):
         bio_mean = np.average(bio_memories)
         t, prob = scipy.stats.wilcoxon(random_memories, bio_memories)
         if t == 0.0:
-            print(random_memories)
-            print(bio_memories)
+            print("apparently we get z = 0 if there is no overlap between the two distributions")
+            random_memories.sort()
+            bio_memories.sort()
+            print(random_memories[:10])
+            print(bio_memories[-10:])
         print("test Z = %.22f and p = %.22f" % (t, prob)) 
         
         args = (system_size, logic_size, random_mean, bio_mean, t, prob)

@@ -23,8 +23,8 @@ from time import gmtime, strftime
 synergy_measure = measures.synergy_middleground
 nudge_method = "DJ"
 sample_size = 150 # in practice this is times two, we draw a random and a GRN sample
-network_sizes = [2, 3, 4, 5]
-logic_sizes = [2, 3, 4]
+network_sizes = [5]
+logic_sizes = [4]
 nudge_sizes = [0.1, 0.25, 0.5]
 
 # set folders
@@ -51,18 +51,21 @@ def loop_impacts(network_size, nudge_size, motif):
     return synergy, impacts, memory
 
 
-def draw_sample(sample_size, network_size, logic_size, nudge_size):
+def draw_sample(sample_size, network_size, logic_size, nudge_size, mylogger):
     # create dataframe
     dataframe = pd.DataFrame(columns=["system_size", "logic_size", "nudge_size", "type", "motif", "synergy", "memory", "impacts"])
 
     # we generate our samples
+    mylogger.info("Sampling random with %s nodes and %s-valued logic" % (network_size, logic_size))
     samples_random = generator.generate_random(sample_size, network_size, logic_size)
+    mylogger.info("Sampling GRN with %s nodes and %s-valued logic" % (network_size, logic_size))
     samples_grn = generator.generate_motifs(sample_size, network_size, logic_size, [4])[0]
 
     # draw the samples
-    print("Sampling with %s nodes and %s-valued logic" % (network_size, logic_size))
+    mylogger.info("Computing measures per sample...")
     loc_counter = 0
     for motif in samples_grn:
+        mylogger.info("sample %d" % loc_counter)
         # get the basic inputs in the dataframe row
         df_row = []
         df_row.append(network_size)
@@ -85,6 +88,7 @@ def draw_sample(sample_size, network_size, logic_size, nudge_size):
 
     # enrich the random tables
     for motif in samples_random:
+        mylogger.info("sample %d" % loc_counter)
         # get the basic inputs in the dataframe row
         df_row = []
         df_row.append(network_size)
@@ -110,9 +114,14 @@ def main():
     # logger
     mylogger = logging.getLogger('mylogger')
     handler1 = logging.FileHandler(filename=os.path.join(log_location, 'experiments_%s.log' % strftime("%Y-%m-%d %H:%M:%S", gmtime())), mode='w')
-    handler1.setLevel(logging.DEBUG)
+    handler1.setLevel(logging.INFO)
     handler1.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
     mylogger.addHandler(handler1)
+    handler2 = logging.StreamHandler(sys.stdout)
+    handler2.setLevel(logging.INFO)
+    handler2.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+    mylogger.addHandler(handler2)
+    mylogger.setLevel(logging.INFO)
 
     # create the file locations and archive
     if not os.path.isdir(data_location):
@@ -141,9 +150,9 @@ def main():
     for network_size in network_sizes:
         for logic_size in logic_sizes:
             for nudge_size in nudge_sizes:
-                mylogger.debug("sampling %d nodes, %d logic size, %f nudge size, %s as nudge_method, %s as synergy measure" % (network_size, logic_size, nudge_size, nudge_method, synergy_measure))
+                mylogger.info("sampling %d nodes, %d logic size, %f nudge size, %s as nudge_method, %s as synergy measure" % (network_size, logic_size, nudge_size, nudge_method, synergy_measure))
                 start = time.time()
-                dataframe, samples_grn, samples_random = draw_sample(sample_size, network_size, logic_size, nudge_size)
+                dataframe, samples_grn, samples_random = draw_sample(sample_size, network_size, logic_size, nudge_size, mylogger)
                 
                 # save the data for future use/reruns
                 name_df = "experiment_k=%d_l=%d_e=%f_df.pkl" % (network_size, logic_size, nudge_size)
@@ -158,8 +167,8 @@ def main():
 
                 # log the finished experiment
                 end = time.time()
-                mylogger.debug("sampled %d motifs" % sample_size)
-                mylogger.debug("sample took %d seconds" % (end - start))
+                mylogger.info("sampled %d motifs" % sample_size)
+                mylogger.info("sample took %d seconds" % (end - start))
 
 if __name__ == '__main__':
     main()
