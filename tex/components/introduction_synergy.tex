@@ -42,11 +42,11 @@ More recent approaches often build on on of these two ideas.
 For instance, recently a system was proposed in which the redundancy, synergy and entropy are broken down in multivariate cases \cite{williams2010nonnegative}.
 Here, a large system is essentially broken down in all possible redunancy, synergy and entropy pieces in a system (essentially all possible fields in a Venn diagram).
 These are all quantified to give an overall insight in the structure of the system.
-A weakness of this system is that beyond a few variables this system explodes computationally.
+A weakness of this system is that beyond a few variables this system explodes computationally, and that no measure has been found yet that satisfies all axioms.
 
 % Level 1: entropy
-As hinted, we can look at systems of random variables at varying levels.
-At the single variable level, we can examine the amount of entropy in random variable.
+We can look at systems of random variables at varying levels.
+At the single variable level, we can examine the amount of entropy in a random variable.
 This is usually one through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
 This is defined as 
 %
@@ -55,7 +55,7 @@ This is defined as
 \end{equation}
 %
 for a random variable $X$.
-For a continuous distribution this cannonical entropy is replaced by differential entropy, which integrates instead of using a summation.
+For a continuous distribution this definition of the entropy is replaced by differential entropy, which integrates instead of using a summation.
 This measure is maximized if the PDF is as evenly spread out as possible, in the case of a discrete PDF when all probabilities are uniform.
 
 % Level 2: mutual information
@@ -63,6 +63,7 @@ At the bivariate level, we can examine the overlap in information between the tw
 This is quantified using the mutual information, which is defined as 
 %
 \begin{equation}
+\label{MI}
 \mathrm{I}(X;Y) = \sum_{y \subset Y} \sum_{x \subset X} \log_b (\frac{p(x,y)}{p(x) p(y)})
 \end{equation}
 %
@@ -257,7 +258,7 @@ and is defined as
 \mathcal{S}_\mathrm{max} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{max} (X;Y)
 \end{equation}
 %
-This measure is nice, as it per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi} \cite{griffith2014quantifying}.
+This measure per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi} \cite{griffith2014quantifying}.
 It is said to typically overestimate synergy, and can thus function as an upper bound of sorts.
 
 % LOWER BOUND IS NICE TO IMPLEMENT REGARDLESS, EASY TO DO
@@ -267,6 +268,7 @@ This can be expressed as
 %
 \begin{equation}
 \mathrm{WMS}(X;Y) = \mathrm{I}(X;Y) - \sum_i [\mathrm{I}(X_i;Y)]
+\label{WMS}
 \end{equation}
 %
 As this is essentially the synergy minus the redundancy, the WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
@@ -280,6 +282,16 @@ This is expressed as
 where $\mathrm{I}_\mathrm{VK}$ is the unique information, a measure based on the Kullback-Leibler divergence.
 This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
 
+% Quax also has his measure
+A measure of synergy based on synergistic random variables (SRVs) has also been proposed \cite{quax2017quantifying}.
+This method is centered around the determination of a set of SRVs, which have zero mutual information with the individual variables in the inspected system, but a non-zero mutual information with the system as a whole.
+The total synergystic information is defined as
+\begin{equation}
+\label{SRV}
+I_\mathrm{syn}(X \rightarrow Y) \equiv \max_k \sum_i I(Y : S_{i,k}^\perp)
+\end{equation}
+where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
+
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
 Alltogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
@@ -288,5 +300,5 @@ Alltogether, this gives us the following summary of the available synergy measur
 \max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S})\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
 \end{equation}
 %
-Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synerfy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}
+Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}
 \end{document}

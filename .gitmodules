@@ -1,8 +1,12 @@
 [submodule "scripts/jointpdf"]
-	path = scripts/jointpdf
+	path = scripts/discrete_nudge/jointpdf
     url = https://bitbucket.org/rquax/jointpdf.git
     ignore = dirty
 [submodule "scripts/resilientpdf/NPEET"]
-	path = scripts/resilientpdf/NPEET
+	path = scripts/continuous_nudge/NPEET
     url = https://github.com/gregversteeg/NPEET.git
+    ignore = dirty
+[submodule "scripts/discrete_nudge/jointpdf_DJ"]
+	path = scripts/discrete_nudge/jointpdf_DJ
+    url = https://dgoldsb@bitbucket.org/derkjan/master_thesis.git
     ignore = dirty

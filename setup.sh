@@ -1,15 +1,12 @@
 # Make sure submodules are up to date and ready to be used
-git submodule update --init --recursive
-touch ./scripts/jointpdf/__init__.py
-touch ./scripts/resilientpdf/NPEET/__init__.py
-mkdir log
-touch ./log/resilientpdf.log
+git submodule update --recursive
+touch ./scripts/discrete_nudge/__init__.py
+touch ./scripts/continuous_nudge/NPEET/__init__.py
+touch ./scripts/discrete_nudge/jointpdf_DJ/code/__init__.py
+ln -s ./scripts/discrete_nudge/jointpdf ./scripts/discrete_nudge/jointpdf_DJ/code/jointpdf
+ln -s ./scripts/discrete_nudge/jointpdf_DJ/code ./scripts/discrete_nudge/jointpdf_DJ_code
 
-# Unzip matlab files
-mkdir ./bin/MatLab
-unzip ./bin/journal.pcbi.1004530.s004.ZIP -d ./bin/MatLab/
-# Extract config files from MatLab files
-mkdir ./config
-mv ./bin/MatLab/S1_File/models/models_as_used/*.mat ./config
-# Remove matlab files
-rm -r ./bin/MatLab
+if [ ! -d "./log" ]; then
+    mkdir log
+    touch ./log/resilientpdf.log
+fi

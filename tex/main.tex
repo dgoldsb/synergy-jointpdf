@@ -9,7 +9,20 @@
 \usepackage[english]{babel}
 \usepackage{url}
 \usepackage{tikz}
+\usepackage[toc,page]{appendix}
 \usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
+\usepackage{appendix}
+
+% results
+\usepackage{array}
+\usepackage{diagbox}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{url}
 
 % Citations
 \bibliographystyle{plain}
@@ -66,5 +79,18 @@
 
 \subfile{components/discussion.tex}
 
+\section{Conclusion}
+
+\subfile{components/conclusion.tex}
+
 \bibliography{sources}
+
+\newpage
+
+\begin{appendices}
+
+\subfile{components/appendix.tex}
+
+\end{appendices}
+
 \end{document}
