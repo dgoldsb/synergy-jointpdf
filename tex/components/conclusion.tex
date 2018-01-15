@@ -1,17 +1,28 @@
-% Version: 0.0
+% Version: 1.1
 
 \documentclass[../main.tex]{subfiles}
 
 \begin{document}
+% Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
 
 % Summary and restate thesis statement
-% Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
-% Main research question: there is a form of synergistic control, but we do not observe it, as memory seems to be the dominant force
-In this study we investigated whether there is a form of synergistic control on the resilience of gene regulation systems.
-We found that there is a link between synergy and resilience, which implies that systems with higher synergy are more resilient to shocks.
+% Answer (1) 
+In this study we investigated the link between the synergy of a system and its resilience and memory.
+We found that there is a positive correlation between synergy and resilience, which implies that a synergistic control to improve resilience is plausible in gene regulation.
+It was also found that there is only a weak negative correlation between synergy and memory, implying that synergy could be a mechanism to improve resilience while retaining memory.
+The observed relation between synergy and nudge impact is in line with the findings of Quax et al.~\ref{quax2017quantifying}.s
 However, we also found that the amount of memory in a system is a much greater force on the resilience than the synergy is, and the dominant force in random gene regulation systems.
+This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
+Furthermore, we found that neither the combination of high memory and low nudge impact nor the combination of low memory and high nudge impact does occur.
+% STRESS THAT CORRELATIONS PROBABLY DIFFER DUE TO DIFFERENT RANGES
 
-% Means hypotheses
+% Draw a broad conclusion
+This suggests that synergy could be a form of control on the resilience of a system, but that this control is not present in biological networks at low level due to the lack of synergistic structures with few components in nature.
+We ignored any synergy at a higher level, however, as well as any selective pressure in our model.
+As such, we suggest that this synergistic control might be emergent in natural networks at a higher level; not at the level of GRN motifs, but at the level of combinations of GRN motifs.
+This is an interesting question to tackle in future research, and due computational limitations not one that can be answered using our methodology.
+
+% Answer (2) means
 We compared two types of random systems with discrete states and time steps.
 One system is completely random in nature, and is evolved following a completely random state transisition table.
 The other is meant to mimic GRNs, and is evolved following a state transition table computed from a random GRN.
@@ -36,14 +47,6 @@ These larger systems are also closer to reality, as GRNs often include tens to h
 In theory a higher resolution is also closer to reality, although this does depend on whether our extension of the conversion model from GRN to transition table is correct for multi-valued logic systems.
 % Good sign that results are consistent amongst expression levels.
 
-% Spearman hypotheses
-We found a significant positive correlation between the system memory and the impact of a nudge, and it was also found that in some systems a higher synergy lead to a lower nudge impact.
-This is in line with our hypotheses, where we suggested there is a correlation between these properties.
-Furthermore, we found that neither the combination of high memory and low nudge impact nor the combination of low memory and high nudge impact does occur.
-This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
-The observed relation between synergy and nudge impact is in line with the findings of Quax et al.~\ref{quax2017quantifying}.
-% STRESS THAT CORRELATIONS PROBABLY DIFFER DUE TO DIFFERENT RANGES
-
 % Variance (addition to means)
 We observed that the GRN-like systems occupied a much wider range in synergy, memory, and resilience.
 Furthermore, this discrepancy in their ranges becomes greater when increasing the system size or number of possible states.
@@ -51,7 +54,10 @@ This is likely due to the increase in the sample space; the sample space grows s
 If we are correct in our observation that the biological section of this sample space is small and has unique properties, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section.
 This could explain why the random measurements get bunched up around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
 
-% Other results
+% Answer (3)
+We could not draw a conclusion on a difference in the impact of a single-target nudge versus a multi-target nudge with our current methodology.
+However, we did find significant results with the same sign in our experiments, which suggest that if there is a difference it is a matter of magnitude, not whether there is an effect at all.
+% Answer (4)
 Random systems where found to be well-balanced between synergy and redundancy at all levels, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
 
 \end{document}

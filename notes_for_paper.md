@@ -1,4 +1,4 @@
-# Working area
+# Working area 
 
 Add explanation on nudging, refer to DJ possibly.
 %This method of nudging is reminiscent of the signal-response curves popular in biological sciences \cite{tyson2010functional}.

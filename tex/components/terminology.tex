@@ -1,0 +1,33 @@
+% Version: 0.0
+
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+% Definitions, these do need to be defined in the text too the first time
+Throughout the this study we use terminology from varying sources.
+We borrow terms from cell biology and information theory, and where necessary give novel definitions.
+The following is an overview of commonly used terms and abbreviations in this paper, along with their meaning:
+
+\begin{itemize}
+\item (Dyadic)
+\item (GRN) Gene Regulation Network, a system of genes operating at an expression level influencing each other through regulation and stimulation.
+\item (PID) Partial Information Decomposition, the decomposition of information in a system in synergy, redundancy and unique information.
+\item (Polyadic)
+\end{itemize}
+
+% Math notation
+We use the following notation throughout this paper. Let
+\begin{itemize}
+\item[] $n$: the number of genes in a system
+\item[] $l$: the number of states a gene can be in
+\item[] $\epsilon$: the magnitude of a nudge
+\item[] $w$: the width of a nudge, i.e. the number of genes affected
+\item[] $\mathbf{X}^{t=0}$: the set of all $n$ genes in a motif at timestep $t=0$
+\item[] $X_i^{t=0}$: the $i$-th gene in the motif at timestep $t=0$
+\item[] $\mathbf{Y}$: general notation for the set of all predicted target variables, generally $\mathbf{Y} = \mathbf{X}^{t=1}$
+\end{itemize}
+All random variables are discrete with $l$ states, a logarithm is base 2 unless implied otherwise, and calculations of information theory properties are in bits.
+We denote the entropy of a system as $\mathrm{H}(\mathbf{X})$, the mutual information as $\mathrm{I}(\mathbf{X}:\mathbf{Y})$ and the synergy as $\mathrm{S}(\mathbf{X}:\mathbf{Y})$.
+
+\end{document}
