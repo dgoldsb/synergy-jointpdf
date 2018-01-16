@@ -14,3 +14,5 @@ Feed forward loop is most common, die heeft ook weinig synergy, toch?
 
 Aangeven hoe het profiel precies werkt het meet synergy indirect, aangezien op een polyadic niveau I(X:Y) zowel redundancy als synergy bevat
 Need to chck math for constistency.
+
+Aangeven in methods dat ik deze kies omdat geen optimization

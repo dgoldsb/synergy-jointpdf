@@ -210,17 +210,19 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
 \end{figure}
 
 \subsubsection{Quantifying redundancy}
-% Conclusion ought to be "not good enough"
+% Conclusion ought to be "not good enough" because they cannot be solved analytically
 
-The question is how to quantify either the synergetic information, or the redundant information; once one is found, the other follows.
-Some quantifications have been proposed, such as the relatively simple redundancy measure
+The problem of creating a PID can be solved by quantifying either the synergetic information or the redundant information; once one is found, the other follows.
+Several quantifications have been proposed over the years.
+An early attempt at a redundancy quantification was the measure
 %
 \begin{equation}
 \mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}^\mathrm{P}(X_j;Y)] - \mathrm{I}^\mathrm{P}(X;Y)
 \end{equation}
 %
 where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$ after $X$ has been injected with a fixed amount of random noise, to turn the static system into a system of dependent PDFs \cite{tononi1999measures}.
-This quantifications measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, annd is paired with a degeneracy quantification by the author, designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size.
+This quantifications measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, and is paired with a degeneracy quantification by the author.
+This measure has been designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size, and as a result will count synergy as 'negative redundancy', resulting in an underestimation of redundancy.
 
 % Then minimal information
 A more recent proposal is the minimal information $\mathrm{I}_\mathrm{min}$ \cite{williams2010nonnegative}.
@@ -248,11 +250,17 @@ where $\mathrm{I}_Z^\pi (Y \searrow X)$ is the projected information of $Y$ on $
 \begin{equation}
 \mathrm{I}_Z^\pi (X \searrow Y) = \sum_x p(x) [D_\mathrm{KL} (p(z|x) \| p(z)) - D_\mathrm{KL} (p_{(x \searrow Y)}(z|x) \| p(z))]
 \end{equation}
+A key problem with these recent redundancy measures is that they cannot be solved analytically, but require numerical optimization.
+This attaches a significant computational cost to any redundancy estimation.
 
 \subsubsection{Quantifying synergy}
 % SYNERGY: from old to new, see OLBRICH 2015 and GRIFFITH 2014
 
+% Which axioms should be obeyed
 For synergy, a number of measures have been proposed as well \cite{griffith2014quantifying, olbrich2015information}.
+
+% Table
+
 An early synergy measure is the $\mathrm{I}_\mathrm{max}$-synergy, denoted $\mathcal{S}_\mathrm{max}$ \cite{williams2010nonnegative}.
 This quantity is closely related to the redundancy measure
 %
@@ -308,5 +316,7 @@ Alltogether, this gives us the following summary of the available synergy measur
 \max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S})\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
 \end{equation}
 %
-Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}
+Many of these measures rely on numerical optimization over a free parameter, like the current redundancy measures.
+Notable exceptions to this rule are the WMS-synergy
+Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}.
 \end{document}
