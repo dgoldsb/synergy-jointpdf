@@ -11,38 +11,43 @@
 In the analysis of complex system, it is helpful to have a quantification of how 'complex' a system is.
 Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.
 There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
-Information theory has grown to be a staple tool in many fields that work with complex systems \cite{williams2010nonnegative}. % Referenced to later (a)
+Information theory (IT) tackles this problem, and has grown to be a staple tool in many fields that work with complex systems \cite{williams2010nonnegative}. % Referenced to later (a)
 Originally, the primarily used concepts where mutual information and entropy.
 These properties are not always useful in assessing system complexity; in ecology, entropy has been proposed and since gone out of favor as a quantification of system complexity.
 Another concept is the Langton parameter, which can be used to find cellular automatas that exihibit complex behavior, and separate complexity from chaos and regularity \cite{langton1990computation}.
-In more recent years, new quantities have been proposed in information theory, such as synergy.
-Synergy was found to be a better predictor than the Langton parameter for system complexity \cite{9999QuaxChli}
+In more recent years, new concepts from IT have been proposed in information theory, such as synergy.
+Synergy was found to be a better predictor than the Langton parameter for system complexity \cite{9999QuaxChli}.
 Other proposals have been made to quantify complexity, such as the measure
 %
 \begin{equation}
 C(X) = \mathrm{H}(X) - \sum_{j=1}^n \mathrm{H}(X_j^1 | X - X_j^1)
 \end{equation}
 %
-proposed to identify the functional integration and specialization within a neural network \cite{tononi1999measures}. This measure is zero for a disconnected network, and high if much of the entropy of the system is accounted for by interactions among the system elements.
-The general consensus is that complexity is strongly dependent on scale 
-There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
+proposed to identify the functional integration and specialization within a neural network \cite{tononi1999measures}.
+These quantifications are typically built on IT concepts such as entropy and mutual information.
+This particular measure is zero for a disconnected network, and high if much of the entropy of the system is accounted for by interactions among the system elements.
 
 \subsubsection{Partial information decomposition}
-% Give different IT ideas
+% Discuss the current dominant paradigm: PID
 
-Basic principles in information theory are the entropy, mutual information and conditional entropy.
-The principles are widely accepted an applied, and operate at the single- and bivariate level.
-Originally, two extensions past the bivariate level were proposed.
+% First the far history, with unsuccesful attempts
+Basic principles in IT are the (conditional) entropy and mutual information, measured in bits.
+The principles are widely accepted an applied, and operate at the monadic and dyadic level.
+Originally, two extensions that support polyadic interactions were proposed.
 The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
 The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
-The second proposed measure was the interaction information \cite{mcgill1954multivariate}. This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
+The second proposed measure was the interaction information \cite{mcgill1954multivariate}. 
+This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
 Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
-There is no general consensus on which measure is superior as of yet, or how to do a decomposition of partial information \cite{griffith2011quantifying, williams2010nonnegative}.
-More recent approaches often build on on of these two ideas.
-For instance, recently a system was proposed in which the redundancy, synergy and entropy are broken down in multivariate cases \cite{williams2010nonnegative}.
-Here, a large system is essentially broken down in all possible redunancy, synergy and entropy pieces in a system (essentially all possible fields in a Venn diagram).
-These are all quantified to give an overall insight in the structure of the system.
-A weakness of this system is that beyond a few variables this system explodes computationally, and that no measure has been found yet that satisfies all axioms.
+
+% Current paradigm, not final
+There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
+The current dominant paradigm in IT splits the information of a system into three basic principles.
+In this approach, the information in a system is broken down into redundancy, synergy and unique information \cite{williams2010nonnegative}.
+All information in the system can be classified and quantified in these categories, allowing for a full decomposition of the system that improves our understanding of this system.
+The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
+However, a weakness of this system is that beyond a few variables this system explodes computationally.
+In addition, no measure capable of measuring synergy that satisfies all axioms has been proposed yet \cite{griffith2011quantifying}.
 
 % Level 1: entropy
 We can look at systems of random variables at varying levels.
@@ -56,7 +61,7 @@ This is defined as
 %
 for a random variable $X$.
 For a continuous distribution this definition of the entropy is replaced by differential entropy, which integrates instead of using a summation.
-This measure is maximized if the PDF is as evenly spread out as possible, in the case of a discrete PDF when all probabilities are uniform.
+This measure is maximized if the probability distribution is as evenly spread out as possible, in the case of a probability mass function (PMF) when all probabilities are uniform.
 
 % Level 2: mutual information
 At the bivariate level, we can examine the overlap in information between the two random variables.
@@ -69,13 +74,20 @@ This is quantified using the mutual information, which is defined as
 %
 for random variables $X$ and $Y$ \cite{cover2012elements}.
 When dealing with continuous probability distributions, an integral is used instead of a summation.
+For dependent PMFs the conditional entropy can also be determined, which is expressed as 
+%
+\begin{equation}
+\mathrm{H}(X | Y = y) = -\sum^n_{i=1} P(x_i | Y = y) log_b P(x_i | Y = y)
+\end{equation}
+%
 
 % Level 3: synergy/redundancy
-% FOCUS MORE ON THE PROS AND CONS OF EACH
 % Give meaning to what synergy is
 We can also consider a third variable in our system.
-In this case, usually the third variable is seen as an 'output' variable, and it is observed how much information the former two contain about the third.
-In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ into four categories \cite{williams2010nonnegative}:
+In this case we do not only look at dyadic interactions, but also at polyadic interaction.
+For instance, we might consider our first two variables as predictor variables, and our third variable as the predicted variable.
+We can measure how much information the former two contain about the third with the mutual information $I(Z;X,Y)$.
+To analyze this information further, we must split this information into four categories \cite{williams2010nonnegative}:
 %
 \begin{enumerate}
 \item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red}(Z;X,Y)$
@@ -83,8 +95,8 @@ In this decomposition, we attempt to split the mutual information $I(Z;X,Y)$ int
 \item Information solely contained in $X$, denoted $\mathrm{I}(Z; Y) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
 \item Synergetic information contained in neither $X$ and $Y$, denoted $\mathrm{I}_\mathrm{syn}(Z;X,Y)$
 \end{enumerate}
-This partial information decomposition is also shown in Figure~\ref{venn}.
-The quantification of one of the synergy and redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a three variable system.
+This PID is also shown in Figure~\ref{venn}.
+The quantification of either synergy or redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a system with $n \ge 3$.
 
 %% PICTURE %%
 \def\firstcircle{(0:-0.9cm) circle (2cm)}
@@ -128,12 +140,9 @@ The quantification of one of the synergy and redundancy is critical, as without 
     
 \end{tikzpicture}
 \end{center}
-\caption{Partial information-diagram showing a information decomposition of a 3-variable system}
+\caption{Partial information-diagram showing a PID of a 3-variable system}
 \label{venn}
 \end{figure}
-
-% REDUNDANCY: from old to new, see OLBRICH 2015
-% First Tononi, old
 Following this split, the synergy is defined as
 %
 \begin{equation}
@@ -166,7 +175,7 @@ $X$ & $Y$ & $Z$ \\
 \label{XOR}
 \end{table}
 
-And attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
+An attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
 If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
 The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
 This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.
@@ -201,8 +210,7 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
 \end{figure}
 
 \subsubsection{Quantifying redundancy}
-% SHOULD I RESERVE I_red FOR REDUNDANCY IN GENERAL?
-% SHOULD I USE \mathcal{R}?
+% Conclusion ought to be "not good enough"
 
 The question is how to quantify either the synergetic information, or the redundant information; once one is found, the other follows.
 Some quantifications have been proposed, such as the relatively simple redundancy measure

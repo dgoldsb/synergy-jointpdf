@@ -10,8 +10,7 @@
 
 # Overig
 
-Feed forward loop i most common, die heeft ook weinig synergy, toch?
+Feed forward loop is most common, die heeft ook weinig synergy, toch?
 
 Aangeven hoe het profiel precies werkt het meet synergy indirect, aangezien op een polyadic niveau I(X:Y) zowel redundancy als synergy bevat
-
-Terugkomen op: In this work we aim to examine the links between the complicatedness of a complex system its resilience, and the memory of the system.
+Need to chck math for constistency.
