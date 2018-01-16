@@ -54,7 +54,7 @@ In addition, the time complexity increases exponenentially with the number of ge
 A possible solution would be to only model a part of the network, and approximate the effect of the rest of the network every timestep.
 
 We were also limited by our computational power in the choice of a synergy measure.
-We would have preferred to use synergistic random variables, but this proved much too time-consuming even for small networks.
+We would have preferred to use synergistic random variables, but this one together like most popular quantifiers has no analytical solution and relies on numerical optimization, this proved much too time-consuming even for small networks.
 As a result, we were forced to use the mean between the lower- and upper bound for synergy, which yields an imprecise but easily computed synergy measure.
 Similarly, we were also forced to use a naive nudging method, as opposed to the nudging method provided in the jointPDF package.
 

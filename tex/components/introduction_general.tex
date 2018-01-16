@@ -5,52 +5,65 @@
 \begin{document}
 % General context
 %% Put synergy, a term from information theory, at home in the computational science mindset
-In complex systems, elementary properties of many individuals lead to emergent behavior on a system-size scale.
-We can view this emergence as a ’synergy’ of system elements together, which is a vital part of the dynamics of the system as a whole.
-In information theory, synergy as a quantifiable property of a system is a relatively new idea, and can be seen as an addition to system properties like entropy and mutual information.
-The method of quantification for systems larger than the trivial case of 2 random variables is amongst the open problems in the field, but multiple measurements have been proposed \cite{olbrich2015information}.
-Synergy and mutual information are closely related properties, as synergy can be seen as negative mutual information; it is additional information on a random variable that is given by a combination of other random variables, yet not a part of the information captured in any of the individual random variables.
-As such, visualizations of the mutual information in a system of dependent random variables can sketch an image of the synergy in a system.
+In complex systems, the interactions of elementary properties of many simple individuals lead to emergent behavior on a system-size scale.
+Emergence can arise at the scale of dyadic interactions (between two variables) or the scale of polyadic interactions (between more than two variables).
+The information that is stored in dyadic interactions is referred to in information theory as 'mutual information'.
+The emerging information at a polyadic level is labeled as the 'synergy' of system elements together.
+In information theory, synergy as a quantifiable property of a system is a relatively new idea, and can be seen as an addition to well-defined system properties like entropy and mutual information.
+While the focus is often on the dyadic level, synergy is a vital part of the dynamics of the system as a whole.
+
+The method of quantification for synergy is amongst the open problems in the field, but multiple measurements have been proposed \cite{olbrich2015information}.
+Mutual information and synergy are closely related properties, as they are two elements of the partial information decomposition (PID) of the information in a system (the third being unique information).
+Synergy can be seen as negative mutual information between the involved predictor variables; it is additional information on a predicted variable that is given by a combination of predictor variables, yet not a part of the information captured in any of the individual predictor variables.
+The opposite of synergy is redundancy, the information that is encoded in multiple variables.
+As a result, quantification methods for synergy are often based on the well-established quantification of redundancy.
+
+Another challenge is determining at which polyadic level synergy exists in a system.
+Synergy can emerge in any group of 3 variables or greater, but it is plausible that in some systems synergy is primarily found for a specific number of variables.
+Visualizations of the mutual information in a system of predictors and predicted variables can sketch an image of the distribution of synergy.
+As redundancy and synergy are both parts of the mutual information between the predictors and the predicted, anomalies in the distribution of mutual information over the dyadic and polyadic levels can tell a tale of where synergy and redundancy are abundant.
 One method of visualization is through mutual information profiles.
 Early versions used pairwise mutual information between all variables to create a profile of a system \cite{bar2013computationally}. 
-The extended full mutual information profile, proposed by Quax et al., uses the mutual information between all possible subsets of input variables with an output variable \cite{quax2017quantifying}.
-This is hypothesized that it would allow for the identification whether synergy is present at a low level, between two variables, or at a higher level, between groups of variables.
+The extended full mutual information profile, proposed by Quax et al., uses the mutual information between all possible subsets of predictor variables with a predicted variable \cite{quax2017quantifying}.
+It is hypothesized that this would allow for the identification of whether synergy is present at a low dyadic level or at a polyadic level.
 
 %% Link to gene regulatory networks/biology
 %% Talk about pertubation resistance
-Many natural systems are complex in their nature, such as neural networks, gene regulatory networks, bird flocking patterns, and pattern formation \cite{choi2001supply, gat1999synergy, kondo2010reaction, liang2008gene}.
-A complex system is a system that showcases emergent behavior from the interaction of single participants in the system.
-Complexity itself is referred to in two manners in the literature, in both in a qualitative manner of which the properties characterize complex systems, and as a quantification of the added information in a system that comes only from the interactions between variables \cite{bar2004multiscale}.
-Synergy is a quantification of this added information that makes the whole more than the sum of its parts.
+Many natural systems are complex in their nature and showcase emergent behavior, such as neural networks, gene regulatory networks, bird flocking patterns, and pattern formation \cite{choi2001supply, gat1999synergy, kondo2010reaction, liang2008gene}.
+Complexity itself is referred to in two manners in the literature: in a qualitative manner of which the properties characterize complex systems, and as a quantification of the added information in a system that comes only from the interactions between variables \cite{bar2004multiscale}.
+Synergy is a quantification of this added information which makes the whole more than the sum of its parts.
 In this study, we refer to complexity in the latter sense.
-Many of these complex natural systems are also complicated; they consist of many members, sometimes of different species, with many relationships of various kinds running inbetween.
-An example is the food web of a tropical rainforest, where many different species participate and diets are so diverse that the network is densily connected.
-These networks are relatively simple in their building blocks, but show complicated patterns on a global scale.
-In gene regulation, the expression of genes is spatially regulated from the conception of the organism onwards.
+Many of these complex natural systems are also complicated; they consist of many members, sometimes of different species, with many relationships of various kinds running in between.
+In gene regulation, a great number of genes are connected through large amounts of various forms of stimulation and suppression.
+From this a spatially and temporally regulated expression pattern emerges, starting from the conception of the organism onwards.
 A possible angle to the question 'why are biological complex systems often complicated' is from the perspective of resilience and memory.
 Biological systems require a level of memory, a relation between the current state of the system and previous states of the system. 
 They also require a level of noise resilience, as biological systems tend to experience shocks from external sources \cite{peixoto2012emergence}. % not the best reference
+For instance, the concentration of a chemical vital to a complex system in a cell might be changed suddenly and significantly by an external influence.
+The ability for a natural system to recover from such an event is vital for their functioning.
 Maximizing one is not always in the best interest of the other; noise resilience is maximized when the system automatically defaults to a hard-coded state, but this leaves no room for system memory for any state but the hard-coded default.
 A maximized system memory, on the other hand, will never forget noise, causing noise to never die out over time.
 It has been hypothesized by Quax et al. that synergy increases the resilience of a system against pertubation in a single input variable \cite{quax2017quantifying}.
-This means that synergy can be utilized to make a system resistant to nudges, while retaining the ability to memorize previous states.
-We assume that the nudges that biological systems experience the most, and should be resilient against, are single-variable nudges.
+This means that synergy can be utilized to make a system resistant to nudges, while potentially retaining the ability to memorize previous states.
+We assume that the nudges which biological systems experience the most, and should be resilient against, are single-variable nudges.
 If true, this would fit well with the proposal that synergy is used to provide protection against these disturbances.
-After all, synergy operates at a multi-variate level, whereas single variable nudge operate at a single-variate level.
-The realization of a middle way, that maximizes the combination of both resilience and memory, might be through synergy.
+After all, synergy operates at a polyadic level, whereas single variable nudge operate at a single-variate level.
+The realization of a middle way, that maximizes the combination of both resilience and memory, might be made possible through synergy.
 As such, synergistic relationships in the system stemming from complicatedness could contribute to its functioning in a noisy environment.
 
-Thus far, the primary method of investigating complex natural networks is by looking at 1-to-1 relationships between variables \cite{}. % add several sources
-For instance, to build and understanding of gene regulation we examing the correlation in the expression between pairs of genes.
-Multivariate relationships remain unexplored in these studies. 
+Thus far, the primary method of investigating complex natural networks is by looking at dyadic relationships between variables \cite{}. % add several sources, see DJ paper
+For instance, to build an understanding of gene regulation we examing the correlation in the expression between pairs of genes.
+Dyadic relationships remain unexplored in these studies. 
 The potential presence of a relationship between synergy and resilience makes it very interesting to determine the amount of synergy in a biological network. 
-This is even more so the case considering that the relationship between system complexity and resilience is one of the primary unanswered questions of ecology \cite{}.
-The amount of synergy in biological complex systems has, to our best knowledge, not been quantified or explained.
+It is even more of interest considering that the relationship between system complexity and resilience is one of the primary unanswered questions of ecology \cite{}.
+The amount of synergy in biological complex systems has, to the best of our knowledge, not been quantified or explained.
 
 % In this study, we want to...
-In this work we aim to examine the links between the complicatedness of a complex system its resilience, and the memory of the system.
+% ... look at the complicatedness of complex systems vs. resilience and memory
+In this work we aim to examine the links between the complicatedness of a complex system and its resilience, and the memory of the system.
 In particular, we are interested in the role of synergy in these networks, which is used in this study as a quantification of the system complexity.
 This problem is recurrent in many other disciplines, as principles from information theory are broadly applied.
+% ... (1) there is synergistic control
 We hypothesize that there is a form of synergistic control in complex biological networks.
 As a first step, we aim to quantify the amount of synergy in a biological complex system.
 This should allow us to determine how big the presence of synergy is in real-world systems.
@@ -60,11 +73,24 @@ We expect that this discrete approximation is not always sufficient for large ne
 Sticking to a small network size helps both in the quantification of synergy, as computation of the synergy is an expensive operation for large systems \cite{jointpdf}.
 In addition to synergy, we also aim to quantify the system memory and resilience.
 This will provide a starting frame of reference for both measures, and give an idea to what extent natural networks are resilient to perturbation and capable of remembering previous states.
-Secondly, we test the hypothesis that a gene regulation network has more synergy than a random gene regulation network of a similar size. 
-We investigate this through a simulation study in continuous space, where networks are approximated locally in time through an ODE system.
-In addition, we also measure whether real-world motifs score better in terms of system memory and single-variate nudge resilience than random networks, and whether these networks are Pareto optimal in these two properties.
+% ... (2) biology-like has more
+Secondly, we test the hypothesis that a random biologically possible GRN motif has more synergy than a completely random network of a similar size. 
+We investigate this through a simulation study in discrete space, where networks are approximated locally in time through a multi-state system and a transition table.
+In addition, we also measure whether realistic motifs score better in terms of system memory and single-variate nudge resilience than random networks. % bye bye Pareto optimal
+% ... (3) difference between multi-valued and single-valued nudges
 Thirdly, we want to test our assumption that biological networks should be resilient to single-variable nudges, but are not necessarily resilient to nudges in multiple variable at once.
-We do so by examining the resilience of a real GRN when nudging an increasing number of variables.
+We do so by examining the resilience of a biologically possible GRN motifs and completely random networks when nudging an increasing number of variables.
+% ... (4) MI profiles
 Finally, we take a more detailed look at the level at which synergy occurs using full mutual information profiles.
 With this, we provide insight into larger gene regulation motifs, as well as a case for the use of these profiles in the analysis of synergy in complex systems.
+
+% Literature review structure
+To answer these questions, we will first provide the basis on which our methodology is built in a literature review.
+We start with a theoretical background on relevant information theory measures (section~\ref{sec:ecology}), and the different attempts so far at approximating synergy.
+We then discuss complexity profiles (section~\ref{sec:profile}), which will build on the the previously discussed information theory principles and describe the difficulties in visualizing the PID in an efficient manner.
+Consequentially we describe complexity and information theory in ecology (section~\ref{sec:ecology})as a basis our last section (section~\ref{sec:grn}), where we bring the biological and information topics together in a discussion of the literature on the analysis of gene regulation.
+In the methodology (section~\ref{sec:methods}) we provide a definition of our gene regulation model, as well as the exact quantifiers we use for our measurements and the method we use for visualizing our MI profile.
+We also provide a formal overview of testable hypotheses and experiment parameters.
+Our results are then presented and visualized (section~\ref{sec:results}).
+Finally, we provide suggestions for future research (section~\ref{sec:discussion}) and a conclusion of our results (section~\ref{sec:conclusion}), where we refer back to the main question of this thesis.
 \end{document}
