@@ -267,13 +267,15 @@ We normalize this by dividing by the entropy of the system at $t = 1$.
 We found that the SRV-based synergy measure proposed by Quax et al. (Eq.~\ref{SRV}) scales poorly with motif size larger than 2 genes \cite{quax2017quantifying}.
 As a result we use a simpler synergy measure that is based on the average between an upper- and lower bound estimate for the amount of synergy.
 We use the WMS-synergy (Eq.~\ref{WMS}) as a lower bound of synergy in the system.
+This is a computationally cheap measure, and as the systems we measure synergy in are small the intrinsic error in this measure should not be too large.
 For an upper bound, we use the maximum entropy of a single element of the system and the entropy of the entire system
 %
 \begin{equation}
-I(X_{t=0}; X_{t=1}) - \max_i (I(x_{t=0,i};X_{t=1}))
+I(X_{t=0}; X_{t=1}) - \max_i [I(X_{t=0,i};\mathbf{X}_{t=1})]
 \end{equation}
 %
 where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
+This is a variant of the $\mathrm{I}_\mathrm{max}$-synergy described in section~\ref{synergy} which avoids the use of the specific surprise, as this quantity is not readily computed when the set of predicted variables has an arbitrary size.
 This resembles the WMS-synergy lower bound, but whereas the WMS-synergy assumes that there is no redundancy between the elements in the system, this measure assumes there is full redundancy.
 If there would be full redundancy all the leftover information would be synergistic in nature, but if there is no full redundancy the amount synergistic information would be lower, making this a good upper bound.
 The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.

@@ -87,7 +87,8 @@ We can also consider a third variable in our system.
 In this case we do not only look at dyadic interactions, but also at polyadic interaction.
 For instance, we might consider our first two variables as predictor variables, and our third variable as the predicted variable.
 We can measure how much information the former two contain about the third with the mutual information $I(Z;X,Y)$.
-To analyze this information further, we must split this information into four categories \cite{williams2010nonnegative}:
+This information can be ingrained in the system in different ways; the variables $X$ and $Y$ can have overlapping information on $Z$ (redundancy) or cooperate to predict $Z$ (synergy) \cite{griffith2014quantifying}.
+For our three-variable system, we can split information at this emergence level into four categories \cite{williams2010nonnegative}: %TODO let emergence level recur
 %
 \begin{enumerate}
 \item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red}(Z;X,Y)$
@@ -156,6 +157,7 @@ Following this split, the synergy is defined as
 Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
 We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
 The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
+Synergy is not affected by duplicate predictors, but does disappear when the synergistic information itself is made redundant by a new predictor \cite{griffith2014quantifying}.
 
 \begin{table}[ht]
 \begin{center}
@@ -254,28 +256,47 @@ A key problem with these recent redundancy measures is that they cannot be solve
 This attaches a significant computational cost to any redundancy estimation.
 
 \subsubsection{Quantifying synergy}
-% SYNERGY: from old to new, see OLBRICH 2015 and GRIFFITH 2014
+% From old to new, see Olbrich 2015 and Griffith 2014
 
-% Which axioms should be obeyed
+% Which requirements should be obeyed
 For synergy, a number of measures have been proposed as well \cite{griffith2014quantifying, olbrich2015information}.
-
-% Table
+A good measure for synergy should meet several criteria, according to \cite{griffith2014quantifying}.
+All in all, we would like the following properties for a synergy measure:
+%
+\begin{itemize}
+\item Must fall in the range $0 \le \mathrm{I}_\mathrm{syn}(X;Y) \le \mathrm{I} (X;Y)$ (correct range)
+\item Is invariant to duplicate predictors (resilience)
+\item Should not systematically under- or overestimate synergy (accuracy)
+\item Not resource-intensive to compute (computational cost)
+\end{itemize}
+%
+At this moment there is no synergy measure that meets all these requirements.
+The weight of each individual requirement is dependent on the type of research; for instance, a study reliant on repeated synergy computations favors easy-to-compute quantifiers.
 
 An early synergy measure is the $\mathrm{I}_\mathrm{max}$-synergy, denoted $\mathcal{S}_\mathrm{max}$ \cite{williams2010nonnegative}.
 This quantity is closely related to the redundancy measure
 %
 \begin{equation}
-\mathrm{I}_\mathrm{max} (X; Y) = \sum_{y \in Y} [ p(Y = y) \max_i \mathrm{I} (X_i ; Y = y) ]
+\mathrm{I}_\mathrm{max} (\mathbf{X};Y) = \max_i [I(X_{i};Y)]
 \end{equation}
 %
-and is defined as 
+as it has the property
 %
 \begin{equation}
-\mathcal{S}_\mathrm{max} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{max} (X;Y)
+\mathcal{S}_\mathrm{max} (\mathbf{X};Y) \equiv \mathrm{I}(\mathbf{X};Y) - \mathrm{I}_\mathrm{max} (\mathbf{X};Y)
 \end{equation}
 %
+The $\mathrm{I}_\mathrm{max}$-synergy measure is formally defined as
+%
+\begin{equation}
+\mathcal{S}_\mathrm{max} (\mathbf{X};Y) = \mathrm{I}(\mathbf{X};Y) - \sum_{y \in Y} [ p(Y = y) \max_i \mathrm{I} (X_i ; Y = y) ]
+\end{equation}
+%
+where $\mathrm{I} (X_i ; Y = y)$ is called the "specific-surprise".
+The usage of the specific-surprise makes this measure difficult to apply to systems where we have a set of predicted variables $\mathbf{Y}$.
 This measure per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi} \cite{griffith2014quantifying}.
-It is said to typically overestimate synergy, and can thus function as an upper bound of sorts.
+It is resilient against duplicate predicotrs, has a low computational cost, and falls in the correct range.
+However, this measure does overestimate synergy as it qualifies unique information as synergy when multiple predictors have unique information on the target.
 
 % LOWER BOUND IS NICE TO IMPLEMENT REGARDLESS, EASY TO DO
 A second measure is the whole-minus-sum (WMS) synergy, a signed measure where a positive value
@@ -287,7 +308,10 @@ This can be expressed as
 \label{WMS}
 \end{equation}
 %
-As this is essentially the synergy minus the redundancy, the WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
+This measure underestimates synergy, as it subtracts redundancy shared by $n$ variables $n$ times instead of once.
+This underestimation becomes worse once systems become larger, as redundancy can be shared by more variables.
+It is cheap to compute, but does not always fall in the preferred range.
+The WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
 
 For the bivariate case, the synergy from unique information can be used, $\mathcal{S}_\mathrm{vk}$ \cite{bertschinger2014quantifying, griffith2014quantifying, olbrich2015information}.
 This is expressed as
@@ -296,7 +320,9 @@ This is expressed as
 \end{equation}
 %
 where $\mathrm{I}_\mathrm{VK}$ is the unique information, a measure based on the Kullback-Leibler divergence.
+The idea behind this measure is that synergy is about the whole minus the union of all other predictors, not the whole minus the sum of all other predictors.
 This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
+This quantity is a relatively accurate approximation and falls in the desired range, but not analytically solvable and computationally expensive to compute.
 
 % Quax also has his measure
 A measure of synergy based on synergistic random variables (SRVs) has also been proposed \cite{quax2017quantifying}.
@@ -307,6 +333,7 @@ The total synergystic information is defined as
 I_\mathrm{syn}(X \rightarrow Y) \equiv \max_k \sum_i I(Y : S_{i,k}^\perp)
 \end{equation}
 where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
+This measure suffers from a high computational cost, as it involves numerical optimization.
 
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
@@ -316,7 +343,6 @@ Alltogether, this gives us the following summary of the available synergy measur
 \max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S})\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
 \end{equation}
 %
-Many of these measures rely on numerical optimization over a free parameter, like the current redundancy measures.
-Notable exceptions to this rule are the WMS-synergy
-Other notable synergy measures are the correlational importance, which was found to not be a good upper bound for synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}.
+The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.s
+Other notable quantifiers used of synergy measures are the correlational importance, which we do not discuss as it was found to measure something else than synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}.
 \end{document}
