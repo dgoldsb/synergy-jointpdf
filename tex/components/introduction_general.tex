@@ -6,15 +6,17 @@
 % General context
 %% Put synergy, a term from information theory, at home in the computational science mindset
 In complex systems, the interactions of elementary properties of many simple individuals lead to emergent behavior on a system-size scale.
-Emergence can arise at the scale of dyadic interactions (between two variables) or the scale of polyadic interactions (between more than two variables).
+Emergence can arise at the scale of the scale of polyadic interactions (between more than two variables).
+The focus of contemporary research in the biological science is on correlations and other dyadic interactions (between two variables). 
 The information that is stored in dyadic interactions is referred to in information theory as 'mutual information'.
 The emerging information at a polyadic level is labeled as the 'synergy' of system elements together.
 In information theory, synergy as a quantifiable property of a system is a relatively new idea, and can be seen as an addition to well-defined system properties like entropy and mutual information.
 While the focus is often on the dyadic level, synergy is a vital part of the dynamics of the system as a whole.
+In this study we aim to quantify synery in a natural system, and investigate its role in the system resilience.
 
 The method of quantification for synergy is amongst the open problems in the field, but multiple measurements have been proposed \cite{olbrich2015information}.
 Mutual information and synergy are closely related properties, as they are two elements of the partial information decomposition (PID) of the information in a system (the third being unique information).
-Synergy can be seen as negative mutual information between the involved predictor variables; it is additional information on a predicted variable that is given by a combination of predictor variables, yet not a part of the information captured in any of the individual predictor variables.
+Synergy can be seen as cooperation between the involved predictor variables; it is additional information on a predicted variable that is given by a combination of predictor variables, yet not a part of the information captured in any of the individual predictor variables.
 The opposite of synergy is redundancy, the information that is encoded in multiple variables.
 As a result, quantification methods for synergy are often based on the well-established quantification of redundancy.
 
@@ -36,6 +38,8 @@ In this study, we refer to complexity in the latter sense.
 Many of these complex natural systems are also complicated; they consist of many members, sometimes of different species, with many relationships of various kinds running in between.
 In gene regulation, a great number of genes are connected through large amounts of various forms of stimulation and suppression.
 From this a spatially and temporally regulated expression pattern emerges, starting from the conception of the organism onwards.
+
+% Paragraph break suggested by DJ
 A possible angle to the question 'why are biological complex systems often complicated' is from the perspective of resilience and memory.
 Biological systems require a level of memory, a relation between the current state of the system and previous states of the system. 
 They also require a level of noise resilience, as biological systems tend to experience shocks from external sources \cite{peixoto2012emergence}. % not the best reference
@@ -68,7 +72,7 @@ We hypothesize that there is a form of synergistic control in complex biological
 As a first step, we aim to quantify the amount of synergy in a biological complex system.
 This should allow us to determine how big the presence of synergy is in real-world systems.
 We focus on gene regulation networks, as small, elementary motifs are readily available in these networks.
-Resilience is a hot topic in gene regulation, has been examined through discrete Boolean networks without taking synergy into account \cite{peixoto2012emergence}.
+Resilience is a hot topic in gene regulation, and has been examined through discrete Boolean networks without taking synergy into account \cite{peixoto2012emergence}.
 We expect that this discrete approximation is not always sufficient for large networks, as it has been found that the same Boolean motif does not always have the same function \cite{ingram2006network}.
 Sticking to a small network size helps both in the quantification of synergy, as computation of the synergy is an expensive operation for large systems \cite{jointpdf}.
 In addition to synergy, we also aim to quantify the system memory and resilience.
