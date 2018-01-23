@@ -36,3 +36,4 @@ Next williams2010nonnegative.
 # Killed
 
 * The general consensus is that complexity is strongly dependent on scale 
+* Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.

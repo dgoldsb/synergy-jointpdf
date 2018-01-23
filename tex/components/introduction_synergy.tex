@@ -4,55 +4,24 @@
 
 \begin{document}
 
-\subsubsection{Quantifying complexity}
-% Set the stage
-% Something about complexity
-
-In the analysis of complex system, it is helpful to have a quantification of how 'complex' a system is.
-Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.
-There is no general consensus yet of how to model complexity, only that complexity should be a convex function between order and chaos \cite{bar2013computationally}.
-Information theory (IT) tackles this problem, and has grown to be a staple tool in many fields that work with complex systems \cite{williams2010nonnegative}. % Referenced to later (a)
-Originally, the primarily used concepts where mutual information and entropy.
-These properties are not always useful in assessing system complexity; in ecology, entropy has been proposed and since gone out of favor as a quantification of system complexity.
-Another concept is the Langton parameter, which can be used to find cellular automatas that exihibit complex behavior, and separate complexity from chaos and regularity \cite{langton1990computation}.
-In more recent years, new concepts from IT have been proposed in information theory, such as synergy.
-Synergy was found to be a better predictor than the Langton parameter for system complexity \cite{9999QuaxChli}.
-Other proposals have been made to quantify complexity, such as the measure
-%
-\begin{equation}
-C(X) = \mathrm{H}(X) - \sum_{j=1}^n \mathrm{H}(X_j^1 | X - X_j^1)
-\end{equation}
-%
-proposed to identify the functional integration and specialization within a neural network \cite{tononi1999measures}.
-These quantifications are typically built on IT concepts such as entropy and mutual information.
-This particular measure is zero for a disconnected network, and high if much of the entropy of the system is accounted for by interactions among the system elements.
-
 \subsubsection{Partial information decomposition}
 % Discuss the current dominant paradigm: PID
 
-% First the far history, with unsuccesful attempts
+% Key: complexity can be measured using IT, biological sciences are sceptical but all revolves around quantifying information
+While there is no general consensus how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose\cite{williams2010nonnegative, bar2013computationally}. % Referenced to later (a)
 Basic principles in IT are the (conditional) entropy and mutual information, measured in bits.
-The principles are widely accepted an applied, and operate at the monadic and dyadic level.
-Originally, two extensions that support polyadic interactions were proposed.
-The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
-The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
-The second proposed measure was the interaction information \cite{mcgill1954multivariate}. 
-This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
-Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
+The principles are widely accepted and applied, and operate at the monadic and dyadic level.
+Entropy has been used in ecology to quantify complexity, but has gone out of favor since \cite{ulanowicz2001information}.
+In more recent years, new concepts from IT at the polyadic level have been proposed in information theory, such as synergy.
+Synergy in particular was found to be a useful predictor for system complexity in cellular automata \cite{9999QuaxChli}.
+Other proposals that focus on the dyadic level have been made to quantify complexity, such as a quantification by \cite{tononi1999measures} to identify the functional integration and specialization within a neural network.
+This measure utilizes entropy and nudges to the system to measure the amount of entropy accounted for by interactions among the system elements.
 
-% Current paradigm, not final
-There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
-The current dominant paradigm in IT splits the information of a system into three basic principles.
-In this approach, the information in a system is broken down into redundancy, synergy and unique information \cite{williams2010nonnegative}.
-All information in the system can be classified and quantified in these categories, allowing for a full decomposition of the system that improves our understanding of this system.
-The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
-However, a weakness of this system is that beyond a few variables this system explodes computationally.
-In addition, no measure capable of measuring synergy that satisfies all axioms has been proposed yet \cite{griffith2011quantifying}.
 
 % Level 1: entropy
 We can look at systems of random variables at varying levels.
 At the single variable level, we can examine the amount of entropy in a random variable.
-This is usually one through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
+This is usually done through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
 This is defined as 
 %
 \begin{equation}
@@ -80,6 +49,24 @@ For dependent PMFs the conditional entropy can also be determined, which is expr
 \mathrm{H}(X | Y = y) = -\sum^n_{i=1} P(x_i | Y = y) log_b P(x_i | Y = y)
 \end{equation}
 %
+
+
+% First the far history, with unsuccesful attempts
+Originally, two extensions that support polyadic interactions were proposed.
+The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
+The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
+The second proposed measure was the interaction information \cite{mcgill1954multivariate}. 
+This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
+Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
+
+% Current paradigm, not final
+There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
+The current dominant paradigm in IT splits the information of a system into three basic principles.
+In this approach, the information in a system is broken down into redundancy, synergy and unique information \cite{williams2010nonnegative}.
+All information in the system can be classified and quantified in these categories, allowing for a full decomposition of the system that improves our understanding of this system.
+The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
+However, a weakness of this system is that beyond a few variables this system explodes computationally.
+In addition, no measure capable of measuring synergy that satisfies all axioms has been proposed yet \cite{griffith2011quantifying}.
 
 % Level 3: synergy/redundancy
 % Give meaning to what synergy is
@@ -141,7 +128,7 @@ The quantification of either synergy or redundancy is critical, as without this 
     
 \end{tikzpicture}
 \end{center}
-\caption{Partial information-diagram showing a PID of a 3-variable system}
+\caption{Partial information-diagram showing a PID of a 3-variable system (solid arrow indicates stimulation, dashed arrow indicates inhibition}
 \label{venn}
 \end{figure}
 Following this split, the synergy is defined as
@@ -211,6 +198,8 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
 \label{bifan_syn}
 \end{figure}
 
+%TODO continue here
+
 \subsubsection{Quantifying redundancy}
 % Conclusion ought to be "not good enough" because they cannot be solved analytically
 
@@ -223,7 +212,7 @@ An early attempt at a redundancy quantification was the measure
 \end{equation}
 %
 where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$ after $X$ has been injected with a fixed amount of random noise, to turn the static system into a system of dependent PDFs \cite{tononi1999measures}.
-This quantifications measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, and is paired with a degeneracy quantification by the author.
+This quantification measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, and is paired with a degeneracy quantification by the author.
 This measure has been designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size, and as a result will count synergy as 'negative redundancy', resulting in an underestimation of redundancy.
 
 % Then minimal information
