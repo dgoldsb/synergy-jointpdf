@@ -4,27 +4,48 @@
 
 \begin{document}
 
-\subsubsection{Paradox of stability and complexity}
+\subsubsection{Stability and complexity in ecology}
 % The unanswered question
 
 A major unanswered question in ecology is the relationship between the stability and the complicatedness of ecosystems.
-This problem was posed around the time the field of information theory was founded, in the 1950s, but at the time no answer that was well-supported by emperical data was proposed.
-At the time, information theory was immediately picked up as a tool to analyze the complicatedness of ecosystems; the 'evenness variable' $H$, the Shannon-entropy, was used as a measuring device for complicatedness.
-The entropy was initially applied on stock measurements, to describe the proportional population sizes of different species in the ecosystem.
+On the one hand, it is proposed that larger ecological systems are more stable \cite{macarthur1955fluctuations}.
+This is due to that fact that in larger systems predators can have more different type of prey, and that they are not reliant on the availability of a single prey item.
+MacArthur argues that food webs with more links are more stable for this reason, and that this benefit of having as many links as possible is ofset only by a lower trophic efficiency that comes with generalization  \cite{macarthur1955fluctuations}.
 
-Shortly after, the still popular point of view was formulated that with an increased complicatedness there are more pathways to reach a consumer in the food web, and thus a higher stability.
-After all, if one link between prey and predator in a food web would disappear, for instance due to a low prey population after a harsh winter, the predator population is relatively unaffected as they switch to a less-preferred yet viable prey.
-When first posed by Macarthur, information theory was used again to form a definition of complicatedness \cite{macarthur1955fluctuations},
-However, this time, it was used to describe the proportional sizes of biomass flows in the foodweb, not proportional stocks sizes.
+However, it is also observed that food webs never appear to have a larger diameter \footnote{Disregarding paths between unreachable pairs of nodes, as not in all cases a path can be drawn between a pair of nodes.} than 4 or 5 edges \cite{pimm1977number}.
+It was further argued by Pimm et al. that this is not due to the loss of energy over trophic levels, but due to population dynamics.
+Computational studies using models such as the Lotka-Volterra Cascade Models backed this up, suggesting that both the number of species and the connectance between these species decrease the stability of an ecological system.
 
-Nowadays, the question has solidified itself as a form of paradox.
+
+
+In nature we do see large ecological systems, larger than would be suggested by these computational studies, but smaller and less connected than others would suggest.
+
+maaaaar kondoh2003foraging zegt wel inherent instability
 Theoretical studies generally conclude that smaller systems should be more stable, yet in nature we observe many big an complicated predator-prey networks \cite{kondoh2003foraging}.
+
+
+
+
+Theoretical studies generally conclude that smaller systems should be more stable, yet in nature we observe many big an complicated predator-prey networks \cite{kondoh2003foraging}.
+
+It seems we do not have a full understanding of how complexity interacts with stability, and where the treshold lies at which an increase in size of the system will introduce more instability than stability.
+
 The preliminary answers to this question of stability and complicatedness in ecosystems since then have been conflicting, especially between emperical data and theoretical studies. \cite{pimm1984complexity}.
-In the past decade, computational studies have been added to the arsenal of ecologists in their attempt to answer this paradox.
 For instance, in a recent computational study the idea of stability through complicatedness due to an increased flexibility for predators has been reinvestigated, and found as a plausible explanation in the ecosystem model \cite{kondoh2003foraging}.
+Adaptive food choice for this specific
+Bring it home: this problem is not only in ecology, but also in small scale things
+
+
 
 \subsubsection{History of IT in ecology}
 % History of IT and biology
+%TODO meer focus per paragraaf, evt elimineer
+
+When first posed by Macarthur, information theory was used again to form a definition of complicatedness \cite{macarthur1955fluctuations},
+However, this time, it was used to describe the proportional sizes of biomass flows in the foodweb, not proportional stocks sizes.
+
+
+
 
 Information theory has evidently had a place in ecological research.
 % Two different approaches
@@ -55,6 +76,7 @@ In the end, as most ecologists think in stock sizes, not in biomass flows, infor
 % General biology link
 % end how we might be able to answer it now
 
+%TODO break up
 It has been suggested that synergy in complex systems increases the resilience of this system against nudges \cite{quax2017quantifying}.
 The concept of synergy also seems to be present on a high level in biological systems; many phenotypical traits we observe in animals are not coded by one gene, but emerge from a set of cooperating genes \cite{griffith2014quantifying}.
 As a result, synergy might be an interesting new approach to the complexity-resilience question.
@@ -67,7 +89,7 @@ This starts with a reimagination of how we look at an ecosystem.
 If we do not treat the species of a randomly drawn 'unit' as the random variable, we can consider the population size of each species individually.
 This is a very natural step; after all, the disturbances that an ecoystem has to deal with usually manifest itelf as an increase or decrease in the population size of one or several species due to outside forces.
 As soon as we model the system as a system of dependent random variables, we can start looking at interactions between random variables in order to examine redundancy and synergy in a biological network.
-We can use the time dimension as a way to establish relationships the state of the system now and later.
+We can use the time dimension as a way to establish relationships between the state of the system now and later.
 This allows us to use the halflife of effect of a shock on the mutual information between the current and future state of the system \cite{QuaxPersonal}.
 In addition, by simply measuring mutual information between the system now and later we can quantify the amount of memory in a system.
 It should be noted that, for this analysis to be performed, time evolution of the system should be possible.

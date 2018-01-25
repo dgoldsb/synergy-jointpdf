@@ -198,8 +198,6 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
 \label{bifan_syn}
 \end{figure}
 
-%TODO continue here
-
 \subsubsection{Quantifying redundancy}
 % Conclusion ought to be "not good enough" because they cannot be solved analytically
 
@@ -208,12 +206,13 @@ Several quantifications have been proposed over the years.
 An early attempt at a redundancy quantification was the measure
 %
 \begin{equation}
-\mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}^\mathrm{P}(X_j;Y)] - \mathrm{I}^\mathrm{P}(X;Y)
+\mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}(X_j^k;Y)] - \mathrm{I}(X;Y)
 \end{equation}
 %
-where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$ after $X$ has been injected with a fixed amount of random noise, to turn the static system into a system of dependent PDFs \cite{tononi1999measures}.
-This quantification measures whether the sum of the mutual information measures between the elements of $X$ with $Y$ is higher than the total mutual information between $X$ and $Y$, and is paired with a degeneracy quantification by the author.
-This measure has been designed to measure if the mutual information between increasingly large subsets of $X$ and $Y$ scales linearly with the subset size, and as a result will count synergy as 'negative redundancy', resulting in an underestimation of redundancy.
+where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$, $X_j^k$ the $j$-th subset of the set $\mathbf{X}$ of size $k$, and $n$ the number of possible subsets of size $k$ \cite{tononi1999measures}\footnote{In this study redundancy in causal relations was examined, so the MI was computed over an injection of random noise into the system.}.
+This quantification is based on the same principle as the WMS-synergy (discussed in the next section), and was predated by the first use of this measure \cite{gawne1993independent}.
+This measure overestimates redundancy, as it will count information shared by $n_\mathrm{shared}$ variables $n_\mathrm{shared}$ times.
+The author uses this measure to create a profile of a system by gradually increasing the subset size $k$.
 
 % Then minimal information
 A more recent proposal is the minimal information $\mathrm{I}_\mathrm{min}$ \cite{williams2010nonnegative}.
@@ -229,20 +228,18 @@ In more recent years, this was still cited as the best redundancy measure, altho
 
 % Finally bivariate redundancy
 Critics of the minimal informtion have proposed an alternative based on PDF projections \cite{harder2013bivariate}.
-This quantification meets all requirements posed by Williams and Beer, and meets an additional criterium that Harder et al. proposed.
+This quantification meets all requirements for redundancy posed by Williams and Beer, and meets an additional criterium that Harder et al. proposed.
 The bivariate redundancy is expressed as
 %
 \begin{equation}
-\mathrm{I}_\mathrm{biv}(Y;{X_1, X_2}) = \min [\mathrm{I}_Z^\pi (X \searrow Y), \mathrm{I}_Z^\pi (Y \searrow X)] 
+\mathrm{I}_\mathrm{biv}(Y;{X_1, X_2}) = \min [\mathrm{I}_Z^\pi (X_1 \searrow X_2), \mathrm{I}_Z^\pi (X_2 \searrow X_1)] 
 \end{equation}
 %
-where $\mathrm{I}_Z^\pi (Y \searrow X)$ is the projected information of $Y$ on $X$, defined through the Kullback-Leibler divergence as
-%
-\begin{equation}
-\mathrm{I}_Z^\pi (X \searrow Y) = \sum_x p(x) [D_\mathrm{KL} (p(z|x) \| p(z)) - D_\mathrm{KL} (p_{(x \searrow Y)}(z|x) \| p(z))]
-\end{equation}
-A key problem with these recent redundancy measures is that they cannot be solved analytically, but require numerical optimization.
+where $\mathrm{I}_Z^\pi (X_1 \searrow X_2)$ is the projected information of $X_1$ on $X_2$.
+This projected information is based on the minimization of the Kullback-Leibler divergence over the space of all probability distributions over $Y$.
+As such, this measure cannot be solved analytically and requires numerical optimization.
 This attaches a significant computational cost to any redundancy estimation.
+It is also difficult to extend, as it is designed for a scenario with 3 variables. % As such, we don't go into more detail...
 
 \subsubsection{Quantifying synergy}
 % From old to new, see Olbrich 2015 and Griffith 2014
@@ -283,13 +280,13 @@ The $\mathrm{I}_\mathrm{max}$-synergy measure is formally defined as
 %
 where $\mathrm{I} (X_i ; Y = y)$ is called the "specific-surprise".
 The usage of the specific-surprise makes this measure difficult to apply to systems where we have a set of predicted variables $\mathbf{Y}$.
-This measure per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi} \cite{griffith2014quantifying}.
+This measure per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi}, as we define the synergy as the difference between the mutual information (the non-unique information) and the redundancy \cite{griffith2014quantifying}.
 It is resilient against duplicate predicotrs, has a low computational cost, and falls in the correct range.
 However, this measure does overestimate synergy as it qualifies unique information as synergy when multiple predictors have unique information on the target.
 
 % LOWER BOUND IS NICE TO IMPLEMENT REGARDLESS, EASY TO DO
 A second measure is the whole-minus-sum (WMS) synergy, a signed measure where a positive value
-signifies synergy.
+signifies synergy \cite{gawne1993independent, griffith2014quantifying}.
 This can be expressed as
 %
 \begin{equation}
@@ -308,10 +305,12 @@ This is expressed as
 \mathcal{S}_\mathrm{vk} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{VK} (X;Y)
 \end{equation}
 %
-where $\mathrm{I}_\mathrm{VK}$ is the unique information, a measure based on the Kullback-Leibler divergence.
+where $\mathrm{I}_\mathrm{VK}$ is the "union information".
+
+The computation of this union information is a computational process that involves injection of noise into the joint distribution of the entire system, and minimizing a Kullback-Leibler divergence-based measure over the noisified probability distribution.
 The idea behind this measure is that synergy is about the whole minus the union of all other predictors, not the whole minus the sum of all other predictors.
 This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
-This quantity is a relatively accurate approximation and falls in the desired range, but not analytically solvable and computationally expensive to compute.
+The quantification is a relatively accurate approximation and falls in the desired range, but it is not analytically solvable and computationally expensive to compute.
 
 % Quax also has his measure
 A measure of synergy based on synergistic random variables (SRVs) has also been proposed \cite{quax2017quantifying}.
@@ -324,12 +323,14 @@ I_\mathrm{syn}(X \rightarrow Y) \equiv \max_k \sum_i I(Y : S_{i,k}^\perp)
 where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
 This measure suffers from a high computational cost, as it involves numerical optimization.
 
+%TODO geef IVK
+
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
 Alltogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
 %
 \begin{equation}
-\max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S})\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
+\max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S}_\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
 \end{equation}
 %
 The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.s

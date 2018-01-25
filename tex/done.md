@@ -37,3 +37,63 @@ Next williams2010nonnegative.
 
 * The general consensus is that complexity is strongly dependent on scale 
 * Ideally, this quantification allows for the distinction of regular systems, chaotic systems, and systems that show complex behavior.
+
+
+% Talk about initial profile (short, this has been improved)
+A more advanced complexity profile was conceived by Bar-Yam \cite{bar2004multiscale}.
+The proposed complexity function
+%
+\begin{equation}
+C(k) = \sum_{k^\prime = k}^n D(k^\prime) 
+\end{equation}
+%
+represents the amount of information shared by at least $k$ variables.
+The complexity function utelizes $D(k)$, the information that has a redundancy of $k$ or lower, defined as 
+%
+\begin{equation}
+D(k) =  n(k) \cdot \frac{\log(M)}{N}
+\end{equation}
+%
+where $n(k)$ is the number of possible system subsets of size $k$, and the total number of possible actions a system can take.
+This profile has been applied to real-world problems of varying nature in the following years \cite{bar2013computationally}.
+It is simple in the sense that it ignores any kind of probability distribution, but only considers the number of system states the system can evolve into, and the number of possible subsets.
+
+
+
+
+It has been suggested by Quax that a mutual information profile such as those proposed by Tononi, where $< I(X^k;Y) >$ is plotted against the subset size $k$ \cite{QuaxPersonal, tononi1999measures}. 
+When normalized, this provides us with a non-decreasing, non-negative profile with a range from 0 to 1, that allows us to detect extreme cases of synergy and redundancy.
+If there is no redundancy or synergy, we expect to see a straight line.
+If the profile is above the straight line, there is more redundancy than synergy in the system, and vice versa if the profile falls below this line, as synergy expresses itself as negative mutual information.
+With this information, it is possible to maximum bounds to synergy and redundancy.
+For instance, if the profile instantly reaches the maximum possible value, the is no synergy in the system.
+If we do not wish to average out the mutual information for each subset size, but instead want to look at the extremes, we can also decide to examine the $\max [ I(X^k;Y) ]$ .
+We hope that, in its application, we are able to not only attach bounds to synergy and redundancy, but also at what subset size-level it occurs.
+This can provide valuable information about the way synergy and redundancy are incorporated in the structure of the system.
+
+%TODO mismatch
+Intuitively, it seems like smaller ecological systems should be the most stable.
+After all, these systems consist of few species that have large, robust populations.
+However, all around us we see large ecosystems with many components, where the balance seems easy to upset.
+This problem was posed around the time the field of information theory was founded, in the 1950s, but at the time no answer that was well-supported by emperical data was proposed \cite{macarthur1955fluctuations}. %TODO ref
+At the time, information theory was picked up as a tool to analyze the complicatedness of ecosystems; the 'evenness variable' $H$, the Shannon-entropy, was used as a measuring device for complicatedness.
+The entropy was initially applied on stock measurements, to describe the proportional population sizes of different species in the ecosystem.
+
+Shortly after, the still popular point of view was formulated that with an increased complicatedness there are more pathways to reach a consumer in the food web, and thus a higher stability.
+After all, if one link between prey and predator in a food web would disappear, for instance due to a low prey population after a harsh winter, the predator population is relatively unaffected as they switch to a less-preferred yet viable prey.
+When first posed by Macarthur, information theory was used again to form a definition of complicatedness \cite{macarthur1955fluctuations},
+However, this time, it was used to describe the proportional sizes of biomass flows in the foodweb, not proportional stocks sizes.
+
+%TODO waarom stabieler en ref
+Nowadays, the question has solidified itself as a form of paradox.
+Theoretical studies generally conclude that smaller systems should be more stable, yet in nature we observe many big an complicated predator-prey networks \cite{kondoh2003foraging}.
+The preliminary answers to this question of stability and complicatedness in ecosystems since then have been conflicting, especially between emperical data and theoretical studies. \cite{pimm1984complexity}.
+In the past decade, computational studies have been added to the arsenal of ecologists in their attempt to answer this paradox.
+For instance, in a recent computational study the idea of stability through complicatedness due to an increased flexibility for predators has been reinvestigated, and found as a plausible explanation in the ecosystem model \cite{kondoh2003foraging}.
+
+
+http://biocomparison.ucoz.ru/_ld/0/36_macarthur_1955.pdf
+https://www.researchgate.net/profile/Ulrich_Brose/publication/10612635_Comment_on_Foraging_Adaptation_and_the_Relationship_Between_Food-Web_Complexity_and_Stability/links/0deec534ecff3e9222000000.pdf
+https://scholar.google.nl/scholar?cluster=3231395965748612991&hl=en&as_sdt=0,5
+https://www.researchgate.net/profile/Stuart_Pimm/publication/229068914_The_number_of_trophic_levels_in_ecological_communities/links/0fcfd50af7989a6ec4000000.pdf
+focus on complicated

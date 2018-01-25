@@ -5,12 +5,19 @@
 \begin{document}
 
 % Why make a profile
-As discussed in the previous section, a complete decomposition of a complex network leads to a number of quantifiable relations that explodes with the system size.
-Even when we consider just the mutual information between all possible subsets of a network, and the output variable, we obtain $2^n$ measurements (including the empty set), an exponential increase.
-Ideally, we compress all this information in a visual format, that highlights interesting properties of the system as a whole, and disregards unimportant details.
-This visualization can take the format of a 'profile' that is characteristic for the type system, for example a network with synergy at the small scale.
+As discussed in the previous section, we can decompose the information of a system into three categories: synergy, redundancy and unique information.
+However, synergy and redundancy can occur at many different levels.
+In a 5-predictor system, information could be shared by two variables, but also by five.
+Similarly, synergy could emerge from the combination of two variables, or only if all predictors are considered together.
+As a result, the number of quantifiable relations explodes with a larger system size.
+Even when we consider just the pairwise mutual information between all possible subsets of a network, and the output variable, we obtain $2^n$ measurements (including the empty set), an exponential increase.
+
+Due to this rapid increase of the number of quantifiable relations, we would like to extract key characteristics of the system.
+For instance, a system might only start showing emergent synergy when considering all predictors together, yet nothing when looking at smaller subsets.
+This could be achieved by compressing this information in a visual format, that highlights interesting properties of the system as a whole, and disregards unimportant details.
+This visualization can take the format of a 'profile' that is characteristic for the type system.
 When looking at complex systems, the scale is often an important factor regarding complexity, and as such it is often picked as the independent variable in profiles \cite{bar2013computationally, quax2017quantifying, tononi1999measures}.
-The second variable in the profile shows more variation, and is usually an information theory quantification that is averaged over all subsets of a specified size.
+The variable on the y-axis in the profile shows more variation, and is usually an information theory quantification that is averaged over all subsets of a specified size.
 
 % Talk about early complexity profile
 We see the first appearances of complexity profiles regarding biological system in the neurosciences \cite{}.
@@ -24,22 +31,10 @@ Several information theory quantifications were proposed as the dependent variab
 \item The average system integration $<\sum_{i = 1}^{\binom{n}{k}}[\mathrm{H}(X^k)] - \mathrm{H}(X)>$
 \end{itemize}
 %
-The focus lies strongly on identifying degeneracy or complexity, as the used definitions these quantities can be derived by design through integration of  the complexity profile.
-
-% Talk about initial profile (short, this has been improved)
-A more advanced complexity profile was conceived by Bar-Yam \cite{bar2004multiscale}.
-The proposed complexity function
-%
-\begin{equation}
-C(k) = \sum_{k^\prime = k}^n D(k^\prime)
-\end{equation}
-%
-represents the amount of information shared by at least $k$ variables.
-The complexity function utelizes $D(k)$, the information that has a redundancy of $k$ or lower.
-This profile has been applied to real-world problems of varying nature in the following years \cite{bar2013computationally}.
+The focus lies strongly on identifying degeneracy or complexity, as these quantities can be derived by design through integration of the complexity profile.
 
 % Talk about pairwise complexity profile
-As an improvement on his previous proposal, a different approach to a complexity profile is taken by Bar-Yam \cite{bar2013computationally}.
+An approach to a complexity profile is given by Bar-Yam \cite{bar2013computationally}.
 He constructs a pairwise, non-negative complexity profile based on the mutual information of all variable pairs in the system.
 He constructs a function $k_i (p)$ as the number of variables from $x_j \in X$ where $i \ne j$ that have a coupling higher than $p$ with variable $x_i$.
 The coupling is defined as a normalized version of the mutual information $I(x_i;x_j)$.
@@ -62,7 +57,7 @@ with
 \end{equation}
 
 As only pairs are examined, this method is computationally a lot cheaper than models that examine all possible subset sizes, costing $\binom{n}{2}$ mutual information computations.
-This system is not without downsides, as fue to the pairwise nature higher-order relations, such as synergy, are not captured.
+This system is not without downsides: due to the pairwise nature higher-order relations, such as synergy, are not captured.
 
 % Another option, that is not non-decreasing/increasing
 As a response to Bar-Yam's proposal for a complexity function, an alternative that separates structure from entropy has been suggested \cite{arbona2014statistical}.
@@ -77,15 +72,14 @@ A complexity at time $t$ at a chosen scale level can be derived by integrating t
 This complexity measure is especially suitable for spatial information, such as the vector fields relevant in bird flocking behavior.
 
 % Talk about MI profile
-% Details go in the methods section
-It has been suggested by Quax that a mutual information profile such as those proposed by Tononi, where $< I(X^k;Y) >$ is plotted against the subset size $k$ \cite{QuaxPersonal,tononi1999measures}. 
-When normalized, this provides us with a non-decreasing, non-negative profile with a range from 0 to 1, that allows us to detect extreme cases of synergy and redundancy.
-If there is no redundancy or synergy, we expect to see a straight line.
+% Details go in the methods section, here goes only what Rick said to me
+It has been suggested by Quax that a mutual information profile such as those proposed by Tononi, where $< I(X^k;Y) >$ is plotted against the subset size $k$ \cite{QuaxPersonal, tononi1999measures}. 
+When normalized, this would provide a non-decreasing, non-negative profile with a range from 0 to 1 that allows us to detect extreme cases of synergy and redundancy.
+If there is no redundancy or synergy, a straight line would form.
 If the profile is above the straight line, there is more redundancy than synergy in the system, and vice versa if the profile falls below this line, as synergy expresses itself as negative mutual information.
-With this information, it is possible to maximum bounds to synergy and redundancy.
-For instance, if the profile instantly reaches the maximum possible value, the is no synergy in the system.
-If we do not wish to average out the mutual information for each subset size, but instead want to look at the extrems, we can also decide to examine the $\max [ I(X^k;Y) ]$ .
-We hope that, in its application, we are able to not only attach bounds to synergy and redundancy, but also at what subset size-level it occurs.
+With this information, Quax argues that it is possible to maximum bounds to synergy and redundancy.
+For instance, if the profile reaches the maximum possible value for a small subset size there cannot be synergy in the system.
+In addition, this can enable one to not only attach bounds to synergy and redundancy, but also observe at what subset size-level it occurs.
 This can provide valuable information about the way synergy and redundancy are incorporated in the structure of the system.
 
 % Theoretische simpele cases uitwerken
