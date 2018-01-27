@@ -92,8 +92,5 @@ In the past decade, computational studies have been added to the arsenal of ecol
 For instance, in a recent computational study the idea of stability through complicatedness due to an increased flexibility for predators has been reinvestigated, and found as a plausible explanation in the ecosystem model \cite{kondoh2003foraging}.
 
 
-http://biocomparison.ucoz.ru/_ld/0/36_macarthur_1955.pdf
-https://www.researchgate.net/profile/Ulrich_Brose/publication/10612635_Comment_on_Foraging_Adaptation_and_the_Relationship_Between_Food-Web_Complexity_and_Stability/links/0deec534ecff3e9222000000.pdf
-https://scholar.google.nl/scholar?cluster=3231395965748612991&hl=en&as_sdt=0,5
-https://www.researchgate.net/profile/Stuart_Pimm/publication/229068914_The_number_of_trophic_levels_in_ecological_communities/links/0fcfd50af7989a6ec4000000.pdf
-focus on complicated
+I got an invite from Sarah to your Bulgarian Saint Trifon's party, but I am a bit confused from where the invitation came?
+
