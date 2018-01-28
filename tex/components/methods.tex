@@ -435,7 +435,7 @@ As part of the experiments all possible numbers of genes targeted by a nudge are
 We decided on an indegree between 2 and 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
 With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
 Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
-The nudge size was limited to below 0.5 units, as for higher values the nudging function stopped performing well.
+The nudge size was limited to 80\% of the maximum safe nudge in the parameter sweep, as for higher values the nudging function stopped performing well.
 In many cases, the nudged PDF would not remain close to normalized.
 
 
@@ -446,7 +446,7 @@ Parameter & Start & End & Increment \\
 \hline
 Network size (\#) & 2 & 5 & 1 \\
 Logic size (\#) & 2 & 5 & 1 \\
-Nudge size (fraction of probability) & 0.1 & 0.5 & 0.1 \\
+Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 \hline
 \end{tabular}
 \centering

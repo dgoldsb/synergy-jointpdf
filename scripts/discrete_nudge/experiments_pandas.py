@@ -22,7 +22,7 @@ from time import gmtime, strftime
 # settings for the experiment
 synergy_measure = measures.synergy_middleground
 nudge_method = "DJ"
-sample_size = 150 # in practice this is times two, we draw a random and a GRN sample
+sample_size = 100 # in practice this is times two, we draw a random and a GRN sample
 network_sizes = [2, 3, 4, 5]
 logic_sizes = [2, 3, 4]
 max_nudge = 1 - (1.0 / min(logic_sizes))
