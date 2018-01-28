@@ -5,9 +5,6 @@ This file contains some of the common operations used on discrete motifs.
 from random import shuffle
 import numpy as np
 
-# TODO: extend the class more?
-
-
 def select_subset(arr, threshold):
     """
     Import from Derkjan that broke down, so manually implementing.
@@ -137,16 +134,26 @@ def nudge_distribution_non_local_non_causal(joint, nudge_labels, nudge_size, nud
     :returns
     :return nudged_joint: a nudged version of the joint
     """
+    # copy the joint distribution
     nudged_joint = np.copy(joint)
+
+    # get a list of indices for the nudged variables
     nudged_indices = tuple(range(len(joint.shape) - len(nudge_labels), len(joint.shape), 1))
+    # reorder the variables so that the last variables in the distribution are the nduged ones
     nudged_joint = np.moveaxis(nudged_joint, nudge_labels, nudged_indices)
+    # calculate the nudge size applied per state, the nudge size is the fraction of the present probability moved
+    # this has the dimension of the probability matrix of all unnudged variables
     nudged_size_per_state = np.sum(nudged_joint, axis=nudged_indices) * nudge_size
+
+    # apply nudges
     it = np.nditer(nudged_size_per_state, flags=['multi_index'])
     while not it.finished:
         if it.value == 0:
             it.iternext()
             continue
 
+        # each nudge, we pass a joint of the nudged variables
+        # we nudge by the previously computed nudge size, which is based on a fraction of the probability present in this particular joint
         flattened_dist = nudged_joint[it.multi_index].flatten()
         nudged_state = np.reshape(
             mutate_array_bigger_zero(flattened_dist, it.value, nudge_option),
@@ -155,6 +162,7 @@ def nudge_distribution_non_local_non_causal(joint, nudge_labels, nudge_size, nud
         nudged_joint[it.multi_index] = nudged_state
         it.iternext()
 
+    # put the variables back in the original order
     nudged_joint = np.moveaxis(nudged_joint, nudged_indices, nudge_labels)
     return nudged_joint
 

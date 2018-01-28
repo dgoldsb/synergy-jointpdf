@@ -11,6 +11,7 @@ import itertools
 import math
 import numpy as np
 from operator import mul    # or mul=lambda x,y:x*y
+from pyDOE import *
 import random
 
 
@@ -258,6 +259,62 @@ def random_transition_table(no_nodes, num_values):
     return np.array(state_transitions)
 
 
+def LH_transition_table(no_nodes, num_values, seed):
+    """
+    Generate a transition table from the seed sampled using LHC scheme.
+
+    PARAMETERS
+    ---
+    no_nodes: number of genes (int)
+    numvalues: number of possible values (int)
+    seed: random number between 0 and 1 (float)
+
+    RETURNS
+    ---
+    trans_table: a np array
+    """
+    # calculate the maximum number of transition tables
+    no_states = num_values ** (no_nodes)
+    length_table = no_nodes * no_states
+    no_possible_tables = num_values ** (length_table)
+
+    # turn the seed into a number in the range 0 - max
+    decimal_table = math.floor(seed * (no_possible_tables + 1))
+
+    # turn this into a list representation of the digits in base "num_values"
+    digits = []
+    while decimal_table > 0:
+        digits.insert(0, decimal_table % num_values)
+        decimal_table  = decimal_table // num_values
+
+    # pad with zeroes to the left until we have enough digits
+    while len(digits) < length_table:
+        digits = [0] + digits
+
+    # construct the leafcodes
+    states = list(range(num_values))
+    leafcodes = list(itertools.product(states, repeat=no_nodes))
+
+    # make an empty state_transitions object
+    state_transitions = []
+    # iterator for looping over the digits list
+    iterator = 0
+
+    # fill the transitions table
+    for _leafcode in leafcodes:
+        for _ in range(0, no_nodes):
+            random_state = digits[iterator]
+            iterator += 1
+
+            # update the leafcode
+            _leafcode = list(_leafcode) + [random_state]
+
+        # add to the state transition
+        state_transitions.append(_leafcode)
+
+    return np.array(state_transitions)
+
+
 def generate_random(samplesize, no_nodes, numvalues = 2):
     """
     This is a true random generator of transition table-based GRNs,
@@ -291,6 +348,47 @@ def generate_random(samplesize, no_nodes, numvalues = 2):
         motif.grn_vars = deepcopy(grn_vars)
         motif.evaluation_style = 'transition_table'
         motif.transition_table = random_transition_table(no_nodes, numvalues)
+        motif.construct_grn()
+
+        motifs.append(motif)
+
+    return motifs
+
+
+def generate_random_LH(samplesize, no_nodes, numvalues = 2):
+    """
+    This is a true random generator of transition table-based GRNs,
+    and covers the entire search space, not just the bio-GRN part.
+
+
+    PARAMETERS
+    ---
+    samplesize: number of objects in list
+    no_nodes: number of genes
+    numvalues: number of possible values (int)
+
+    RETURNS
+    ---
+    motifs: list of DiscreteGrnMotif objects
+    """
+    # create empty list for the objects
+    motifs = []
+
+    # generate N samples
+    samples = lhs(n=1, samples=samplesize, criterion=None)
+    for sample in samples:
+        # create
+        grn_vars = {}
+
+        # set the size
+        grn_vars["gene_cnt"] = no_nodes
+        # set the correlation matrix
+        grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
+
+        motif = DiscreteGrnMotif(1, numvalues)
+        motif.grn_vars = deepcopy(grn_vars)
+        motif.evaluation_style = 'transition_table'
+        motif.transition_table = LH_transition_table(no_nodes, numvalues, sample)
         motif.construct_grn()
 
         motifs.append(motif)

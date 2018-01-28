@@ -159,9 +159,17 @@ This method is good for generating random correlation matrices with large off-di
 We then use values on the band above the diagonal as our correlation list. %TODO you mean you consider only corerlations between x and x+1? Not x and x+2?
 
 For the sake of comparison, we sample from the set of all possible transition tables.
-In this process, we consider all the expression levels in the future state of the transition table as a string of random variables.
-For each variable, we sample from the set $m \in \{0, 1, ..., l\}$ with equal probabilities. %TODO something notationwise wrong?
-As long as the present states are always represented in the same order in the transition table, this allows us to sample any transition table that is possible with equal probability.
+We use a Latin-hypercube design, as implemented in the \texttt{pyDOE} library.
+We generate $n$ random numbers between 0 and 1 using this scheme, where $n$ is the sample size.
+To convert a generated number into a transitition table, we first convert this number to an integer in the range $0 \le x \le x_\mathrm{max}$, where $x_\mathrm{max}$ is the number of possible transition tables.
+Here, $x_\mathrm{max}$ is defined as 
+\begin{equation}
+x_\mathrm{max} = l^{n \cdot l^n}
+\end{equation}
+We then convert this base-10 number to a base-$l$ number.
+We store this number as a list of digits, which we pad with zeroes to the left until it is of length $n \cdot l^n$, the number of integers that together make up a transition table.
+This list of digits represents the states of all the genes in our transition table.
+As long as the present states are always represented in the same order in the transition table, this allows us to sample any transition table that is possible.
 
 \subsubsection{Generating Biological GRNs}
 
@@ -234,6 +242,7 @@ Once an edge has been selected, a random function is attached to it, such as inh
 
 \subsubsection{Parameter Nudging}
 %TODO uitleg is misschien wel correct maar ook wel warrig, is er een helderdere versie te bedenken?
+%TODO I think this in reality is bounded by 1/l!!!
 
 %% Nudging
 The method of nudging used was based on an implementation by Riesthuis \ref{DJ_repository}.
@@ -249,7 +258,7 @@ The nudged version of the vector $z^\prime$ is plugged back into the jointPDF-ob
 In practice, a nudge of $\epsilon \ge \frac{1}{n}$ is not safe to use.
 %TODO waarom? heb je dat ondervonden? of bedoel je meer 'seems' or 'appears'?
 In some cases it will be possible, but if the states are about equally likely this will cause the nudge to not be properly applied, as not enough probability can be moved around.
-After all, if we have a simple case of a $[0.5, 0.5]$ split, it is impossible to find a nudge vector that we can add to this that satisfies $\epsilon > 0.5$ while also respecting the constraint that probabilities should always fall in the range $0 \epsilon \ge \frac{1}{n}$.
+After all, if we have a simple case of a $[0.5, 0.5]$ split, it is impossible to find a nudge vector that we can add to this that satisfies $\epsilon > 0.5$ while also respecting the constraint that probabilities should always fall in the range $0 \ge \epsilon \ge \frac{1}{n}$.
 
 \subsection{Analytical methods}
 
