@@ -11,6 +11,7 @@ import discrete_motif_plotting as visualize
 # regular imports
 import logging
 import os
+from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 import pickle
@@ -22,7 +23,7 @@ from time import gmtime, strftime
 # settings for the experiment
 synergy_measure = measures.synergy_middleground
 nudge_method = "DJ"
-sample_size = 100 # in practice this is times two, we draw a random and a GRN sample
+sample_size = 50 # in practice this is times two, we draw a random and a GRN sample
 network_sizes = [2, 3, 4, 5]
 logic_sizes = [2, 3, 4]
 max_nudge = 1 - (1.0 / min(logic_sizes))
@@ -52,7 +53,14 @@ def loop_impacts(network_size, nudge_size, motif):
     return synergy, impacts, memory
 
 
-def draw_sample(sample_size, network_size, logic_size, nudge_size, mylogger):
+def draw_sample(lst):
+    # unpack the variables (necessary because of the pool)
+    sample_size = lst[0]
+    network_size = lst[1]
+    logic_size = lst[2]
+    nudge_size = lst[3]
+    mylogger = lst[4]
+
     # create dataframe
     dataframe = pd.DataFrame(columns=["system_size", "logic_size", "nudge_size", "type", "motif", "synergy", "memory", "impacts"])
 
@@ -111,6 +119,37 @@ def draw_sample(sample_size, network_size, logic_size, nudge_size, mylogger):
     
     return dataframe, samples_grn, samples_random
 
+
+def draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylogger):
+    """
+    Wrapper that allows us to sample in parallel
+    """
+    pool = Pool(processes=2)
+    jobs = []
+    samples_realized = 0
+    while samples_realized < sample_size:
+        job = []
+        sample_size_job = min(5, sample_size - samples_realized)
+        job.append(sample_size_job)
+        job.append(network_size)
+        job.append(logic_size)
+        job.append(nudge_size)
+        job.append(mylogger)
+        jobs.append(job)
+    results = pool.map(draw_sample, jobs)
+
+    # unpack results
+    frames = [results[0][0]]
+    samples_grn = results[0][1]
+    samples_random = results[0][2]
+    for i in range(1, len(results)):
+        frames.append(results[i][0])
+        samples_grn += results[i][1]
+        samples_random += results[i][2]
+    dataframe = pd.concat(frames)
+
+    return dataframe, samples_grn, samples_random
+
 def main():
     # logger
     mylogger = logging.getLogger('mylogger')
@@ -153,7 +192,11 @@ def main():
             for nudge_size in nudge_sizes:
                 mylogger.info("sampling %d nodes, %d logic size, %f nudge size, %s as nudge_method, %s as synergy measure" % (network_size, logic_size, nudge_size, nudge_method, synergy_measure))
                 start = time.time()
-                dataframe, samples_grn, samples_random = draw_sample(sample_size, network_size, logic_size, nudge_size, mylogger)
+                result = draw_sample([sample_size, network_size, logic_size, nudge_size, mylogger])
+                dataframe = result[0]
+                samples_grn = result[1]
+                samples_random = result[2]
+                #dataframe, samples_grn, samples_random = draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylogger)
                 
                 # save the data for future use/reruns
                 name_df = "experiment_k=%d_l=%d_e=%f_df.pkl" % (network_size, logic_size, nudge_size)
