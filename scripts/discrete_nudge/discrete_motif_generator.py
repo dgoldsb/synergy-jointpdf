@@ -153,6 +153,7 @@ def generate_rules(no_rules, no_nodes, p_1to1):
 
             # append to rules
             rules.append(rule)
+
     return rules
 
 

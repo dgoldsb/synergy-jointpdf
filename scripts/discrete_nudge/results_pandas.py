@@ -22,6 +22,7 @@ import pickle
 import random
 import scipy.stats
 import re
+from sklearn.linear_model import LinearRegression
 from sklearn.manifold import TSNE
 import sys
 
@@ -892,9 +893,9 @@ def main():
     print("doing TSNE")
     #visualize_TSNE(dataframe)
     print("doing tests")
-    test_synergy(dataframe)
-    test_memory(dataframe)
-    test_resilience(dataframe)
+    #test_synergy(dataframe)
+    #test_memory(dataframe)
+    #test_resilience(dataframe)
     print("doing scatters")
     #visualize_scatters(dataframe)
     print("doing impacts")
@@ -986,6 +987,44 @@ def main():
                         impacts.append(sample[2][-1][1])
                 rho, p_value = scipy.stats.spearmanr(memories, impacts)
                 df_3.loc[loc_df3] = ["random_rho_mem_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+
+                # do partial correlation synergy single nudge
+                # do partial correlation synergy multiple nudge
+                samples = selected_dataframe[["type", "synergy", "memory", "impacts"]].values.tolist()
+                synergies = []
+                memories = []
+                impacts_single = []
+                impacts_multiple = []
+                for sample in samples:
+                    if sample[0] == "random":
+                        synergies.append(sample[1])
+                        memories.append(sample[2])
+                        impacts_single.append(sample[3][0][1])
+                        impacts_multiple.append(sample[3][-1][1])
+                # do linear models for residuals
+                if len(synergies) == 0:
+                    continue
+                lr1 = LinearRegression()
+                lr1.fit(np.asarray(memories).reshape(len(synergies), 1), synergies)
+                lr2 = LinearRegression()
+                lr2.fit(np.asarray(memories).reshape(len(impacts_single), 1), impacts_single)
+                lr3 = LinearRegression()
+                lr3.fit(np.asarray(memories).reshape(len(impacts_multiple), 1), impacts_multiple)
+                # calculate residuals
+                residuals_synergy = []
+                residuals_single_impact = []
+                residuals_multiple_impact = []
+                for i in range(0, len(synergies)):
+                    residuals_synergy.append(synergies[i] - lr1.predict(memories[i])[0])
+                    residuals_single_impact.append(impacts_single[i] - lr2.predict(memories[i])[0])
+                    residuals_multiple_impact.append(impacts_multiple[i] - lr3.predict(memories[i])[0])
+                # do partial correlations
+                rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_single_impact)
+                df_3.loc[loc_df3] = ["random_rho_partial_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+                rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_multiple_impact)
+                df_3.loc[loc_df3] = ["random_rho_partial_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
     for system_size in system_sizes:

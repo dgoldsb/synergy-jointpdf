@@ -64,7 +64,7 @@ This was met with some success, as 65\% of the maximum possible correspondence w
 In this reaction rate-type ODE model, the mRNA concentration linked to a gene (a measure for gene activity) is expressed as
 %
 \begin{equation}
-\frac{dX}{dt} = (\frac{k_A \cdot A(t)}{c_A + A(t)} + \frac{k_B \cdot B(t)}{c_B + B(T)}) \cdot \frac{k_C \cdot C(t)}{c_C + C(T)} - k_\mathrm{deg} X(t)
+\frac{dX}{dt} = (\frac{k_A \cdot A\left( t \right)}{c_A + A\left( t \right)} + \frac{k_B \cdot B\left( t \right)}{c_B + B\left( t \right)}) \cdot \frac{k_C \cdot C\left( t \right)}{c_C + C\left( t \right)} - k_\mathrm{deg} X\left( t \right)
 \end{equation}
 %
 where $A$, $B$ and $C$ are protein concentrations, and the lower case letters denote kinetic constants.
@@ -75,16 +75,16 @@ A model that puts less focus on mimicking real reaction rates to capture GRNs is
 This has been implemented by \cite{qian2008inference} as
 %
 \begin{equation}
-\frac{dX_i}{dt} = f_i(X_1,...,X_n) + v_i
+\frac{dX_i}{dt} = f_i \left( X_1,...,X_n \right) + v_i
 \end{equation}
 %
 where
 %
 \begin{equation}
-f_i = \sum_{j=1}^{L_i} [(w_{ij}+ \mu_{ij})\Omega_{ij}(x_1,...,x_n)]
+f_i = \sum_{j=1}^{L_i} [(w_{ij}+ \mu_{ij})\Omega_{ij}\left( x_1,...,x_n\right)]
 \end{equation}
 %
-and $\Omega(x_1,...,x_n)$ is a non-linear function, such as a sigmoid function.
+and $\Omega\left( x_1,...,x_n\right)$ is a non-linear function, such as a sigmoid function.
 However, no dataset was freely available from this study.
 
 % Yeast model

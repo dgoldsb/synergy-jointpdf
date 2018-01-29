@@ -1,0 +1,38 @@
+% Version: 0.0
+
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\section{Methods}
+\label{appendix_methods}
+
+\subsection{Alternative deciding conditions}
+\label{alternative_deciding}
+
+We support four deciding conditions, each of which fit with a different design choice in simplifying reality.
+The default is the \texttt{totaleffect} condition.
+We offer these alternatives as the choice of condition can effect which transition tables can be contructed using networks.
+These conditions are:
+%
+\begin{itemize}
+\itemsep0em 
+\item (\texttt{totaleffect}) Each function affecting a gene outputs a \textit{change} in the target gene, multiple effects are added. The expression level remains capped ($0 \le m \le l$). This implies that one strong inhibitor can overpower several weak stimulators completely.
+\item (\texttt{average}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, multiple effects combined using a weighted average and rounded to the nearest integer value. This implies that when a gene is both stimulated and inhibited, it is much more likely to end up in a semi-activated state, and not either in a deactivated state or an activated state.
+\item (\texttt{down}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, the lowest is selected. This method assumes inhibition is dominant.
+\item (\texttt{majority}) Each function affecting a gene outputs a \textit{suggested value} of the target genes, the most commenly suggested value is chosen. In case of a tie a random value is selected.
+\end{itemize}
+
+\subsection{Searching for motifs}
+
+As a validation method, we implemented a search function to explore random samples.
+This allows us to search sets of randomly generated motifs for a particular motif of our choosing, for instance one that is common in nature.
+This function takes a network-type motif as an input, as well as a set of motifs of any kind.
+First, it converts this input motif to a transition table.
+Then, all possible variations of the transition table that represent the same motif are produced.
+After all, if we switch the labels of two genes in the motif the transition table changes, while the network-motif stays the same.
+For each transition table in the sample, we check if it is in the set of transition tables we produced in the previous step.
+
+%TODO meer hier?
+
+\end{document}

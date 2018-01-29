@@ -3,6 +3,11 @@
 \documentclass[../main.tex]{subfiles}
 
 \begin{document}
+%TODO discussieer tijd herschalen (hoe het stochastisch zou moeten worden)
+%TODO noem en discuss stuart kauffman paper
+%TODO discussieer geen correlation loops beter
+%TODO why is a random generation of correlation values (independently also I presume?) representative? Can we not better try to get correlation statistics from data, which I am sure is abundantly available?
+% If you cannot find such then ask me, I will make one from a dataset I happen to have, which is small (30x30) but still something.
 
 % section: limitations with the model
 % I try to logically walk through the steps of getting to my transition table
@@ -20,6 +25,11 @@ While the number of cycles was still low, we at least found that this rule combi
 Other rules did not yield any cycles, or very few.
 All of the rules were based on literature that applies to Boolean networks, and we extended these to apply to multi-valued discrete networks as well.
 While the similar results inspire confidence that this was done in correctly, the fact that this is not inspired on prior research is a weakness of this study.
+
+We could have improved our experimental design by applying a variance reducing sampling method, such as Latin-hypercube sampling (LHC).
+This would involve sampling a random number represented in base-$l$ where $0 \le x_\mathrm{random} < l^{n \cdot l^n}$.
+This was found to be a difficult endeavor due to the sheer size of the sample space; for our largest experiments, the maximum value that should be sampled is approximately $3.5 \times 10^{3082}$.
+Existing Python libraries, such as the \texttt{pyDOE} library, are not equipped to deal with numbers this large.
 
 We used correlations between genes to replace influence from the omitted part of the network in the inital distribution of system states.
 The fact that these correlations are not used past the initialization makes it so that the framework is not suited for prolonged simulations, as the omitted part of the network is neglected in all timesteps.

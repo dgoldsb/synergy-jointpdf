@@ -25,7 +25,7 @@ This is usually done through Shannon's measure for entropy entropy \cite{shannon
 This is defined as 
 %
 \begin{equation}
-\mathrm{H}(X) = -\sum^n_{i=1} P(x_i) log_b P(x_i)
+\mathrm{H}\left( X \right) = -\sum^n_{i=1} \Pr \left( x_i \right ) \log \Pr \left( x_i \right)
 \end{equation}
 %
 for a random variable $X$.
@@ -38,7 +38,7 @@ This is quantified using the mutual information, which is defined as
 %
 \begin{equation}
 \label{MI}
-\mathrm{I}(X;Y) = \sum_{y \subset Y} \sum_{x \subset X} \log_b (\frac{p(x,y)}{p(x) p(y)})
+\mathrm{I} \left( X;Y \right) = \sum_{y \subset Y} \sum_{x \subset X} \Pr \left( x,y \right) \log (\frac{\Pr \left( x,y \right) }{\Pr \left( x \right) \Pr \left( y \right)})
 \end{equation}
 %
 for random variables $X$ and $Y$ \cite{cover2012elements}.
@@ -46,7 +46,7 @@ When dealing with continuous probability distributions, an integral is used inst
 For dependent PMFs the conditional entropy can also be determined, which is expressed as 
 %
 \begin{equation}
-\mathrm{H}(X | Y = y) = -\sum^n_{i=1} P(x_i | Y = y) log_b P(x_i | Y = y)
+\mathrm{H} \left(X \given Y = y \right) = -\sum^n_{i=1} \Pr \left( x_i \given Y = y \right) \log \Pr \left( x_i \given Y = y \right)
 \end{equation}
 %
 
@@ -73,15 +73,15 @@ In addition, no measure capable of measuring synergy that satisfies all axioms h
 We can also consider a third variable in our system.
 In this case we do not only look at dyadic interactions, but also at polyadic interaction.
 For instance, we might consider our first two variables as predictor variables, and our third variable as the predicted variable.
-We can measure how much information the former two contain about the third with the mutual information $I(Z;X,Y)$.
+We can measure how much information the former two contain about the third with the mutual information $\mathrm{I} \left( Z;X,Y \right)$.
 This information can be ingrained in the system in different ways; the variables $X$ and $Y$ can have overlapping information on $Z$ (redundancy) or cooperate to predict $Z$ (synergy) \cite{griffith2014quantifying}.
 For our three-variable system, we can split information at this emergence level into four categories \cite{williams2010nonnegative}: %TODO let emergence level recur
 %
 \begin{enumerate}
-\item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red}(Z;X,Y)$
-\item Information solely contained in $X$, denoted $\mathrm{I}(Z; X) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
-\item Information solely contained in $X$, denoted $\mathrm{I}(Z; Y) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
-\item Synergetic information contained in neither $X$ and $Y$, denoted $\mathrm{I}_\mathrm{syn}(Z;X,Y)$
+\item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red} \left( Z;X,Y \right)$
+\item Information solely contained in $X$, denoted $\mathrm{I}\left(Z; X \right) - \mathrm{I}_\mathrm{red}(Z;X,Y)$
+\item Information solely contained in $X$, denoted $\mathrm{I}\left(Z; Y \right) - \mathrm{I}_\mathrm{red}\left( Z;X,Y \right)$
+\item Synergetic information contained in neither $X$ and $Y$, denoted $\mathrm{I}_\mathrm{syn}\left( Z;X,Y \right)$
 \end{enumerate}
 This PID is also shown in Figure~\ref{venn}.
 The quantification of either synergy or redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a system with $n \ge 3$.
@@ -120,11 +120,11 @@ The quantification of either synergy or redundancy is critical, as without this 
         \fill[blue] \secondcircle;
     \end{scope}
     
-    \node (x) at (-2,0)  {$\mathrm{I}(Z;X)$};
-    \node (y) at (2,0)   {$\mathrm{I}(Z;Y)$};
-    \node (r) at (0,0)   {$\mathrm{I}_\mathrm{red}(Z;X,Y)$};
-    \node (s) at (0,2.3) {$\mathrm{I}_\mathrm{syn}(Z;X,Y)$};
-    \node (w) at (0,3.2) {$\mathrm{I}(Z;X,Y)$};
+    \node (x) at (-2,0)  {$\mathrm{I}\left(Z; X \right)$};
+    \node (y) at (2,0)   {$\mathrm{I}\left(Z; Y \right)$};
+    \node (r) at (0,0)   {$\mathrm{I}_\mathrm{red}\left( Z;X,Y \right)$};
+    \node (s) at (0,2.3) {$\mathrm{I}_\mathrm{syn}\left( Z;X,Y \right)$};
+    \node (w) at (0,3.2) {$\mathrm{I}\left( Z;X,Y \right)$};
     
 \end{tikzpicture}
 \end{center}
@@ -135,7 +135,7 @@ Following this split, the synergy is defined as
 %
 \begin{equation}
 \label{red_plus_syn_is_mi}
-\mathrm{I}_\mathrm{syn}(Z;X,Y) = \mathrm{I}(Z;X, Y) - \mathrm{I}(Z; X) - \mathrm{I}(Z; Y) + \mathrm{I}_\mathrm{red}(Z;X,Y)
+\mathrm{I}_\mathrm{syn}\left( Z;X,Y \right) = \mathrm{I}\left( Z;X,Y \right) - \mathrm{I}\left(Z; X \right) - \mathrm{I}\left(Z; Y \right) + \mathrm{I}_\mathrm{red}\left( Z;X,Y \right)
 \end{equation}
 
 \subsubsection{Practical example of synergy}
@@ -143,7 +143,7 @@ Following this split, the synergy is defined as
 
 Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
 We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
-The mutual information $\mathrm{I}(X;Z)$ and $\mathrm{I}(Y;Z)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
+The mutual information $\mathrm{I}\left( Z;X \right)$ and $\mathrm{I} \left( Z;Y \right)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
 Synergy is not affected by duplicate predictors, but does disappear when the synergistic information itself is made redundant by a new predictor \cite{griffith2014quantifying}.
 
 \begin{table}[ht]
@@ -206,7 +206,7 @@ Several quantifications have been proposed over the years.
 An early attempt at a redundancy quantification was the measure
 %
 \begin{equation}
-\mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}(X_j^k;Y)] - \mathrm{I}(X;Y)
+\mathrm{I}_\mathrm{red} = \sum_{j=1}^n [\mathrm{I}\left( X_j^k;Y \right) ] - \mathrm{I} \left( X;Y \right)
 \end{equation}
 %
 where $\mathrm{I}^\mathrm{P}(X;Y)$ represents the mutual information between $X$ and $Y$, $X_j^k$ the $j$-th subset of the set $\mathbf{X}$ of size $k$, and $n$ the number of possible subsets of size $k$ \cite{tononi1999measures}\footnote{In this study redundancy in causal relations was examined, so the MI was computed over an injection of random noise into the system.}.
@@ -219,10 +219,10 @@ A more recent proposal is the minimal information $\mathrm{I}_\mathrm{min}$ \cit
 This is defined as
 %
 \begin{equation}
-\mathrm{I}_\mathrm{min}(Y;{X_1, X_2,...,X_k}) = \sum_s [p(s) \min_{X_i} [\mathrm{I}(Y=y;X_i)]]
+\mathrm{I}_\mathrm{min} \left( Y;{X_1, X_2,...,X_k} \right) = \sum_s [\Pr \left( s \right) \min_{X_i} [\mathrm{I}\left( Y=y;X_i \right)]]
 \end{equation}
 %
-where $\mathrm{I}(Y = y;X)$ is the specific information.
+where $\mathrm{I}\left( Y = y;X \right)$ is the specific information.
 This quantifies information related to a specific outcome, and can be reduced through summation (or integration in the continuous case) over $y$ to the mutual information.
 In more recent years, this was still cited as the best redundancy measure, although it has its flaws and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
 
@@ -232,10 +232,10 @@ This quantification meets all requirements for redundancy posed by Williams and 
 The bivariate redundancy is expressed as
 %
 \begin{equation}
-\mathrm{I}_\mathrm{biv}(Y;{X_1, X_2}) = \min [\mathrm{I}_Z^\pi (X_1 \searrow X_2), \mathrm{I}_Z^\pi (X_2 \searrow X_1)] 
+\mathrm{I}_\mathrm{biv} \left( Y;{X_1, X_2} \right) = \min [\mathrm{I}_Z^\pi \left( X_1 \searrow X_2 \right), \mathrm{I}_Z^\pi \left( X_2 \searrow X_1 \right)] 
 \end{equation}
 %
-where $\mathrm{I}_Z^\pi (X_1 \searrow X_2)$ is the projected information of $X_1$ on $X_2$.
+where $\mathrm{I}_Z^\pi \left( X_1 \searrow X_2 \right)$ is the projected information of $X_1$ on $X_2$.
 This projected information is based on the minimization of the Kullback-Leibler divergence over the space of all probability distributions over $Y$.
 As such, this measure cannot be solved analytically and requires numerical optimization.
 This attaches a significant computational cost to any redundancy estimation.
@@ -250,7 +250,7 @@ A good measure for synergy should meet several criteria, according to \cite{grif
 All in all, we would like the following properties for a synergy measure:
 %
 \begin{itemize}
-\item Must fall in the range $0 \le \mathrm{I}_\mathrm{syn}(X;Y) \le \mathrm{I} (X;Y)$ (correct range)
+\item Must fall in the range $0 \le \mathrm{I}_\mathrm{syn}\left( X;Y \right) \le \mathrm{I} \left( X;Y \right)$ (correct range)
 \item Is invariant to duplicate predictors (resilience)
 \item Should not systematically under- or overestimate synergy (accuracy)
 \item Not resource-intensive to compute (computational cost)
@@ -263,24 +263,24 @@ An early synergy measure is the $\mathrm{I}_\mathrm{max}$-synergy, denoted $\mat
 This quantity is closely related to the redundancy measure
 %
 \begin{equation}
-\mathrm{I}_\mathrm{max} (\mathbf{X};Y) = \max_i [I(X_{i};Y)]
+\mathrm{I}_\mathrm{max} \left( \mathbf{X};Y \right) = \max_i [\mathrm{I} \left( X_{i};Y \right)]
 \end{equation}
 %
 as it has the property
 %
 \begin{equation}
-\mathcal{S}_\mathrm{max} (\mathbf{X};Y) \equiv \mathrm{I}(\mathbf{X};Y) - \mathrm{I}_\mathrm{max} (\mathbf{X};Y)
+\mathcal{S}_\mathrm{max} \left( \mathbf{X};Y \right) \equiv \mathrm{I} \left( \mathbf{X};Y \right) - \mathrm{I}_\mathrm{max} \left( \mathbf{X};Y \right)
 \end{equation}
 %
 The $\mathrm{I}_\mathrm{max}$-synergy measure is formally defined as
 %
 \begin{equation}
-\mathcal{S}_\mathrm{max} (\mathbf{X};Y) = \mathrm{I}(\mathbf{X};Y) - \sum_{y \in Y} [ p(Y = y) \max_i \mathrm{I} (X_i ; Y = y) ]
+\mathcal{S}_\mathrm{max} \left( \mathbf{X};Y \right) = \mathrm{I} \left( \mathbf{X};Y \right) - \sum_{y \in Y} [ \Pr \left( Y = y \right) \max_i \mathrm{I} \left( X_i ; Y = y \right) ]
 \end{equation}
 %
-where $\mathrm{I} (X_i ; Y = y)$ is called the "specific-surprise".
+where $\mathrm{I} \left( X_i ; Y = y \right)$ is called the "specific-surprise".
 The usage of the specific-surprise makes this measure difficult to apply to systems where we have a set of predicted variables $\mathbf{Y}$.
-This measure per definition obeys the axiom in equation~\ref{red_plus_syn_is_mi}, as we define the synergy as the difference between the mutual information (the non-unique information) and the redundancy \cite{griffith2014quantifying}.
+This measure per definition obeys the axiom in Eq.~\ref{red_plus_syn_is_mi}, as we define the synergy as the difference between the mutual information (the non-unique information) and the redundancy \cite{griffith2014quantifying}.
 It is resilient against duplicate predicotrs, has a low computational cost, and falls in the correct range.
 However, this measure does overestimate synergy as it qualifies unique information as synergy when multiple predictors have unique information on the target.
 
@@ -290,7 +290,7 @@ signifies synergy \cite{gawne1993independent, griffith2014quantifying}.
 This can be expressed as
 %
 \begin{equation}
-\mathrm{WMS}(X;Y) = \mathrm{I}(X;Y) - \sum_i [\mathrm{I}(X_i;Y)]
+\mathrm{WMS} \left( X;Y \right) = \mathrm{I} \left( X;Y \right) - \sum_i [\mathrm{I} \left( X_i;Y \right)]
 \label{WMS}
 \end{equation}
 %
@@ -302,7 +302,7 @@ The WMS-synergy can be used a lower bound for the synergy in a system \cite{grif
 For the bivariate case, the synergy from unique information can be used, $\mathcal{S}_\mathrm{vk}$ \cite{bertschinger2014quantifying, griffith2014quantifying, olbrich2015information}.
 This is expressed as
 \begin{equation}
-\mathcal{S}_\mathrm{vk} (X;Y) = \mathrm{I}(X;Y) - \mathrm{I}_\mathrm{VK} (X;Y)
+\mathcal{S}_\mathrm{vk} \left( X;Y \right) = \mathrm{I}\left( X;Y \right) - \mathrm{I}_\mathrm{VK} \left( X;Y \right)
 \end{equation}
 %
 where $\mathrm{I}_\mathrm{VK}$ is the "union information".
@@ -318,7 +318,7 @@ This method is centered around the determination of a set of SRVs, which have ze
 The total synergystic information is defined as
 \begin{equation}
 \label{SRV}
-I_\mathrm{syn}(X \rightarrow Y) \equiv \max_k \sum_i I(Y : S_{i,k}^\perp)
+\mathrm{I}_\mathrm{syn}\left( X \rightarrow Y\right) \equiv \max_k \sum_i \mathrm{I}\left( Y ; S_{i,k}^\perp \right)
 \end{equation}
 where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
 This measure suffers from a high computational cost, as it involves numerical optimization.
@@ -330,7 +330,7 @@ This measure suffers from a high computational cost, as it involves numerical op
 Alltogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
 %
 \begin{equation}
-\max [0,\mathrm{WMS}(X;Y)] \le \mathcal{S}_\mathrm{VK} (X;Y) \le \mathcal{S}_\mathrm{max} (X;Y) \le \mathrm{I}(X;Y)
+\max [0,\mathrm{WMS}\left( X;Y \right)] \le \mathcal{S}_\mathrm{VK} \left( X;Y \right) \le \mathcal{S}_\mathrm{max} \left( X;Y \right) \le \mathrm{I}\left( X;Y \right)
 \end{equation}
 %
 The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.s
