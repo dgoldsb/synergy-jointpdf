@@ -1021,10 +1021,37 @@ def main():
                     residuals_multiple_impact.append(impacts_multiple[i] - lr3.predict(memories[i])[0])
                 # do partial correlations
                 rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_single_impact)
-                df_3.loc[loc_df3] = ["random_rho_partial_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                df_3.loc[loc_df3] = ["random_rho_partial_synergy_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
                 rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_multiple_impact)
-                df_3.loc[loc_df3] = ["random_rho_partial_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                df_3.loc[loc_df3] = ["random_rho_partial_synergy_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+
+                # do partial correlation memory single nudge
+                # do partial correlation memory multiple nudge
+                # do linear models for residuals
+                if len(synergies) == 0:
+                    continue
+                lr1 = LinearRegression()
+                lr1.fit(np.asarray(synergies).reshape(len(memories), 1), memories)
+                lr2 = LinearRegression()
+                lr2.fit(np.asarray(synergies).reshape(len(impacts_single), 1), impacts_single)
+                lr3 = LinearRegression()
+                lr3.fit(np.asarray(synergies).reshape(len(impacts_multiple), 1), impacts_multiple)
+                # calculate residuals
+                residuals_memory = []
+                residuals_single_impact = []
+                residuals_multiple_impact = []
+                for i in range(0, len(synergies)):
+                    residuals_memory.append(memories[i] - lr1.predict(synergies[i])[0])
+                    residuals_single_impact.append(impacts_single[i] - lr2.predict(synergies[i])[0])
+                    residuals_multiple_impact.append(impacts_multiple[i] - lr3.predict(synergies[i])[0])
+                # do partial correlations
+                rho, p_value = scipy.stats.spearmanr(residuals_memory, residuals_single_impact)
+                df_3.loc[loc_df3] = ["random_rho_partial_memory_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+                rho, p_value = scipy.stats.spearmanr(residuals_memory, residuals_multiple_impact)
+                df_3.loc[loc_df3] = ["random_rho_partial_memory_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
     for system_size in system_sizes:
