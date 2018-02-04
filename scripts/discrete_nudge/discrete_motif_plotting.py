@@ -16,6 +16,7 @@ import random
 import scipy.stats
 import string
 import time
+from tqdm import tqdm
 
 import discrete_motif_measures as measures
 import discrete_motif_operations as operations
@@ -386,7 +387,7 @@ def create_mi_profile(motif, mode):
     for i in range(1, system_size+1):
         combinations = itertools.combinations(labels, r=i)
         mis = []
-        for combination in combinations:
+        for combination in tqdm(combinations):
             combination = list(combination)
             
             mi = measures.mutual_information(motif, combination)
@@ -411,7 +412,7 @@ def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
     system_size = len(plot_data)-1
     x_ax = np.linspace(0, system_size, system_size+1)
     y_ax = x_ax/system_size
-    for motif in motifs:
+    for motif in tqdm(motifs):
         plot_data = create_mi_profile(motif, mode)
         if isinstance(plot_data[0], list):
             print('You supplied a list')

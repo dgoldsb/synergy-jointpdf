@@ -94,3 +94,40 @@ For instance, in a recent computational study the idea of stability through comp
 
 I got an invite from Sarah to your Bulgarian Saint Trifon's party, but I am a bit confused from where the invitation came?
 
+
+
+
+% section: unexpected results
+% TODO: (if still exists) The low impact, high memory is a bit fucked up. % TODO: investigate this
+
+% graveyard
+% If I have more time...
+% \item An actual GRN motif is optimized for memory and resilience
+% If I have even more time...
+% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
+% \item Synergy is found at a low level in biological networks, the level of common network motifs 
+% \item Synergy is found at a low level in trained random GRNs
+% \item The (DJ graph) indicates a level of synergistic control that is greater than random
+
+
+A solution to this problem could be a switch to a stochastic model, where the influence of the omitted part of the network is exerted in each timestep. %TODO how?
+This would avoid a permanent lapse into attractors, and improve the synergy, nudge impact and memory measurements, as all these measurements involve a single timestep. %TODO zou het gebruik van een langere-termijn model niet een betere oplossing zijn dan noise toevoegen?
+
+
+% check my language, network implies the whole thing
+While this was surprising, this is not necessarily concerning if we consider this limitation of the model; as we ignore the omitted part of the network we cannot do multiple timesteps, making the search for cycles that span multiple timesteps inconsequential. 
+This happens as the system lapses into the available attractors, leaving a predictable and mostly statistic system.
+% Ik dacht hier dat het een idee dat een stochastisch model een oplossing kan bieden (elke tijdstap een invloed van de rest van het netwerk simuleren), maar misschien is toch de enige oplossing een ODE model
+
+
+We found that the model results were not incredibly sensitive to this setting, as long 1-to-1 edges where the dominant type of edge. %TODO do you show this in appenbdix? reference then... try not to make unfounded statements, so always a reference to others or to your own results (in appendix or not).
+
+
+At the moment, we use a fully deterministic system in which the system memory rises to 100\% over multiple timesteps.
+
+
+% Draw a broad conclusion
+This suggests that synergy does not function as a mechanism to improve resilience.
+We ignored any synergy at a higher level, however, as well as any selective pressure in our model.
+As such, we suggest that this synergistic control might be emergent in natural networks at a higher level; not at the level of GRN motifs, but at the level of combinations of GRN motifs.
+This is an interesting question to tackle in future research, and due computational limitations not one that can be answered using our methodology.

@@ -5,37 +5,85 @@
 \begin{document}
 % Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
 %TODO refer to hypotheses by number
+%TODO iets korter
+%TODO Vertel waarom steeds meer gescheiden
+%TODO Avg. correlatie bespreken (verbeteren stukje)
+
+%TODO memory is so high because chance is small to get the same state multiple times
 
 % Summary and restate thesis statement
 % Answer (1) 
-In this study we investigated the link between the synergy of a system and its resilience and memory.
-We found that there is a positive correlation between synergy and resilience, which implies that a synergistic control to improve resilience is plausible in gene regulation.
-It was also found that there is only a weak negative correlation between synergy and memory, implying that synergy could be a mechanism to improve resilience while retaining memory.
-The observed relation between synergy and nudge impact is in line with the findings of Quax et al.~\ref{quax2017quantifying}.s
-However, we also found that the amount of memory in a system is a much greater force on the resilience than the synergy is, and the dominant force in random gene regulation systems.
+In this study we investigated the link between the synergy and memory of a system and its resilience.
+We found a strong positive correlation between the system memory and the impact of nudges.
 This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
-Furthermore, we found that neither the combination of high memory and low nudge impact nor the combination of low memory and high nudge impact does occur.
-% STRESS THAT CORRELATIONS PROBABLY DIFFER DUE TO DIFFERENT RANGES
+We also observed a negative correlation between the synergy and the nudge impact.
+This observed relation is in line with the findings of Quax et al.~\ref{quax2017quantifying}.
+However, we found that synergy is uncorrelated with the nudge impact when we normalize for the system memory.
+Memory does remain correlated with the nudge impact when we normalize for the system memory.
+We did observe a negative correlation between the system synergy and the system memory.
+These results were the same for random and biologically possible motifs.
 
-% Draw a broad conclusion
-This suggests that synergy could be a form of control on the resilience of a system, but that this control is not present in biological networks at low level due to the lack of synergistic structures with few components in nature.
-We ignored any synergy at a higher level, however, as well as any selective pressure in our model.
-As such, we suggest that this synergistic control might be emergent in natural networks at a higher level; not at the level of GRN motifs, but at the level of combinations of GRN motifs.
-This is an interesting question to tackle in future research, and due computational limitations not one that can be answered using our methodology.
+As such, we conclude for hypotheses (1) and (2) that there is no direct correlation between synergy and nudge resilience.
+There does appear to be an indirect correlation memory, as there is a correlation that disappears when we normalize for memory.
+We did observe a correlation between synergy and memory, but this relationship was of the opposite sign as hypothesized in hypotheses (3) and (4).
+A summary of the correlation findings is shown in Fig.~\ref{venn_results}.
+
+% Now we can draw the sets:
+\def\firstcircle{(0:-0.9cm) circle (2cm)}
+\def\thirdcircle{(0:0.9cm) circle (2cm)}
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+    \draw \firstcircle;
+    \draw \thirdcircle;
+    
+    \begin{scope}[fill opacity=0.5]
+        \clip \firstcircle;
+        \fill[orange] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \thirdcircle (-4,-2) rectangle (2,2);
+        \fill[yellow] \firstcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.0]
+        \clip \firstcircle (-2,-2) rectangle (2,2);
+        \fill[red] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.3]
+        \clip \firstcircle (-2,-2) rectangle (2,2);
+        \clip \thirdcircle (-2,-2) rectangle (2,2);
+    \end{scope}
+    
+    \node (x) at (-2,0)  {$\rho > 0 $};
+    \node (y) at (2,0)   {$\rho \approx 0$};
+    \node (r) at (0,0)   {$\rho > 0$};
+    \node (s) at (-3,2.3) {$\rho(\mathrm{memory}, \mathrm{resilience})$};
+    \node (w) at (3,2.3) {$\rho(\mathrm{synergy}, \mathrm{resilience})$};
+    
+\end{tikzpicture}
+\end{center}
+\caption{Suggested correlations between memory and resilience, and synergy and resilience}
+\label{venn_results}
+\end{figure}
 
 % Answer (2) means
+%TODO maar gecorrigeerd voor memory, dus als de memory gelijk is in de twee (ofwel p(synergy | memory)), is dan de synergy hoger in de GRNs?
 We compared two types of random systems with discrete states and time steps.
 One system is completely random in nature, and is evolved following a completely random state transisition table.
-The other is meant to mimic GRNs, and is evolved following a state transition table computed from a random GRN.
+The other is meant to mimic GRNs, and is evolved following a state transition table computed from a random GRN. %TODO of op zijn minst: laat deze set een strakkere maar nog steeds bredere set zijn rondom de 'echte' GRNs?
 While both groups are random in nature, the latter was found to sample from a small subspace in the sample space of the completely random tables.
 We found that the group of GRN-like systems score worse in both synergy and memory.
 This is opposite to our hypothesis, as we predicted that biological systems would score high in both these properties.
 Our understanding is that synergetic relations are difficult to build using the components of gene regulation networks; gene regulation works mostly using positive and negative feedback, with an occasional AND-gate.
 Typical structures that provide synergy, such as a XOR-gate, are unlikely to come into existence from randomly combining these components.
-The difference in memory is more to attribute to an underestimation of the amount of memory in completely random systems.
+The difference in memory is more attributable to an underestimation of the amount of memory in completely random systems.
 The amount of memory in gene regulation systems is not low by any means, preserving more than 50\% of the mutual information typically.
 However, the amount of mutual information preserved in random networks is usually exceptionally high, close to 90\%.
 
+%TODO again, normalize for memory? what then?
 We found that gene regulation systems where more resilient to nudges than random systems.
 This is in line with our hypothesis, as biological networks have a strong need for resilience to function.
 However, contrary to our hypotheses, this difference in resilience was observed regardless of how many variables in the system where nudged.
@@ -51,6 +99,7 @@ In theory a higher resolution is also closer to reality, although this does depe
 % Good sign that results are consistent amongst expression levels.
 
 % Variance (addition to means)
+%TODO ik snap deze uitleg niet helemaal... zou het ook niet kunnen zijn dat de natuur misschien deze manier van GRNs modelleren gebruikt (dus edges en 2-to-1 edges) om juist te zorgen dat het gemakkelijk een brede varieteit aan memory en synergy kan bereiken, wat moeilijk zou zijn door de evolueren in de random systems?
 We observed that the GRN-like systems occupied a much wider range in synergy, memory, and resilience.
 Furthermore, this discrepancy in their ranges becomes greater when increasing the system size or number of possible states.
 This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
@@ -62,5 +111,8 @@ We could not draw a conclusion on a difference in the impact of a single-target 
 However, we did find significant results with the same sign in our experiments, which suggest that if there is a difference it is a matter of magnitude, not whether there is an effect at all.
 % Answer (4)
 Random systems where found to be well-balanced between synergy and redundancy at all levels, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
+
+%TODO misschien wat diepere, bredere conclusie aan het eind die alles combineert tot iets van een inzicht? mogelijke implicaties voor een en ander?
+This suggests that synergy does not function as a mechanism to improve resilience.
 
 \end{document}

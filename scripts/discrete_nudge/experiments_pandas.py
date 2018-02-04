@@ -33,14 +33,14 @@ nudge_sizes = [0.2 * max_nudge, max_nudge/2, 0.8 * max_nudge]
 data_location = "../../data_pandas"
 archive_location = "../../archive_pandas"
 log_location = "../../log"
-    
+
 def loop_impacts(network_size, nudge_size, motif):
     # find the memory
     memory = measures.normalized_memory(motif)
-    
+
     # try to find the synergy
     synergy = measures.normalized_synergy(motif, synergy_measure)
-    
+
     # try to loop
     impacts = []
     for nudge_width in range(1, network_size + 1):
@@ -49,7 +49,7 @@ def loop_impacts(network_size, nudge_size, motif):
             impact = measures.average_nudge_impact(motif, nudge_width, nudge_size, nudge_method)
             impact_tuple = (nudge_width, impact)
             impacts.append(impact_tuple)
-    
+
     return synergy, impacts, memory
 
 
@@ -116,7 +116,7 @@ def draw_sample(lst):
 
         dataframe.loc[loc_counter] = df_row
         loc_counter += 1
-    
+
     return dataframe, samples_grn, samples_random
 
 
@@ -179,7 +179,7 @@ def main():
     parameters = {}
     parameters["synergy_measure"] = synergy_measure
     parameters["nudge_method"] = nudge_method
-    parameters["sample_size"] = sample_size * 2 # because we take two samples
+    parameters["sample_size"] = sample_size * 2 # because we take two samples #TODO dit lijkt niet altijd te kloppen
     parameters["network_sizes"] = network_sizes
     parameters["logic_sizes"] = logic_sizes
     parameters["nudge_sizes"] = nudge_sizes
@@ -197,11 +197,11 @@ def main():
                 samples_grn = result[1]
                 samples_random = result[2]
                 #dataframe, samples_grn, samples_random = draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylogger)
-                
+
                 # save the data for future use/reruns
                 name_df = "experiment_k=%d_l=%d_e=%f_df.pkl" % (network_size, logic_size, nudge_size)
-                name_grn = "samples_grn_k=%d_l=%d.pkl" % (network_size, logic_size)
-                name_random = "samples_random_k=%d_l=%d.pkl" % (network_size, logic_size)
+                name_grn = "samples_grn_k=%d_l=%d_e=%f.pkl" % (network_size, logic_size, nudge_size)
+                name_random = "samples_random_k=%d_l=%d_e=%f.pkl" % (network_size, logic_size, nudge_size)
                 with open(os.path.join(data_location, name_df), 'wb') as output:
                     pickle.dump(dataframe, output, pickle.HIGHEST_PROTOCOL)
                 with open(os.path.join(data_location, name_grn), 'wb') as output:

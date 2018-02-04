@@ -3,99 +3,95 @@
 \documentclass[../main.tex]{subfiles}
 
 \begin{document}
-%TODO discussieer tijd herschalen (hoe het stochastisch zou moeten worden)
-%TODO noem en discuss stuart kauffman paper
-%TODO discussieer geen correlation loops beter
-%TODO why is a random generation of correlation values (independently also I presume?) representative? Can we not better try to get correlation statistics from data, which I am sure is abundantly available?
-% If you cannot find such then ask me, I will make one from a dataset I happen to have, which is small (30x30) but still something.
-
+\subsection{Limitations of the model}
 % section: limitations with the model
-% I try to logically walk through the steps of getting to my transition table
-In this study, we used an Erdős–Rényi model to generate a random network.
-However, it is reported that complete gene regulatory networks might better be described using a Barabási–Albert network.
-The algorithm associated with Barabási–Albert networks is difficult to make suitable for gene regulation, as gene regulation networks can contain 2-to-1 edges and cycles.
-At a small scale these two network types are similar, but nontheless it is possible that this design choice has affected the results of this study.
-In addition, these network types are observed on the scale of an entire gene regulatory network.
-We could not find information on the network properties of the functional motifs in these networks.
 
-We also made an impactful design choice in the traslation step from a gene regulatory network to a transition table.
+% I try to logically walk through the steps of getting to my transition table
+In this study, we used an Erdős–Rényi model to generate a random small motif.
+However, it is reported that complete gene regulatory networks might better be described using a Barabási–Albert network.
+The algorithm associated with Barabási–Albert networks is difficult to make suitable for gene regulation, as gene regulation networks in our model can contain 2-to-1 edges and cycles.
+At a small scale these two network types are similar, but nonetheless it is possible that this design choice has affected the results of this study.
+In addition, these network types are observed on the scale of an entire gene regulatory network.
+We could not find information on the network properties of functional motifs in these networks.
+
+We also made an impactful design choice in the translation step from a gene regulatory network to a transition table.
 We implemented several possible "rules" that determine how conflicting edges in the network interact.
-Ultimately, we chose the method that seemed to yield the best results in our sanity check.
-While the number of cycles was still low, we at least found that this rule combined with our Erdős–Rényi random network produced transition tables with cycles.
+Ultimately, we chose the method that explicitly allows a strong inhibitor to match over over several weaker stimulators, as we think it is important to capture in our model that some relationships are stronger than others.
+As some real motifs show transition cycles without requiring influence of the rest of the network, we considered the number of transition cycles in our generated systems \cite{burda2011motifs}.
+While the number of cycles was still much lower than in completely random networks, we at least found that this rule combined with our Erdős–Rényi random network produced transition tables with cycles.
+This is also consistent with results a similar study by Kauffman et al. \cite{kauffman2003random}.
 Other rules did not yield any cycles, or very few.
 All of the rules were based on literature that applies to Boolean networks, and we extended these to apply to multi-valued discrete networks as well.
 While the similar results inspire confidence that this was done in correctly, the fact that this is not inspired on prior research is a weakness of this study.
+
+We used correlations between genes to replace influence from the omitted part of the network in the inital distribution of system states.
+The fact that these correlations are not used past the initialization makes it so that the framework is not suited for prolonged simulations, as the omitted part of the network is neglected in all timesteps.
+The only way to overcome this problem we see is to simulate the complete network.
+This would not be possible in our model, as the joint PMF quickly becomes too big to evaluate and quantify the mutual information of.
+A possible solution would be switching to a continuous model, as k-Nearest Neighbor quantifiers for mutual information exist in continuous space.
+These suffer less from an increase in the number of dimensions.
 
 We could have improved our experimental design by applying a variance reducing sampling method, such as Latin-hypercube sampling (LHC).
 This would involve sampling a random number represented in base-$l$ where $0 \le x_\mathrm{random} < l^{n \cdot l^n}$.
 This was found to be a difficult endeavor due to the sheer size of the sample space; for our largest experiments, the maximum value that should be sampled is approximately $3.5 \times 10^{3082}$.
 Existing Python libraries, such as the \texttt{pyDOE} library, are not equipped to deal with numbers this large.
 
-We used correlations between genes to replace influence from the omitted part of the network in the inital distribution of system states.
-The fact that these correlations are not used past the initialization makes it so that the framework is not suited for prolonged simulations, as the omitted part of the network is neglected in all timesteps.
-We also noticed a lack of larger cycles in our generated gene regulatory motifs. % check my language, network implies the whole thing
-While this was surprising, this is not necessarily concerning if we consider this limitation of the model; as we ignore the omitted part of the network we cannot do multiple timesteps, making the search for cycles that span multiple timesteps inconsequential. 
-At the moment, we use a fully deterministic system in which the system memory rises to 100\% over multiple timesteps.
-This happens as the system lapses into the available attractors, leaving a predictable and mostly statistic system.
-A solution to this problem could be a switch to a stochastic model, where the influence of the omitted part of the network is exerted in each timestep.
-This would avoid a permanent lapse into attractors, and improve the synergy, nudge impact and memory measurements, as all these measurements involve a single timestep.
+A weakness in our design that varies the number of possible expression levels $l$ is that, with this property, our timescale shifts too.
+This is caused by the decay of the expression level without stimulation.
+Activated genes are programmed to lose one expression level per timestep.
+This means that in a $l=2$ system a gene will go from the highest expression level to zero in one timestep, whereas this takes four timesteps in an $l=5$ network.
+The solution for this would be stochastic decay, where we normalize the $\delta t$ by setting the number of timesteps required on average to decay from the highest expression level to the lowest to the same value in every experiment.
+Our model does not support stochastic elements in the state transitions, so this would only be possible in a modified version of our model. 
 
 In the current implementation, there is no support for non-linear correlations that describe the initial joint PMF of the system.
 In our methodology we generate a non-transitive correlation matrix.
 We only utilize the band above the diagonal from this matrix, and treat the remaining values as if the matrix were transitive.
 This implies that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
 This is not how genes necessarilly correlate in reality: gene A and C might have another direct interaction that is not captured by the indirect correlation through gene B.
-As we did not work with emperical data this approach was deemed good enough, as the purpose of reducing the overall entropy is achieved.
-However, for future research with emperical data support for non-transitive correlation matrices should be added.
+For future research support for non-transitive correlation matrices should be added.
+
+Another improvement would be to base the properties of the correlation matrix on emperical data.
+Now we assumed that the correlations are distributed around zero, but this might not be the case in reality.
+For the purpose of this study this approach was deemed good enough, as the goal of reducing the overall entropy is achieved.
+For future research it would be better to incorporate correlation statistics from emperical studies.
 
 A final discussion point in the model is that it might be too simple to sample realistic gene regulatory motifs, and that an additional selection criterion is required.
-In our results we clearly see that we are sampling at a specific part of the sample space of all random networks, in which completely random transition tables seldom fall.
+In our results we clearly see that we are sampling a specific part of the sample space of all random networks, in which completely random transition tables seldom fall.
 However, we are not sure if all these networks are actually realistic.
-In nature, gene regulatory networks have been shaped by selective pressure.
-This could eliminate many of the motifs that we do consider, and might be a factor in the absense of long cycles in our motifs.
-Using our algorithm of translating a motif to a transition table, it is relatively simple to build motifs that  contain long cyclesby creating a clockwise cycle of positive stimulation.
-However, the chance of sampling this exact network is small, and these motifs are very fragile; a single additional edge can break the cyclical property.
+We do think that our definition of biologically possible motifs contains the set of actual motifs, and that our definition provides a much stricter bound around this sample space than the space of all random networks.
 
+\subsection{Limitations of the experiments}
 % section: limitations in experiments
+
 We were limited in the scale of the experiments we could perform.
 Motifs with more than 5 genes are beyond the computational power than we have, as a full round of experiments with 5 genes took several days on a desktop computer. % maybe do a 6-2 and 7-2 for the record?
-A reimplementation into a language faster than Python was not possible, as the major dependency of our code is a Python project.
-In addition, the time complexity increases exponenentially with the number of genes in the network, making it not feasible to extend this model to a full-size gene regulatory network of more than 50 genes.
+Reimplementing parts of the project in C would perhaps allow us to evaluate slightly larger motifs.
+However, the time complexity increases exponenentially with the number of genes in the network, making it not feasible to extend this model to a full-size gene regulatory network of more than 50 genes.
 A possible solution would be to only model a part of the network, and approximate the effect of the rest of the network every timestep.
 
 We were also limited by our computational power in the choice of a synergy measure.
 We would have preferred to use synergistic random variables, but this one together like most popular quantifiers has no analytical solution and relies on numerical optimization, this proved much too time-consuming even for small networks.
 As a result, we were forced to use the mean between the lower- and upper bound for synergy, which yields an imprecise but easily computed synergy measure.
-Similarly, we were also forced to use a naive nudging method, as opposed to the nudging method provided in the jointPDF package.
+Similarly, we were also forced to use a naive nudging method, as the nudging method provided in the jointPDF package takes too much time to compute for larger motifs.
 
 We also could not find a source on the prevalence of 2-to-1 edges in gene regulatory networks.
 To the best of our knowledge 1-to-1 edges outnumber 2-to-1 edges, so we set this ratio such that the former type of edge outnumbers the latter.
-We found that the model results were not incredibly sensitive to this setting, as long 1-to-1 edges where the dominant type of edge.
 
+\subsection{Future research}
 % section: limitations in scope of the study
+
 The scope of this study was also limited.
 Ideally, we would use a sample of empirically obtained datasets.
 This could have been used as a means of verifying our model, our even for direct comparison with random transition tables. % TODO: set up a lingo that I stick to in my methods 
 However, due to the limited availability of datasets that are well-established, available as a Boolean network, and small enough to do computationally feasible measurements this was not possible.
 Our resort to generated GRN-like networks was the next best alternative, but does raise the question how well our results can be generalized to real gene regulating complex systems.
 
-% section: unexpected results
-% TODO: (if still exists) The low impact, high memory is a bit fucked up. % TODO: investigate this
-
 % section: future research
 A first step in improving on this research is to verify the model against real gene regulatory networks.
 If it is found that the used model is not sufficiently complex, a selective criterion could be added.
 A second step would be the improvement of the initialisation with gene correlation, by supporting non-transitive correlation matrices.
-A third improvement would be to introduce an approximation of the rest of the network in the timesteps.
-This would allow us to do multiple timesteps reliably, and to better represent large gene regulatory networks when measuring synergy and memory % BECAUSE, this is important, our measurements involve a timestep
+A third improvement would be to use a model that considers the rest of the network in the timesteps.
+A possible solution would be a continuous model.
+This would allow us to do multiple timesteps reliably, and to better represent large gene regulatory networks when measuring synergy and memory. % BECAUSE, this is important, our measurements involve a timestep
 Finally, a better the accuracy of the results would be significantly improved by using a better synergy measure and nudge method.
-
-% graveyard
-% If I have more time...
-% \item An actual GRN motif is optimized for memory and resilience
-% If I have even more time...
-% \item An actual GRN is at the Pareto boundary of the memory/resilience cost function
-% \item Synergy is found at a low level in biological networks, the level of common network motifs 
-% \item Synergy is found at a low level in trained random GRNs
-% \item The (DJ graph) indicates a level of synergistic control that is greater than random
 \end{document}

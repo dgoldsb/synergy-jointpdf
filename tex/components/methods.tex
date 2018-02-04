@@ -314,7 +314,7 @@ This was done as we found that for higher values the datapoints clumped up too m
 
 \subsubsection{Cycle finding}
 
-Cyclical sequences of state transitions are a key element of biological networks. % verwijzing naar literatuur eerder
+Cyclical sequences of state transitions are a key element of biological networks, and can be found in real GRN motifs without considering the rest of the network \cite{burda2011motifs}.
 To recognize cycles, we include a cycle-finder in the our framework.
 The input for this function is a motif of either type, as well as a maximum cycle length $N_\mathrm{cycle,max}$.
 The maximum length, naturally, is limited in theory by the number of possible states.
@@ -400,6 +400,7 @@ We hypothesize that:
 
 To support these tests, we visualize the distribution of both biologically possible- and completely random motif in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
 We also produce all 2D projections from this 3D distribution of our motifs, three in total, leaving out one of the three variables in each.
+We calculate both the bivariate correlation and the partial correlation for hypotheses (1)-(4).
 
 In addition, we perform several sanity checks to validate our model.
 We check that the biologically feasible motifs are a sub-samplespace through a t-SNE visualization.

@@ -3,49 +3,55 @@
 \documentclass[../main.tex]{subfiles}
 
 \begin{document}
-%TODO scores anders weergeven
 %TODO include genormaliseerd naar memory resultaat
 
-\subsection{Assumption Checks}
-% TODO: is wilcoxon a Z or W stat?
+\subsection{Assumption checks}
+%TODO plot descriptions en 2d projections
+
+\subsubsection{Sample space}
 
 % TSNE
 The t-SNE plots do support our assumption that we are sampling only a subspace of all possible systems with our GRN-like random systems.
-We show two t-SNE plots in Fig.~\ref{fig:TSNE}, for both a smaller and larger system\footnote{Additional plots can be found in the repository \url{github.com/dgoldsb/synergy-jointpdf}}.
-We see a very clear division between the completely random systems (red) and the biologically inspired systems (blue).
-The fact that here and there a random system is mixed in with the biologically inspired system further indicates that we are dealing with a small subspace; there is a small chance when sampling from the complete space to draw a system from the subspace.
+We show two t-SNE plots in Fig.~\ref{fig:TSNE}, for both a smaller and larger system\footnote{As it is not possible to include all plots for every experiment in the paper, we make a representative selection, and will make all plots available in the repository \url{github.com/dgoldsb/synergy-jointpdf}.}.
+For larger systems, we see a very clear division between the completely random systems (red) and the biologically inspired systems (blue).
+It is important to keep an mind that t-SNE is a dimensionality reduction method that clusters similar datapoints.
+As such, the fact that one color does not visibly contain another has no implication on whether one of the two is a subsample.
+The fact that here and there a random system is mixed in with the biologically inspired system does indicate that we are dealing with a small subspace; it seems possible to sample a biologically possible system when drawing a random system, but not the other way around.
+This also suggests that sampling transition tables from biologically possible motifs yields transition tables with similar properties.
+For very small systems the sample space is very small, it seems that in this case the biologically possible systems are less easily distinguished from the random systems.
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=4/tsne2D.pdf}
-        \caption{t-SNE for $k=2$ and $l=4$ ($n=900$)}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2/tsne2D.pdf}
+        \caption{t-SNE for $k=2$ and $l=4$ ($n=300$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=4/tsne2D.pdf}
-        \caption{t-SNE for $k=4$ and $l=4$ ($n=900$)}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=5_l=4/tsne2D.pdf}
+        \caption{t-SNE for $k=5$ and $l=4$ ($n=300$)}
     \end{subfigure}
     \caption{t-SNE plots for varying experiments}
     \label{fig:TSNE}
 \end{figure}
 
+\subsubsection{Transition cycles}
+
 % Cycles
-We find that biologically inspired systems are much less likely to contain cycles than entirely random systems.
+We find that biologically inspired systems are much less likely to contain transition cycles than entirely random systems.
 In Fig.~\ref{fig:cycles} we show a distribution of the maximum cycle length for a small and large system.
 We see that in the smallest systems some small cycles are formed for the GRN-like model.
 These cycles, however, disappear once the system size is increased.
-We find that the number of system states $l$ does not have a noticable impact on the cycle distribution in biological systems; we see that cycles become much less likely when increasing the system size, but not when increasing the number of system states. % this is weird, because in both cases we increase the number of states
 As there is always either a cycle or a sink, a maximum cycle length of 1 is the lowest attainable for a system.
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2/cycles.pdf}
-        \caption{Distribution for $k=2$ and $l=2$ ($n=900$)}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2/cycles.pdf}
+        \caption{Distribution for $k=2$ and $l=2$ ($n=300$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/cycles.pdf}
-        \caption{Distribution for $k=3$ and $l=2$ ($n=900$)}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=3/cycles.pdf}
+        \caption{Distribution for $k=4$ and $l=3$ ($n=300$)}
     \end{subfigure}
     \caption{Histograms of the maximum cycle length distribution}
     \label{fig:cycles}
@@ -53,9 +59,12 @@ As there is always either a cycle or a sink, a maximum cycle length of 1 is the 
 
 % Finding flower motifs, skip for now
 
+\subsubsection{Normality and outliers}
+
 % Normality and all
-In our parameter sweep we drew a large number of separate samples containting the synergy, memory, and resilience-properties of networks.
-We found that most of these sample where not normally distributed.
+To determine if the Pearson test for correlation and the Student's t-test for comparing means were suitable, we check our sample for normality and outliers.
+In our parameter sweep we drew a large number of separate samples containing the synergy, memory, and resilience-properties of networks.
+We found that most of these sample were not normally distributed.
 Furthermore, those that did fit a normal distribution often contained outliers, and had wildly varying variances.
 As such, we do not meet the assumptions for a t-test for comparing means, and for the Pearson test of correlation.
 To handle the sample correctly we use non-parametric statistics in all further analysis, such as the Wilcoxon signed-rank test and the Spearman test of correlation. % these tests throw away the actual values, so outliers  are no problem either, they will simply get the highest/lowest rank
@@ -71,17 +80,17 @@ These results are compiled in Table~\ref{synergy}.
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & 37711.00*** \cellcolor{yellow!20} & 35061.00*** \cellcolor{yellow!20} & 36151.00*** \cellcolor{yellow!20}\\
+2.0 & 3886.00*** \cellcolor{yellow!20} & 3646.00*** \cellcolor{yellow!20} & 3628.00*** \cellcolor{yellow!20}\\
 \hline
-3.0 & 20577.00*** \cellcolor{yellow!20} & 20246.00*** \cellcolor{yellow!20} & 31266.00*** \cellcolor{yellow!20}\\
+3.0 & 2546.00*** \cellcolor{yellow!20} & 2025.00*** \cellcolor{yellow!20} & 3840.00*** \cellcolor{yellow!20}\\
 \hline
-4.0 & 6961.00*** \cellcolor{yellow!20} & 13419.00*** \cellcolor{yellow!20} & 44064.00* \cellcolor{yellow!20}\\
+4.0 & 1151.00*** \cellcolor{yellow!20} & 1118.00*** \cellcolor{yellow!20} & 4076.00** \cellcolor{yellow!20}\\
 \hline
-5.0 & 1641.00*** \cellcolor{yellow!20} & 16660.00*** \cellcolor{yellow!20} & \\
+5.0 & 164.00*** \cellcolor{yellow!20} & 1342.00*** \cellcolor{yellow!20} & 2225.00\\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment synergy, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\caption{Experiment synergy, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=1. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \label{synergy}
 \end{table}
 
@@ -94,17 +103,17 @@ These results are compiled in Table~\ref{memory}.
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
 \hline
-2.0 & 27152.00*** \cellcolor{yellow!20} & 1693.00*** \cellcolor{yellow!20} & 327.00*** \cellcolor{yellow!20}\\
+2.0 & 3305.00*** \cellcolor{yellow!20} & 272.00*** \cellcolor{yellow!20} & 21.00*** \cellcolor{yellow!20}\\
 \hline
-3.0 & 13465.00*** \cellcolor{yellow!20} & 7.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
+3.0 & 1543.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
 \hline
-4.0 & 1631.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
+4.0 & 100.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
 \hline
-5.0 & 17.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & \\
+5.0 & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
 \hline
 \end{tabular}
 \centering
-\caption{Experiment memory, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\caption{Experiment memory, $W$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=900. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \label{memory}
 \end{table}
 
@@ -118,37 +127,9 @@ As shown in Table~\ref{resilience_single}, the nudge impact is higher in random 
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
 \hline
-\multirow{3}{*}{2.0} & 2.0 & 3102.00*** \cellcolor{yellow!20} & 3671.00*** \cellcolor{yellow!20} & 2753.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 3.0 & 1182.00*** \cellcolor{yellow!20} & 1338.00*** \cellcolor{yellow!20} & 763.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 4.0 & 953.00*** \cellcolor{yellow!20} & 609.00*** \cellcolor{yellow!20} & 303.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{3.0} & 2.0 & 1504.00*** \cellcolor{yellow!20} & 1420.00*** \cellcolor{yellow!20} & 1238.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 3.0 & 112.00*** \cellcolor{yellow!20} & 78.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 4.0 & 5.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{4.0} & 2.0 & 391.00*** \cellcolor{yellow!20} & 152.00*** \cellcolor{yellow!20} & 315.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 3.0 & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 4.0 & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-\hline
-\multirow{3}{*}{5.0} & 2.0 & 6.00*** \cellcolor{yellow!20} & 6.00*** \cellcolor{yellow!20} & 4.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 3.0 & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
-\cline{2-5}
-  & 4.0 &  &  & \\
-\cline{2-5}
-\hline
 \end{tabular}
 \centering
-\caption{Experiment resilience single, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\caption{Experiment resilience single, $W$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
 \label{resilience_single}
 \end{table}
 
@@ -157,31 +138,33 @@ We found a similar consistent difference in the impact of nudging all variables.
 As shown in Table~\ref{resilience_multiple} in the appendix, the nudge impact is consistently higher in random networks.
 It appears that models with a higher number of states (a higher resolution in the expression level dimension), by virtue of having more expression levels, show a stronger difference in the nudge impact.
 
+%TODO eerste zin van paragraaf zou ook moeten zeggen wat er in die plots is afgebeeld, niet alleen dat er een plot is.
 In Fig.~\ref{fig:3dscatter} we provide several scatterplots of experiments, with varying system sizes and numbers of expression levels\footnote{2-dimensional versions of these plots are included in Appendix~\ref{appendix_figures}}.
 We find that the variance reduces significantly when increasing the number of possible states, showing a much clearer pattern.
 The same effect is seen in when increasing the system size.
 This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
 We notice that random systems are very tightly clustered, and typically have an extremely high memory paired with high synergy.
 The biological systems are much more spread out, and while there are outliers with higher memory than any random system, most samples have a lower memory and synergy.
-The spread of nudge impacts is also much high in biological systems than in random systems.
+The spread of nudge impacts is also much higher in biological systems than in random systems.
+%TODO leuke plots. maar wel soms lastig inschatten, hoogte bijv... Misschien ook wat 2D projecties laten zien?
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=2$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=2_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=2$ and $l=4$ ($n=900$)}
     \end{subfigure}
 \bigskip
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=4$ and $l=2$ ($n=900$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=4_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
         \caption{Distribution for $k=4$ and $l=4$ ($n=900$)}
     \end{subfigure}
     \caption{Scatterplots of synergy, memory and nudge impact (varying $l$ and $k$)}
@@ -189,17 +172,19 @@ The spread of nudge impacts is also much high in biological systems than in rand
 \end{figure}
 
 \subsection{Spearman Results}
-% TODO: report min/max somewhere?
+%TODO report min/max somewhere?
+%TODO je hoeft het niet per se te fixen voor je thesis, maar iets zit me toch niet helemaal lekker... die herschaling van tijd door het aantal states (l) zou intuitief ook een effect moeten hebben op memory, want des te korter is \delta{t} des te meer correlatie zou iemand verwachten, met de limiet \delta{t} --> 0 dan wordt de correlatie 100%. Dus eigenlijk zouden we hiervoor moeten corrigeren, bijv. door een kansverdeling van aantal states door decay zodanig dat de verwachting van de geometrische distributie hetzelfde is, dwz, een gen product is dan gemiddeld na zoveel tijdstappen vergaan tot 0, ongeacht l.
 
 In our correlation experiments we find a weak correlation between the synergy and the memory in a system.
 An increase in synergy appears to be paired with a decrease in memory, as shown in Table~\ref{GRN_rho_syn_mem}.
 This relation is not strong, however, and only consistently significant in larger systems with more than two expression levels.
 In Fig.~\ref{fig:3dscatter} we see that the range over which the observed synergy varies is very large for biological networks, but smaller for random networks.
-Combinations of low synergy and high memory never occur.
-In Table~\ref{random_rho_syn_mem}, we observe the same a highly significant and relationship between synergy and memory.
+Combinations of low synergy and high memory never occur. %TODO bijna nooit? in our sample
+In Table~\ref{random_rho_syn_mem}, we observe the same a highly significant and strong relationship between synergy and memory.
 In random networks, this relationship appears to be much stronger.
 However, the random sample only covers the high synergy-range.
 As such, the random networks also do not populate the low synergy-high memory space.
+%TODO wat bedoel je met die laatste 2 zinnen, waarom is dat zo? volg hem niet
 
 \begin{table}[h]
 \begin{tabular}{|l|l|l|l|}
@@ -239,6 +224,7 @@ As such, the random networks also do not populate the low synergy-high memory sp
 \label{random_rho_syn_mem}
 \end{table}
 
+%TODO gebruik misschien subheaders voor de verschillende relaties. En maak een duidelijk onderscheid tussen effect size en significance.
 In only some cases do we observe a significant relationship between synergy and the impact of a single target nudge (Table~\ref{GRN_rho_syn_singleimpact} and Table~\ref{random_rho_syn_singleimpact}).
 In very small systems, with 2 nodes and 2 states, this correlation was positive.
 In larger systems this correlation, if significant, was negative.
@@ -252,7 +238,7 @@ Again, we find only several experiments with a $p$-value in the range $0.05 > p 
 
 We provide similar results Table~\ref{GRN_rho_mem_singleimpact} and Table~\ref{random_rho_mem_singleimpact} for memory instead of synergy.
 We find that there is a strong positive relationship between memory and nudge impact.
-This is not unsurprising; synergy and memory where found to be negatively correlated, and synergy and nudge impact where also foudn to be negatively correlated.
+This is not unsurprising; synergy and memory where found to be negatively correlated, and synergy and nudge impact where also found to be negatively correlated.
 This result is also observed in the correlation between memory and the impact of a nudge that targets all genes (Table~\ref{GRN_rho_mem_multimpact} and Table~\ref{random_rho_mem_multimpact} in the appendix).
 %It appears from this result that the information in the random variable memory that is uncorrelated with the synergy is not correlated with nudge impact either.
 
@@ -416,21 +402,22 @@ This result is also observed in the correlation between memory and the impact of
 
 \subsection{MI-Profile}
 
+%TODO wat bedoel je precies met eerste zin.
 In the MI-profiles, we find that the synergy-redundancy ratio is less balanced in biology-like systems than in completely random systems.
 Like in previous experiments, we find that increasing the number of possible expression levels $l$ makes the difference between the two system types more pronounced.
 In Fig.~\ref{fig:profilel4}, we show the ensembles of MI-profiles for both random and GRN-like systems.
 We find that random systems stay much closer to a straight line than GRN-like systems, implying that at all levels similar amounts of redundancy and synergy occur.
-In biological systems, this balance is less present, as we see that in many samples there is much more redundancy oynergy at some levels.
+In biological systems, this balance is less present, as we see that in many samples there is much more redundancy synergy at some levels.
 This is less present, but still noticable, for fewer expression levels (Fig.~\ref{fig:profilel2}).
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/MIprofile_random.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/MIprofile_random.pdf}
         \caption{Profile ensemble of random systems}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/MIprofile_GRN.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=2/MIprofile_GRN.pdf}
         \caption{Profile ensemble of biology-like systems}
     \end{subfigure}
     \caption{MI-profiles with $k=3$ and $l=2$ ($n=900$)}
@@ -440,11 +427,11 @@ This is less present, but still noticable, for fewer expression levels (Fig.~\re
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4/MIprofile_random.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_random.pdf}
         \caption{Profile ensemble of random systems}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4/MIprofile_GRN.pdf}
+        \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4/MIprofile_GRN.pdf}
         \caption{Profile ensemble of biology-like systems}
     \end{subfigure}
     \caption{MI-profiles with $k=3$ and $l=4$ ($n=900$)}
@@ -455,7 +442,7 @@ This is less present, but still noticable, for fewer expression levels (Fig.~\re
 % we also already include the nudge width in a table, which proves enough of a point
 %\begin{figure}[H]
 %    \centering
-%    \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
+%    \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
 %    \caption{Hidden layer output}
 %    \label{fig:ugh}
 %\end{figure}

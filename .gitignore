@@ -24,3 +24,4 @@ bin/MatLab/
 !./bin/*.pdf
 *.fls
 *.fdb_latexmk
+*.out

@@ -25,6 +25,7 @@ import re
 from sklearn.linear_model import LinearRegression
 from sklearn.manifold import TSNE
 import sys
+from tqdm import tqdm
 
 # set folders
 data_location = "../../data_pandas"
@@ -32,6 +33,7 @@ result_location = "../../result_pandas"
 log_location = "../../log"
 
 
+#TODO maak virtualenv
 def outliers_iqr(ys):
     """
     Credit for this function to http://colingorrie.github.io/outlier-detection.html
@@ -64,7 +66,7 @@ def histogram_cycles(dataframe):
 
         random_cycles = []
         bio_cycles = []
-        for sample in samples:
+        for sample in tqdm(samples):
             lengths = [len(x) for x in sample[1].is_cyclical(int(logic_size ** system_size))]
             if len(lengths) == 0:
                 lengths = [0]
@@ -118,7 +120,7 @@ def visualize_TSNE(dataframe):
         y_color = []
         labels = []
 
-        for sample in samples:
+        for sample in tqdm(samples):
             table = sample[1]
             sample_vector = []
             for row in table.transition_table:
@@ -359,7 +361,7 @@ def visualize_impacts(dataframe):
         values = []
         colors = []
         labels = []
-        for j in range(0, int(system_size)):
+        for j in tqdm(range(0, int(system_size))):
             x_value = j
             y_values_random = []
             y_values_grn = []
@@ -888,21 +890,21 @@ def main():
                     dataframe = pd.concat([dataframe, dataframe_new])
 
     # now let's get rolling and do our tests!
-    print("doing cyclesearch")
-    #histogram_cycles(dataframe)
-    print("doing TSNE")
-    #visualize_TSNE(dataframe)
-    print("doing tests")
-    #test_synergy(dataframe)
-    #test_memory(dataframe)
-    #test_resilience(dataframe)
-    print("doing scatters")
-    #visualize_scatters(dataframe)
     print("doing impacts")
-    #visualize_impacts(dataframe)
+    visualize_impacts(dataframe)
     print("doing profile")
-    #visualize_profile(dataframe)
+    visualize_profile(dataframe)
+    print("doing cyclesearch")
+    histogram_cycles(dataframe)
     print("proceeding to LaTeX")
+    print("doing TSNE")
+    visualize_TSNE(dataframe)
+    print("doing tests")
+    test_synergy(dataframe)
+    test_memory(dataframe)
+    test_resilience(dataframe)
+    print("doing scatters")
+    visualize_scatters(dataframe)
 
     # now also do our spearman tests
     # immediatiely put in LaTeX
@@ -941,7 +943,7 @@ def main():
                 b = dataframe["system_size"] == system_size
                 c = dataframe["type"] == "random"
                 d = dataframe["nudge_size"] == nudge_size
-                selected_dataframe = dataframe[a & b & c & d]
+                selected_dataframe = dataframe[a & b & d]
                 samples = selected_dataframe[["type", "synergy", "impacts"]].values.tolist()
                 synergies = []
                 impacts = []
@@ -1052,6 +1054,72 @@ def main():
                 loc_df3 += 1
                 rho, p_value = scipy.stats.spearmanr(residuals_memory, residuals_multiple_impact)
                 df_3.loc[loc_df3] = ["random_rho_partial_memory_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+
+
+                # do partial correlation synergy single nudge
+                # do partial correlation synergy multiple nudge
+                samples = selected_dataframe[["type", "synergy", "memory", "impacts"]].values.tolist()
+                synergies = []
+                memories = []
+                impacts_single = []
+                impacts_multiple = []
+                for sample in samples:
+                    if sample[0] == "GRN":
+                        synergies.append(sample[1])
+                        memories.append(sample[2])
+                        impacts_single.append(sample[3][0][1])
+                        impacts_multiple.append(sample[3][-1][1])
+                # do linear models for residuals
+                if len(synergies) == 0:
+                    continue
+                lr1 = LinearRegression()
+                lr1.fit(np.asarray(memories).reshape(len(synergies), 1), synergies)
+                lr2 = LinearRegression()
+                lr2.fit(np.asarray(memories).reshape(len(impacts_single), 1), impacts_single)
+                lr3 = LinearRegression()
+                lr3.fit(np.asarray(memories).reshape(len(impacts_multiple), 1), impacts_multiple)
+                # calculate residuals
+                residuals_synergy = []
+                residuals_single_impact = []
+                residuals_multiple_impact = []
+                for i in range(0, len(synergies)):
+                    residuals_synergy.append(synergies[i] - lr1.predict(memories[i])[0])
+                    residuals_single_impact.append(impacts_single[i] - lr2.predict(memories[i])[0])
+                    residuals_multiple_impact.append(impacts_multiple[i] - lr3.predict(memories[i])[0])
+                # do partial correlations
+                rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_single_impact)
+                df_3.loc[loc_df3] = ["GRN_rho_partial_synergy_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+                rho, p_value = scipy.stats.spearmanr(residuals_synergy, residuals_multiple_impact)
+                df_3.loc[loc_df3] = ["GRN_rho_partial_synergy_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+
+                # do partial correlation memory single nudge
+                # do partial correlation memory multiple nudge
+                # do linear models for residuals
+                if len(synergies) == 0:
+                    continue
+                lr1 = LinearRegression()
+                lr1.fit(np.asarray(synergies).reshape(len(memories), 1), memories)
+                lr2 = LinearRegression()
+                lr2.fit(np.asarray(synergies).reshape(len(impacts_single), 1), impacts_single)
+                lr3 = LinearRegression()
+                lr3.fit(np.asarray(synergies).reshape(len(impacts_multiple), 1), impacts_multiple)
+                # calculate residuals
+                residuals_memory = []
+                residuals_single_impact = []
+                residuals_multiple_impact = []
+                for i in range(0, len(synergies)):
+                    residuals_memory.append(memories[i] - lr1.predict(synergies[i])[0])
+                    residuals_single_impact.append(impacts_single[i] - lr2.predict(synergies[i])[0])
+                    residuals_multiple_impact.append(impacts_multiple[i] - lr3.predict(synergies[i])[0])
+                # do partial correlations
+                rho, p_value = scipy.stats.spearmanr(residuals_memory, residuals_single_impact)
+                df_3.loc[loc_df3] = ["GRN_rho_partial_memory_singleimpact", system_size, logic_size, nudge_size, p_value, rho, None]
+                loc_df3 += 1
+                rho, p_value = scipy.stats.spearmanr(residuals_memory, residuals_multiple_impact)
+                df_3.loc[loc_df3] = ["GRN_rho_partial_memory_multimpact", system_size, logic_size, nudge_size, p_value, rho, None]
                 loc_df3 += 1
 
     for system_size in system_sizes:
