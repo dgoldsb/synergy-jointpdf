@@ -131,3 +131,28 @@ This suggests that synergy does not function as a mechanism to improve resilienc
 We ignored any synergy at a higher level, however, as well as any selective pressure in our model.
 As such, we suggest that this synergistic control might be emergent in natural networks at a higher level; not at the level of GRN motifs, but at the level of combinations of GRN motifs.
 This is an interesting question to tackle in future research, and due computational limitations not one that can be answered using our methodology.
+
+
+
+% Answer (3)
+We could not draw a conclusion on a difference in the impact of a single-target nudge versus a multi-target nudge with our current methodology.
+However, we did find significant results with the same sign in our experiments, which suggest that if there is a difference it is a matter of magnitude, not whether there is an effect at all.
+
+
+
+% I am leaving this out for now, the hypothesis was poorly phrased to begin with; the nudge impact cannot increase linearly with this type of nudgeand impact measurement
+% we also already include the nudge width in a table, which proves enough of a point
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=\textwidth]{./../../result_pandas/k=3_l=4_e=0.250000/impacts.pdf}
+%    \caption{Hidden layer output}
+%    \label{fig:ugh}
+%\end{figure}
+
+%\subsection{Spread and Contrasts}
+% drop this? not so interesting, we already take this from the 3d plot
+% just make a note that this is all available for download
+
+
+
+In Fig.~\ref{fig:3dscatter} we see that the range over which the observed synergy varies is very large for biological networks, but smaller for random networks.

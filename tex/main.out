@@ -32,16 +32,30 @@
 \BOOKMARK [3][-]{subsubsection.4.3.1}{Hypotheses}{subsection.4.3}% 32
 \BOOKMARK [3][-]{subsubsection.4.3.2}{Parameter ranges}{subsection.4.3}% 33
 \BOOKMARK [1][-]{section.5}{Results}{}% 34
-\BOOKMARK [2][-]{subsection.5.1}{Assumption Checks}{section.5}% 35
-\BOOKMARK [2][-]{subsection.5.2}{Comparisons GRN and Random Systems}{section.5}% 36
-\BOOKMARK [2][-]{subsection.5.3}{Spearman Results}{section.5}% 37
-\BOOKMARK [2][-]{subsection.5.4}{MI-Profile}{section.5}% 38
-\BOOKMARK [1][-]{section.6}{Discussion}{}% 39
-\BOOKMARK [1][-]{section.7}{Conclusion}{}% 40
-\BOOKMARK [1][-]{section*.20}{Appendices}{}% 41
-\BOOKMARK [1][-]{Appendix.a.A}{Methods}{}% 42
-\BOOKMARK [2][-]{subsection.a.A.1}{Alternative deciding conditions}{Appendix.a.A}% 43
-\BOOKMARK [2][-]{subsection.a.A.2}{Searching for motifs}{Appendix.a.A}% 44
-\BOOKMARK [1][-]{Appendix.a.B}{Figures}{}% 45
-\BOOKMARK [2][-]{subsection.a.B.1}{Plots}{Appendix.a.B}% 46
-\BOOKMARK [2][-]{subsection.a.B.2}{Tables}{Appendix.a.B}% 47
+\BOOKMARK [2][-]{subsection.5.1}{Assumption checks}{section.5}% 35
+\BOOKMARK [3][-]{subsubsection.5.1.1}{Sample space}{subsection.5.1}% 36
+\BOOKMARK [3][-]{subsubsection.5.1.2}{Transition cycles}{subsection.5.1}% 37
+\BOOKMARK [3][-]{subsubsection.5.1.3}{Normality and outliers}{subsection.5.1}% 38
+\BOOKMARK [2][-]{subsection.5.2}{Comparisons GRN and Random Systems}{section.5}% 39
+\BOOKMARK [2][-]{subsection.5.3}{Spearman Results}{section.5}% 40
+\BOOKMARK [3][-]{subsubsection.5.3.1}{Correlation between synergy and memory}{subsection.5.3}% 41
+\BOOKMARK [3][-]{subsubsection.5.3.2}{Correlation between synergy and resilience}{subsection.5.3}% 42
+\BOOKMARK [3][-]{subsubsection.5.3.3}{Correlation between memory and resilience}{subsection.5.3}% 43
+\BOOKMARK [2][-]{subsection.5.4}{MI-Profile}{section.5}% 44
+\BOOKMARK [1][-]{section.6}{Discussion}{}% 45
+\BOOKMARK [2][-]{subsection.6.1}{Limitations of the model}{section.6}% 46
+\BOOKMARK [2][-]{subsection.6.2}{Limitations of the experiments}{section.6}% 47
+\BOOKMARK [2][-]{subsection.6.3}{Future research}{section.6}% 48
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 49
+\BOOKMARK [1][-]{section*.21}{Appendices}{}% 50
+\BOOKMARK [1][-]{Appendix.a.A}{Methods}{}% 51
+\BOOKMARK [2][-]{subsection.a.A.1}{Alternative deciding conditions}{Appendix.a.A}% 52
+\BOOKMARK [2][-]{subsection.a.A.2}{Searching for motifs}{Appendix.a.A}% 53
+\BOOKMARK [1][-]{Appendix.a.B}{Figures}{}% 54
+\BOOKMARK [2][-]{subsection.a.B.1}{2D scatterplots}{Appendix.a.B}% 55
+\BOOKMARK [2][-]{subsection.a.B.2}{Tables}{Appendix.a.B}% 56
+\BOOKMARK [3][-]{subsubsection.a.B.2.1}{Comparison of means}{subsection.a.B.2}% 57
+\BOOKMARK [3][-]{subsubsection.a.B.2.2}{Correlation synergy and nudge impact}{subsection.a.B.2}% 58
+\BOOKMARK [3][-]{subsubsection.a.B.2.3}{Correlation memory and nudge impact}{subsection.a.B.2}% 59
+\BOOKMARK [3][-]{subsubsection.a.B.2.4}{Partial correlation synergy and nudge impact}{subsection.a.B.2}% 60
+\BOOKMARK [3][-]{subsubsection.a.B.2.5}{Partial correlation memory and nudge impact}{subsection.a.B.2}% 61

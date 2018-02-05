@@ -401,13 +401,13 @@ We hypothesize that:
 To support these tests, we visualize the distribution of both biologically possible- and completely random motif in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
 We also produce all 2D projections from this 3D distribution of our motifs, three in total, leaving out one of the three variables in each.
 We calculate both the bivariate correlation and the partial correlation for hypotheses (1)-(4).
+In addition, we also produce ensemble of complexity profiles for each experiment, in order to compare the distribution of synergy and redundancy in both random and biologically possible systems.
 
-In addition, we perform several sanity checks to validate our model.
+We perform several sanity checks to validate our model.
 We check that the biologically feasible motifs are a sub-samplespace through a t-SNE visualization.
 We also look at the prevalence of cycles in both samples, as well as how common several real network motifs are in the samples.
 In both cases we expect a higher rate of occurence in the biologically feasible motifs.
-Finally, we validate our model and measurement methods by running a few transition tables through the model of which we know the expected result.
-An example is the X-OR, which should have high synergy and high resilience.
+\footnote{We also validated the experimental design by running a few transition tables through the model of which we know the expected result. An example is the X-OR, which should have high synergy and high resilience. This validation is included in the code section of the repository \url{github.com/dgoldsb/synergy-jointpdf}.}
 
 \subsubsection{Parameter ranges}
 
