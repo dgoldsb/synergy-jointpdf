@@ -6,10 +6,8 @@
 % Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
 %TODO refer to hypotheses by number
 %TODO iets korter
-%TODO Vertel waarom steeds meer gescheiden
 %TODO Avg. correlatie bespreken (verbeteren stukje)
 
-%TODO memory is so high because chance is small to get the same state multiple times
 
 % Summary and restate thesis statement
 % Answer (1) 
@@ -70,6 +68,7 @@ A summary of the correlation findings is shown in Fig.~\ref{venn_results}.
 \end{figure}
 
 % Answer (2) means
+%TODO memory is so high because chance is small to get the same state multiple times
 %TODO maar gecorrigeerd voor memory, dus als de memory gelijk is in de twee (ofwel p(synergy | memory)), is dan de synergy hoger in de GRNs?
 We compared two types of random systems with discrete states and time steps.
 One system is completely random in nature, and is evolved following a completely random state transisition table.
@@ -99,11 +98,12 @@ In theory a higher resolution is also closer to reality, although this does depe
 % Good sign that results are consistent amongst expression levels.
 
 % Variance (addition to means)
-%TODO ik snap deze uitleg niet helemaal... zou het ook niet kunnen zijn dat de natuur misschien deze manier van GRNs modelleren gebruikt (dus edges en 2-to-1 edges) om juist te zorgen dat het gemakkelijk een brede varieteit aan memory en synergy kan bereiken, wat moeilijk zou zijn door de evolueren in de random systems?
-We observed that the GRN-like systems occupied a much wider range in synergy, memory, and resilience.
-Furthermore, this discrepancy in their ranges becomes greater when increasing the system size or number of possible states.
-This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
-If we are correct in our observation that the biological section of this sample space is small and has unique properties, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section.
+% RICK: ik snap deze uitleg niet helemaal... zou het ook niet kunnen zijn dat de natuur misschien deze manier van GRNs modelleren gebruikt (dus edges en 2-to-1 edges) om juist te zorgen dat het gemakkelijk een brede varieteit aan memory en synergy kan bereiken, wat moeilijk zou zijn door de evolueren in de random systems? DYLAN: ik heb het duidelijker geschreven, maar er is geen evolutie van random systemen; random is echt random, en elke transition table heeft een gelijke kans getrokken te worden
+We observed that our biologically possible sampled systems had a much higher variance in their synergy, memory, and resilience.
+This is odd, as all these samples can also be sampled from the set of random systems.
+Furthermore, this discrepancy in their ranges becomes greater when increasing the size of the sample space, either through increasing $l$ or $n$.
+This can be explained through this increase in the sample space.
+If we hypothesize that the subspace of biologically possible systems grows less quickly than the overall sample space and has properties much different from the rest of the sample space, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section.
 This could explain why the random measurements get bunched up around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
 
 % Answer (3)
@@ -114,5 +114,8 @@ Random systems where found to be well-balanced between synergy and redundancy at
 
 %TODO misschien wat diepere, bredere conclusie aan het eind die alles combineert tot iets van een inzicht? mogelijke implicaties voor een en ander?
 This suggests that synergy does not function as a mechanism to improve resilience.
+Biologically possible tables is a very small space
+GRN systems are more extrem in synergy and redundancy.
+We found both single and multi nudges had similarly directed effects.
 
 \end{document}
