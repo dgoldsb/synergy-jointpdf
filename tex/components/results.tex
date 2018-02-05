@@ -96,7 +96,7 @@ We similarly compared the level of memory measured in random and biologically in
 We found that completely random systems carry significantly more memory than the biological systems in most cases. % this is to be expected, the memory is really really high
 These results are compiled in Table~\ref{memory}\footnote{The implementation of the Wilcoxon signed-rank test returns a $T$-statistic of zero when the two samples share zero overlap in their range.}.
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|c|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
@@ -120,7 +120,7 @@ As shown in Table~\ref{resilience_single}, the nudge impact is higher in random 
 %Larger system experiments are closer to reality, as gene regulatory networks consist of many genes.
 % TODO: mention means
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -155,8 +155,8 @@ As shown in Table~\ref{resilience_single}, the nudge impact is higher in random 
 \hline
 \end{tabular}
 \centering
-\label{resilience_single}
 \caption{Comparison of the mean nudge impact (a single variable being nudged) between random and biological networks ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\label{resilience_single}
 \end{table}
 
 We found a similar consistent difference in the impact of nudging all variables.
@@ -171,7 +171,7 @@ We notice that random systems are very tightly clustered, and typically have an 
 The biological systems are much more spread out, and while there are outliers with higher memory than any random system, most samples have a lower memory and synergy.
 The spread of nudge impacts is also much higher in biological systems than in random systems.
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
@@ -205,7 +205,7 @@ In Table~\ref{random_rho_syn_mem}, we observe the same a highly significant and 
 The difference in the strength between these correlations can be explained by the fact that random systems always have
 In random networks, this relationship appears to be much stronger.
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|l|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
@@ -224,7 +224,7 @@ In random networks, this relationship appears to be much stronger.
 \label{GRN_rho_syn_mem}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|l|l|l|l|}
 \hline
 \diagbox{\# nodes }{\# states}  & 2.0 & 3.0 & 4.0\\
@@ -255,7 +255,7 @@ However, these $p$-values are relatively high, and the sign of the observed effe
 As we do a large number of experiments experiments, we should be wary of false positives by chance.
 The same behavior was observed when all system variables were included in the nudge, as can be seen in Table~\ref{GRN_rho_partial_synergy_multimpact}-\ref{random_rho_partial_synergy_multimpact} in the Appendix.
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -290,11 +290,12 @@ The same behavior was observed when all system variables were included in the nu
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between synergy and nudge impact (on variable being nudged) for biological systems, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_synergy_singleimpact}
+\caption{Spearman partial correlation between synergy and nudge impact (on variable being nudged) for biological systems, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\label{GRN_rho_partial_synergy_singleimpact}
 \end{table}
 
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -341,7 +342,7 @@ When we add the synergy in the system as a confounding variable, this relationsh
 This is shown in Table~\ref{GRN_rho_partial_memory_singleimpact} and Table~\ref{random_rho_partial_memory_singleimpact}.
 The same behavior was observed when all system variables were included in the nudge, as can be seen in Table~\ref{GRN_rho_partial_memory_multimpact}-\ref{random_rho_partial_memory_multimpact} in the Appendix.
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -379,7 +380,7 @@ The same behavior was observed when all system variables were included in the nu
 \caption{Spearman partial correlation between memory and nudge impact (on variable being nudged) for biological systems, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_memory_singleimpact}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -426,7 +427,7 @@ We find that random systems stay much closer to a straight line than GRN-like sy
 In biological systems, this balance is less present, as we see that in many samples there is much more redundancy synergy at some levels.
 This is less present, but still noticable, for fewer expression levels (Fig.~\ref{fig:profilel2}).
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=3_l=2/MIprofile_random.pdf}
@@ -440,7 +441,7 @@ This is less present, but still noticable, for fewer expression levels (Fig.~\re
     \label{fig:profilel2}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=4_l=4/MIprofile_random.pdf}
