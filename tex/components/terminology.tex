@@ -1,4 +1,4 @@
-% Version: 0.0
+% Version: final
 
 \documentclass[../main.tex]{subfiles}
 
@@ -6,15 +6,17 @@
 
 % Definitions, these do need to be defined in the text too the first time
 Throughout the this study we use terminology from varying sources.
-We borrow terms from cell biology and information theory, and where necessary give novel definitions.
+We borrow terms from cell biology and information theory.
 The following is an overview of commonly used terms and abbreviations in this paper, along with their meaning:
 
 \begin{itemize}
-\item[] (Dyadic)
+\item[] (Dyadic) Between two variables.
+\item[] (BRN) Biological Random Network, a GRN motif randomly generated following rules mimicking real GRN motifs.
 \item[] (GRN) Gene Regulation Network, a system of genes operating at an expression level influencing each other through regulation and stimulation.
+\item[] (Monadic) Within a single variable.
 \item[] (PID) Partial Information Decomposition, the decomposition of information in a system in synergy, redundancy and unique information.
-\item[] (Monadic)
-\item[] (Polyadic)
+\item[] (Polyadic) Between multiple (more than two) variable.
+\item[] (URN) Uniform Random Network, a transition table generated using a completely random design.
 \end{itemize}
 
 % Math notation
@@ -24,11 +26,12 @@ We use the following notation throughout this paper. Let
 \item[] $l$: the number of states a gene can be in
 \item[] $\epsilon$: the magnitude of a nudge
 \item[] $w$: the width of a nudge, i.e. the number of genes affected
-\item[] $\mathbf{X}^{t=0}$: the set of all $n$ genes in a motif at timestep $t=0$
-\item[] $X_i^{t=0}$: the $i$-th gene in the motif at timestep $t=0$
+\item[] $\mathbf{X}^{t=0}$: the set of all $n$ genes in a motif at time step $t=0$
+\item[] $X_i^{t=0}$: the $i$-th gene in the motif at time step $t=0$
 \item[] $\mathbf{Y}$: general notation for the set of all predicted target variables, generally $\mathbf{Y} = \mathbf{X}^{t=1}$
 \end{itemize}
 All random variables are discrete with $l$ states, a logarithm is base 2 unless implied otherwise, and calculations of information theory properties are in bits.
 We denote the entropy of a system as $\mathrm{H}(\mathbf{X})$, the mutual information as $\mathrm{I}(\mathbf{X}:\mathbf{Y})$, the redundancy as $\mathrm{I}_\mathrm{red}(\mathbf{X}:\mathbf{Y})$ and the synergy as $\mathrm{I}_\mathrm{syn}(\mathbf{X}:\mathbf{Y})$.
 
 \end{document}
+

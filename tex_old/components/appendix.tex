@@ -1,0 +1,205 @@
+% Version: 0.0
+
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\section{Tables}
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 4581.00* \cellcolor{yellow!20} & 3710.00*** \cellcolor{yellow!20} & 3934.00** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 1683.00*** \cellcolor{yellow!20} & 2040.00*** \cellcolor{yellow!20} & 753.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 & 1062.00*** \cellcolor{yellow!20} & 1740.00*** \cellcolor{yellow!20} & 420.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 2945.00*** \cellcolor{yellow!20} & 2995.00*** \cellcolor{yellow!20} & 3718.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 1210.00*** \cellcolor{yellow!20} & 558.00*** \cellcolor{yellow!20} & 136.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 & 320.00*** \cellcolor{yellow!20} & 44.00*** \cellcolor{yellow!20} & 7.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 1950.00*** \cellcolor{yellow!20} & 1548.00*** \cellcolor{yellow!20} & 1084.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 49.00*** \cellcolor{yellow!20} & 7.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 910.00*** \cellcolor{yellow!20} & 616.00*** \cellcolor{yellow!20} & 165.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 3.0 & 1.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20} & 0.00*** \cellcolor{yellow!20}\\
+\cline{2-5}
+  & 4.0 &  &  & \\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\label{resilience_multiple}
+\caption{Experiment resilience multiple, Z-value and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 0.18*  & 0.00 & -0.03\\
+\cline{2-5}
+  & 3.0 & 0.16 & 0.02 & -0.01\\
+\cline{2-5}
+  & 4.0 & 0.02 & -0.13 & 0.08\\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 0.09 & -0.06 & -0.02\\
+\cline{2-5}
+  & 3.0 & -0.20*  & -0.08 & -0.28*** \\
+\cline{2-5}
+  & 4.0 & -0.18*  & -0.33***  & -0.27*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & -0.02 & -0.02 & 0.17* \\
+\cline{2-5}
+  & 3.0 & -0.22*  & -0.10 & -0.20* \\
+\cline{2-5}
+  & 4.0 & -0.29***  & -0.33***  & -0.34*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & -0.10 & -0.16 & -0.08\\
+\cline{2-5}
+  & 3.0 & -0.17*  & -0.13 & -0.22* \\
+\cline{2-5}
+  & 4.0 & nan & nan & nan\\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\label{GRN_rho_syn_multimpact}
+\caption{Experiment GRN rho syn multimpact, $r_S$ and significance per experiment for GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & -0.03 & -0.04 & 0.04\\
+\cline{2-5}
+  & 3.0 & -0.13 & -0.14 & -0.07\\
+\cline{2-5}
+  & 4.0 & -0.01 & -0.23*  & -0.24** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & -0.11 & -0.17*  & -0.13\\
+\cline{2-5}
+  & 3.0 & -0.18*  & -0.19*  & -0.22* \\
+\cline{2-5}
+  & 4.0 & -0.17*  & -0.20*  & -0.29*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & -0.06 & -0.11 & -0.26** \\
+\cline{2-5}
+  & 3.0 & -0.15 & -0.27***  & -0.22* \\
+\cline{2-5}
+  & 4.0 & -0.19*  & -0.16*  & -0.38*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & -0.23*  & -0.13 & -0.40*** \\
+\cline{2-5}
+  & 3.0 & -0.22*  & -0.23**  & -0.26** \\
+\cline{2-5}
+  & 4.0 & nan & nan & nan\\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\label{random_rho_syn_multimpact}
+\caption{Experiment random rho syn multimpact, $r_S$ and significance per experiment for random tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 0.46***  & 0.57***  & 0.54*** \\
+\cline{2-5}
+  & 3.0 & 0.50***  & 0.49***  & 0.69*** \\
+\cline{2-5}
+  & 4.0 & 0.65***  & 0.56***  & 0.67*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 0.40***  & 0.44***  & 0.42*** \\
+\cline{2-5}
+  & 3.0 & 0.43***  & 0.48***  & 0.69*** \\
+\cline{2-5}
+  & 4.0 & 0.59***  & 0.67***  & 0.76*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 0.28***  & 0.39***  & 0.63*** \\
+\cline{2-5}
+  & 3.0 & 0.63***  & 0.68***  & 0.75*** \\
+\cline{2-5}
+  & 4.0 & 0.71***  & 0.81***  & 0.83*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.41***  & 0.53***  & 0.53*** \\
+\cline{2-5}
+  & 3.0 & 0.72***  & 0.78***  & 0.83*** \\
+\cline{2-5}
+  & 4.0 & nan & nan & nan\\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\label{GRN_rho_mem_multimpact}
+\caption{Experiment GRN rho mem multimpact, $r S$ and significance per experiment for random/GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.5\\
+\hline
+\multirow{3}{*}{2.0} & 2.0 & 0.30***  & 0.43***  & 0.70*** \\
+\cline{2-5}
+  & 3.0 & 0.33***  & 0.26**  & 0.48*** \\
+\cline{2-5}
+  & 4.0 & 0.00 & 0.42***  & 0.50*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{3.0} & 2.0 & 0.26**  & 0.34***  & 0.48*** \\
+\cline{2-5}
+  & 3.0 & 0.08 & 0.35***  & 0.43*** \\
+\cline{2-5}
+  & 4.0 & 0.15 & 0.36***  & 0.40*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{4.0} & 2.0 & 0.10 & 0.17*  & 0.46*** \\
+\cline{2-5}
+  & 3.0 & 0.18*  & 0.34***  & 0.37*** \\
+\cline{2-5}
+  & 4.0 & 0.23*  & 0.18*  & 0.37*** \\
+\cline{2-5}
+\hline
+\multirow{3}{*}{5.0} & 2.0 & 0.14 & 0.19*  & 0.51*** \\
+\cline{2-5}
+  & 3.0 & 0.22*  & 0.30***  & 0.34*** \\
+\cline{2-5}
+  & 4.0 & nan & nan & nan\\
+\cline{2-5}
+\hline
+\end{tabular}
+\centering
+\label{random_rho_mem_multimpact}
+\caption{Experiment random rho mem multimpact, $r S$ and significance per experiment for random/GRN tables (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300.}
+\end{table}
+
+
+\end{document}

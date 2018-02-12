@@ -1,0 +1,57 @@
+% Version: 0.0
+
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+% Summary and restate thesis statement
+% Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
+% Main research question: there is a form of synergistic control, but we do not observe it, as memory seems to be the dominant force
+In this study we investigated whether there is a form of synergistic control on the resilience of gene regulation systems.
+We found that there is a link between synergy and resilience, which implies that systems with higher synergy are more resilient to shocks.
+However, we also found that the amount of memory in a system is a much greater force on the resilience than the synergy is, and the dominant force in random gene regulation systems.
+
+% Means hypotheses
+We compared two types of random systems with discrete states and time steps.
+One system is completely random in nature, and is evolved following a completely random state transisition table.
+The other is meant to mimic GRNs, and is evolved following a state transition table computed from a random GRN.
+While both groups are random in nature, the latter was found to sample from a small subspace in the sample space of the completely random tables.
+We found that the group of GRN-like systems score worse in both synergy and memory.
+This is opposite to our hypothesis, as we predicted that biological systems would score high in both these properties.
+Our understanding is that synergetic relations are difficult to build using the components of gene regulation networks; gene regulation works mostly using positive and negative feedback, with an occasional AND-gate.
+Typical structures that provide synergy, such as a XOR-gate, are unlikely to come into existence from randomly combining these components.
+The difference in memory is more to attribute to an underestimation of the amount of memory in completely random systems.
+The amount of memory in gene regulation systems is not low by any means, preserving more than 50\% of the mutual information typically.
+However, the amount of mutual information preserved in random networks is usually exceptionally high, close to 90\%.
+
+We found that gene regulation systems where more resilient to nudges than random systems.
+This is in line with our hypothesis, as biological networks have a strong need for resilience to function.
+However, contrary to our hypotheses, this difference in resilience was observed regardless of how many variables in the system where nudged.
+The difference in resilience can likely be attributed to the great difference in memory, as a higher memory was found to correlate with a decreased resilience.
+We suggest that the type of relations in gene regulatory networks are less likely to lead to duplications in the next timesteps (a high memory) and yield a lower synergy, resulting in an on average lower nudge impact.
+
+These results where found to be consistent with an increasing network size, as well with an higher 'resolution' by increasing the number of possible states of each variable.
+Larger networks and those with a higher resolution yielded more significant results.
+These larger systems are also closer to reality, as GRNs often include tens to hundreds of genes.
+In theory a higher resolution is also closer to reality, although this does depend on whether our extension of the conversion model from GRN to transition table is correct for multi-valued logic systems.
+% Good sign that results are consistent amongst expression levels.
+
+% Spearman hypotheses
+We found a significant positive correlation between the system memory and the impact of a nudge, and it was also found that in some systems a higher synergy lead to a lower nudge impact.
+This is in line with our hypotheses, where we suggested there is a correlation between these properties.
+Furthermore, we found that neither the combination of high memory and low nudge impact nor the combination of low memory and high nudge impact does occur.
+This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
+The observed relation between synergy and nudge impact is in line with the findings of Quax et al.~\ref{quax2017quantifying}.
+% STRESS THAT CORRELATIONS PROBABLY DIFFER DUE TO DIFFERENT RANGES
+
+% Variance (addition to means)
+We observed that the GRN-like systems occupied a much wider range in synergy, memory, and resilience.
+Furthermore, this discrepancy in their ranges becomes greater when increasing the system size or number of possible states.
+This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
+If we are correct in our observation that the biological section of this sample space is small and has unique properties, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section.
+This could explain why the random measurements get bunched up around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
+
+% Other results
+Random systems where found to be well-balanced between synergy and redundancy at all levels, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
+
+\end{document}

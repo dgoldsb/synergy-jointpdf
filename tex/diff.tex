@@ -1,6 +1,5 @@
 \documentclass{article}
 
-% Packages
 \usepackage{lipsum}
 \usepackage{subfiles}
 \usepackage{amsmath}
@@ -12,9 +11,8 @@
 \usepackage[toc,page]{appendix}
 \usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
 \usepackage{appendix}
-\usepackage{hyperref}
+\protect\TLSins{\usepackage{hyperref}}
 
-% results
 \usepackage{array}
 \usepackage{diagbox}
 \usepackage{multirow}
@@ -25,20 +23,18 @@
 \usepackage{float}
 \usepackage{url}
 
-\newcommand{\given}{ \;\middle|\; }
+\protect\TLSins{\newcommand{\given}{ \;\middle|\; }}
 
-% Citations
 \bibliographystyle{plain}
 
-% Formatting etc.
 \geometry{
 	a4paper,
  	total={170mm,257mm},
  	left=20mm,
  	top=20mm}
 
-% My name etc.
-\title{Investigation into the role of synergy in the memory and resilience of random discrete gene regulatory networks}
+\protect\TLSdel{On the relation between}
+\title{\protect\TLSins{Investigation into control of} memory and resilience \protect\TLSins{through synergy} in \protect\TLSdel{complex systems and synergetic properties} \protect\TLSins{artificial discrete gene regulatory networks}}
 \author{Dylan Goldsborough}
 \date{\today}
 
@@ -49,66 +45,69 @@
 \subfile{components/abstract.tex}
 
 \section{Introduction}
-\label{sec:introduction}
+\protect\TLSins{\label{sec:introduction}}
 
 \subfile{components/introduction_general.tex}
 
-\section{Glossary and Notation}
+\section[[Glossary and Notation]]{\protect\TLSins{Glossary and Notation}}
 
-\subfile{components/terminology.tex}
+\protect\TLSins{\subfile{components/terminology.tex}}
 
 \section{Theoretical background}
 
 \subsection{Synergy}
-\label{sec:synergy}
+\protect\TLSins{\label{sec:synergy}}
 
 \subfile{components/introduction_synergy.tex}
 
 \subsection{Complexity Profiles}
-\label{sec:profile}
+\protect\TLSins{\label{sec:profile}}
 
 \subfile{components/introduction_MI_profile.tex}
 
 \subsection{Ecology and Information Theory}
-\label{sec:ecology}
+\protect\TLSins{\label{sec:ecology}}
 
-\subfile{components/introduction_ecology_IT.tex} % Does this fit at all? Reconsider.
-
+\subfile{components/introduction_ecology_IT.tex} 
 \subsection{Complexity and Gene Regulatory Networks}
-\label{sec:grn}
+\protect\TLSins{\label{sec:grn}}
 
 \subfile{components/introduction_complexity_GRN.tex}
 
-\section{Methodology}
-\label{sec:methods}
+\section*{\protect\TLSdel{Methods}}
+\section[[Methodology]]{\protect\TLSins{Methodology}}
+\protect\TLSins{\label{sec:methods}}
 
 \subfile{components/methods.tex}
 
 \section{Results}
-\label{sec:results}
+\protect\TLSins{\label{sec:results}}
 
 \subfile{components/results.tex}
 
+\section*{\protect\TLSdel{Conclusion}}
+
+\protect\TLSdel{\subfile{components/conclusion.tex}}
+
 \section{Discussion}
-\label{sec:discussion}
+\protect\TLSins{\label{sec:discussion}}
 
 \subfile{components/discussion.tex}
 
-\section{Conclusion}
-\label{sec:conclusion}
+\section[[Conclusion]]{\protect\TLSins{Conclusion}}
+\protect\TLSins{\label{sec:conclusion}
 
-\subfile{components/conclusion.tex}
+\subfile{components/conclusion.tex}}
 
-%TODO date of access, prune unused sources
 \bibliography{sources}
 
 \newpage
 
 \begin{appendices}
 
-\subfile{components/appendix_methods.tex}
+\protect\TLSins{\subfile{components/appendix_methods.tex}
 
-\newpage
+\newpage}
 
 \subfile{components/appendix.tex}
 

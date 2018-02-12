@@ -8,13 +8,12 @@
 % Discuss the current dominant paradigm: PID
 
 % Key: complexity can be measured using IT, biological sciences are sceptical but all revolves around quantifying information
-While there is no general consensus how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose\cite{williams2010nonnegative, bar2013computationally}. % Referenced to later (a)
+While there is no general consensus how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose \cite{bar2013computationally, williams2010nonnegative}. % Referenced to later (a)
 Basic principles in IT are the (conditional) entropy and mutual information, measured in bits.
 The principles are widely accepted and applied, and operate at the monadic and dyadic level.
-Entropy has been used in ecology to quantify complexity, but has gone out of favor since \cite{ulanowicz2001information}.
 In more recent years, new concepts from IT at the polyadic level have been proposed in information theory, such as synergy.
 Synergy in particular was found to be a useful predictor for system complexity in cellular automata \cite{9999QuaxChli}.
-Other proposals that focus on the dyadic level have been made to quantify complexity, such as a quantification by \cite{tononi1999measures} to identify the functional integration and specialization within a neural network.
+Other proposals that focus on the dyadic level have been made to quantify complexity, such as a quantification by Tononi et al. to identify the functional integration and specialization within a neural network \cite{tononi1999measures}.
 This measure utilizes entropy and nudges to the system to measure the amount of entropy accounted for by interactions among the system elements.
 
 
@@ -51,6 +50,7 @@ For dependent PMFs the conditional entropy can also be determined, which is expr
 %
 
 % First the far history, with unsuccesful attempts
+Aw we introduce a third variable in our system, wecan look past dyadic interactions.
 Originally, two extensions that support polyadic interactions were proposed.
 The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
 The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
@@ -60,8 +60,7 @@ Unfortunately, this measure can become negative, making it less intuitive to int
 
 % Current paradigm, not final
 There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
-The current dominant paradigm in IT splits the information of a system into three basic principles.
-In this approach, the information in a system is broken down into redundancy, synergy and unique information \cite{williams2010nonnegative}.
+The current dominant paradigm in IT splits the information of a system into three basic principles: redundancy, synergy and unique information \cite{williams2010nonnegative}.
 All information in the system can be classified and quantified in these categories, allowing for a full decomposition of the system that improves our understanding of this system.
 The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
 However, a weakness of this system is that beyond a few variables this system explodes computationally.
@@ -69,12 +68,10 @@ In addition, no measure capable of measuring synergy that satisfies all axioms h
 
 % Level 3: synergy/redundancy
 % Give meaning to what synergy is
-We can also consider a third variable in our system.
-In this case we do not only look at dyadic interactions, but also at polyadic interaction.
-For instance, we might consider our first two variables as predictor variables, and our third variable as the predicted variable.
+As an example, let us consider a three variable system in which we consider our first two variables as predictor variables, and our third variable as the predicted variable.
 We can measure how much information the former two contain about the third with the mutual information $\mathrm{I} \left( Z;X,Y \right)$.
 This information can be ingrained in the system in different ways; the variables $X$ and $Y$ can have overlapping information on $Z$ (redundancy) or cooperate to predict $Z$ (synergy) \cite{griffith2014quantifying}.
-For our three-variable system, we can split information at this emergence level into four categories \cite{williams2010nonnegative}: %TODO let emergence level recur
+For our three-variable system, we can split information at this emergence level into four categories \cite{williams2010nonnegative}:
 %
 \begin{enumerate}
 \item Redundant information contained in both $X$ and $Y$, denoted $\mathrm{I}_\mathrm{red} \left( Z;X,Y \right)$
@@ -84,6 +81,7 @@ For our three-variable system, we can split information at this emergence level 
 \end{enumerate}
 This PID is also shown in Figure~\ref{venn}.
 The quantification of either synergy or redundancy is critical, as without this it is not possible to discern between synergy and redundancy when looking at the mutual information in a system with $n \ge 3$.
+Synergy is not affected by duplicate predictors, but does disappear when the synergistic information itself is made redundant by a new predictor \cite{griffith2014quantifying}.
 
 %% PICTURE %%
 \def\firstcircle{(0:-0.9cm) circle (2cm)}
@@ -143,7 +141,6 @@ Following this split, the synergy is defined as
 Synergy can be shown intuitively in discrete cases through an X-OR gate, which is fully synergistic \cite{quax2017quantifying}.
 We can demonstrate this by examining the truth table, as shown in Table \ref{XOR}.
 The mutual information $\mathrm{I}\left( Z;X \right)$ and $\mathrm{I} \left( Z;Y \right)$ are both zero, but together $X$ and $Y$ provide information about $Z$.
-Synergy is not affected by duplicate predictors, but does disappear when the synergistic information itself is made redundant by a new predictor \cite{griffith2014quantifying}.
 
 \begin{table}[ht]
 \begin{center}

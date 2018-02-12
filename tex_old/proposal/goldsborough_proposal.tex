@@ -1,0 +1,106 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{setspace}
+\pagestyle{empty}
+\setlength{\tabcolsep}{0in}
+\hyphenchar\font=-1
+\usepackage{geometry}
+\geometry{a4paper}
+\setstretch{1}
+\usepackage{booktabs}
+\usepackage{topcapt}
+\usepackage{tabulary}
+\usepackage{hyphenat}
+\usepackage{url}
+\title{Investigating the trade-off between synergy and robustness in complex systems using synergy profiles}
+\date{\today}
+
+\begin{document}
+\maketitle
+\noindent
+\textbf{Start date}: February 6th, 2017\\
+\textbf{End date}: August 8th, 2017\\
+\textbf{Student}: Dylan Goldsborough (\url{dylan.goldsborough@student.uva.nl})\\
+\textbf{Supervisor}: Rick Quax (\url{r.quax@uva.nl})\\
+\textbf{Second reader}: Jaap Kaandorp (\url{j.a.kaandorp@uva.nl})\\
+
+\section{Research proposition}
+
+In complex systems, the properties of many individual leads to a large scale mergent behavior which cannot be understood by looking at the components individually.
+In this case, the parts of the system have some sort of 'synergy' together which is a vital part of the dynamics of the system as a whole.
+The quantification of synergy in complex systems is amongs the open problems in information theory. 
+Quax et al. (\url{http://arxiv.org/abs/1602.01265}) have proposed a method of quantification, using intermediate stochastic variables.
+
+With this tool, we can look at another open question in this field: the relation between synergy in a complex systems, and resilience of the system against disturbances. 
+This question has a lot of practical relevance, as it has been asked in different forms in several disciplines. 
+In ecology, for example, the relationship between the complexity and resilience of an ecosystem is on of the primary unanswered questions.
+This relationship is similarly relevant in our understanding of neural networks in neuroscience, and our understanding of artificial neural networks in artificial intelligence.
+Ultimately this can give us a better understanding of why systems are resilient, and a mean to predict the resilience of a system based on its composition alone.
+
+\section{Main problem setting and research questions}
+
+The main problem adressed in this study is one from information theory: we want to determine the links between the complexity of a complex system, of which the quantified synergy is a measure, and its resilience to nudges. 
+This problem is recurrent in many other disciplines, such as systems biology.
+
+Our primary research question is: "Is there a relation between the synergy profile of a system as quantified following Quax et al., and the resilience of said system." We hypothesize that there is a significant correlation between the synergy profile and the resilience of system against nudges in a single variable. We also hypothesize that there is a significant correltion between the individual- and synergetic information, and the resilience of the system against local nudges. Finally, we hypothesize that these correlations are also found when considering non-local nudges, i.e. nudges on more than one variable.
+
+
+Our additional research question, which extends the former, is: "Can the relationship observed in simulated systems be applied to real world complex systems?" Considering the limited time in which this project runs, we propose that this will be a proof of concept on how the theory can be applied to a real system. As we will use a single system, hypothesis testing to answer questions about the effectivity of applyin the theory to real world systems is not possible.
+
+\section{Research design and method(s)}
+
+We will perform a simulation study to test the hypothesis that there is a relationship between the synergy profile of a system, and its resilience to nudges. 
+To do so, we will extend the Python library developed by Rick Quax to quantify synergy (\url{https://bitbucket.org/rquax/jointpdf}) to support continuous probability distributions.
+We will then sample a set of discrete systems and continuous systems, where a system is a collection of variables that are defined by a PDF, and that are mutually dependent.
+In the discrete case, this takes the form of an $N$-dimensional matrix for $N$ variables, with in each dimension $S_n$ states to correspond to all states of the variable. 
+For instance, a system with 2 variables and 3 states can be captured in a $3\times 3$ matrix of probabilities.
+The sum of the probabilities for each combination of states should be normalized.  
+
+
+Of these systems, we will generate their synergy profiles, as well as determine their resilience against nudges.
+A synergy profile can be considered as a plot of the fraction of mutual information captured, versus the number of variables. 
+When considering zero variables, you have no information on the system, so here the mutual information is 0.
+When considerin all variables everything is known, so here the mutual information is 1.
+The shape of the curve inbetween tells us something about the synergies within the system.
+For instance, if the curve stays low for a long time and then shoots up we can conclude that the system contains a lot of high-level synergy.
+As there are many ways to order the variables, we can make the decision to at each position take the variable that adds the maximum amount of information, or to take the mean of all possible curves.
+A nudge is defined as a small change in the probabilities for the the different states of one variable.
+To maintain normalization, the overall nudge summed should equal zero.
+First of all we focus on local nudges, those that only affect one variable in the system, but in the depending on research progress we can expand this to pertubations that affect multiple variables.
+The impact of the nudge we measure with the difference in the output squared, first of all.
+
+
+From the resulting dataset we then will test our hypotheses.
+We investigate the correlation between the impact of a nudge, and the synergy proile of the system.
+In addition to this, we also hope to investigate the correlations between the nudge impact, and the individual- and synergystic information of the system.
+This is interestin of the light of the discussion whether the mutual information of a system is equal to the sum of these parts, or not. 
+If this is not the case, investigating the correlations individually could yield interesting results.
+However, this part of the research would rely on developments in the upstream repository of Quax et al..
+
+
+After the simulation study, we will test the results on a real complex system.
+We will create a synergy profile, and estimate the resilience on this basis.
+We will then compare the predicted resilience to the resilience of the system that is known to us from emperical studies.
+
+\section{Project time table}
+
+The project corresponds to a 42 EC studyload, and will officially be performed over the course of six months. 
+The project will start on the 6th of February 2017, and end on the 6th of August in the same year.
+The project contains three distinct stages: a literature study, a period of hypothesis testing, and an application to a real complex system. 
+
+For the literature study, a total of 12 EC or 6 weeks has been reserved. 
+There are two goals in this timeframe: (a) to describe the current state of research on measures to quantify synergy, complex system resilience, and relations between the two, and (b) selecting a real-life complex system of which to create a synergy profile, and to see if we can use this to explain the observed resilience. 
+The preference in (b) lies in an ecological system of which the resilience is roughly known. 
+The challenge lies in finding a suitable dataset, and determining how to interpret the system in the context of this synergy quantification.
+
+Second, we will take to test our hypotheses in a simulation study. 
+We will generate random systems, with varying degrees of resilience, and examine if there is a relationship with the synergy profile. 
+We will consider both systems the work with discrete probability functions, and continuous functions. 
+The latter is a new development, which is necesarry for application to real-life systems.
+
+Finally, we will take time to apply the same methods of the previous stage to a real complex system. 
+The aim is here to compare our findings to what we know from emperical studies on these systems. 
+For instance, some marine ecosystems have been found to not be resilient to heavy fishing activities on cod.
+It would be interesting to see if we, based on the synergy profile of this system, would arrive at the same conclusion.
+If we do, this would be a first step in answering a major unanswered question in ecology: is a highly complex ecosystem more resilient to nudges than a simple one, and why?
+\end{document}

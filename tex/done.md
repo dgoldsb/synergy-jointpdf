@@ -154,5 +154,3 @@ However, we did find significant results with the same sign in our experiments, 
 % just make a note that this is all available for download
 
 
-
-In Fig.~\ref{fig:3dscatter} we see that the range over which the observed synergy varies is very large for biological networks, but smaller for random networks.
