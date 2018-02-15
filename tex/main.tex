@@ -24,6 +24,7 @@
 \usepackage{subcaption}
 \usepackage{float}
 \usepackage{url}
+\usepackage{float}
 
 \newcommand{\given}{ \;\middle|\; }
 
@@ -43,6 +44,7 @@
 \date{\today}
 
 \begin{document}
+\global\hyphenpenalty=10000
 
 \maketitle
 
@@ -53,28 +55,28 @@
 
 \subfile{components/introduction_general.tex}
 
-\section{Glossary and Notation}
+\section{Glossary and notation}
 
 \subfile{components/terminology.tex}
 
 \section{Theoretical background}
 
-\subsection{Synergy}
+\subsection{Classification of information in a system}
 \label{sec:synergy}
 
 \subfile{components/introduction_synergy.tex}
 
-\subsection{Complexity Profiles}
+\subsection{Complexity profiles}
 \label{sec:profile}
 
 \subfile{components/introduction_MI_profile.tex}
 
-\subsection{Ecology and Information Theory}
+\subsection{Ecology and information theory}
 \label{sec:ecology}
 
 \subfile{components/introduction_ecology_IT.tex} % Does this fit at all? Reconsider.
 
-\subsection{Complexity and Gene Regulatory Networks}
+\subsection{Complexity and gene regulatory networks}
 \label{sec:grn}
 
 \subfile{components/introduction_complexity_GRN.tex}
@@ -99,7 +101,11 @@
 
 \subfile{components/conclusion.tex}
 
-%TODO date of access, prune unused sources
+\section{Acknowledgements}
+\label{sec:acknowledgements}
+
+\subfile{components/acknowledgements.tex}
+
 \bibliography{sources}
 
 \newpage

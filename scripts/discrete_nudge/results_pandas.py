@@ -890,6 +890,11 @@ def main():
                     dataframe = pd.concat([dataframe, dataframe_new])
 
     # now let's get rolling and do our tests!
+    print("doing TSNE")
+    visualize_TSNE(dataframe)
+    sys.exit(1)
+    print("doing scatters")
+    visualize_scatters(dataframe)
     print("doing impacts")
     visualize_impacts(dataframe)
     print("doing profile")
@@ -897,15 +902,11 @@ def main():
     print("doing cyclesearch")
     histogram_cycles(dataframe)
     sys.exit(1)
-    print("proceeding to LaTeX")
-    print("doing TSNE")
-    visualize_TSNE(dataframe)
     print("doing tests")
     test_synergy(dataframe)
     test_memory(dataframe)
     test_resilience(dataframe)
-    print("doing scatters")
-    visualize_scatters(dataframe)
+    print("proceeding to LaTeX")
 
     # now also do our spearman tests
     # immediatiely put in LaTeX

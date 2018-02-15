@@ -1,4 +1,4 @@
-% Version: 0.0
+% Version: final
 
 \documentclass[../main.tex]{subfiles}
 
@@ -7,7 +7,7 @@
 \subsubsection{Partial information decomposition}
 % Discuss the current dominant paradigm: PID
 
-% Key: complexity can be measured using IT, biological sciences are sceptical but all revolves around quantifying information
+% Key: complexity can be measured using IT, biological sciences are skeptical but all revolves around quantifying information
 While there is no general consensus how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose \cite{bar2013computationally, williams2010nonnegative}. % Referenced to later (a)
 Basic principles in IT are the (conditional) entropy and mutual information, measured in bits.
 The principles are widely accepted and applied, and operate at the monadic and dyadic level.
@@ -21,7 +21,7 @@ This measure utilizes entropy and nudges to the system to measure the amount of 
 We can look at systems of random variables at varying levels.
 At the single variable level, we can examine the amount of entropy in a random variable.
 This is usually done through Shannon's measure for entropy entropy \cite{shannon1949mathematical}.
-This is defined as 
+This is defined as
 %
 \begin{equation}
 \mathrm{H}\left( X \right) = -\sum^n_{i=1} \Pr \left( x_i \right ) \log \Pr \left( x_i \right)
@@ -33,7 +33,7 @@ This measure is maximized if the probability distribution is as evenly spread ou
 
 % Level 2: mutual information
 At the bivariate level, we can examine the overlap in information between the two random variables.
-This is quantified using the mutual information, which is defined as 
+This is quantified using the mutual information, which is defined as
 %
 \begin{equation}
 \label{MI}
@@ -42,7 +42,7 @@ This is quantified using the mutual information, which is defined as
 %
 for random variables $X$ and $Y$ \cite{cover2012elements}.
 When dealing with continuous probability distributions, an integral is used instead of a summation.
-For dependent PMFs the conditional entropy can also be determined, which is expressed as 
+For dependent PMFs the conditional entropy can also be determined, which is expressed as
 %
 \begin{equation}
 \mathrm{H} \left(X \given Y = y \right) = -\sum^n_{i=1} \Pr \left( x_i \given Y = y \right) \log \Pr \left( x_i \given Y = y \right)
@@ -50,18 +50,18 @@ For dependent PMFs the conditional entropy can also be determined, which is expr
 %
 
 % First the far history, with unsuccesful attempts
-Aw we introduce a third variable in our system, wecan look past dyadic interactions.
+As we introduce a third variable in our system, we can look past dyadic interactions.
 Originally, two extensions that support polyadic interactions were proposed.
-The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}. 
+The first was the total correlation, a single number that quantifies the total amount of redundancy between a set of random variables \cite{watanabe1960information}.
 The measure does not contain information on the structure of the system of random variables, and is related to the Kullback-Leibler divergence.
-The second proposed measure was the interaction information \cite{mcgill1954multivariate}. 
-This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system. 
+The second proposed measure was the interaction information \cite{mcgill1954multivariate}.
+This measure goes beyond second-order quantifications such as mutual information, and expresses the amount of synergy and mutual information in a set of variables beyond the pairwise mutual information in this system.
 Unfortunately, this measure can become negative, making it less intuitive to interpret than mutual information or entropy.
 
 % Current paradigm, not final
 There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
 The current dominant paradigm in IT splits the information of a system into three basic principles: redundancy, synergy and unique information \cite{williams2010nonnegative}.
-All information in the system can be classified and quantified in these categories, allowing for a full decomposition of the system that improves our understanding of this system.
+All information in the system can be classified and quantified in these categories, allowing for a full decomposition of which improves our understanding of this system.
 The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
 However, a weakness of this system is that beyond a few variables this system explodes computationally.
 In addition, no measure capable of measuring synergy that satisfies all axioms has been proposed yet \cite{griffith2011quantifying}.
@@ -95,37 +95,37 @@ Synergy is not affected by duplicate predictors, but does disappear when the syn
     \draw \firstcircle;
     \draw \secondcircle;
     \draw \thirdcircle;
-    
+   
     \begin{scope}[fill opacity=0.5]
         \clip \firstcircle;
         \fill[orange] \thirdcircle;
     \end{scope}
-    
+   
     \begin{scope}[even odd rule, fill opacity=0.5]
         \clip \thirdcircle (-3,-3) rectangle (3,3);
         \fill[yellow] \firstcircle;
     \end{scope}
-    
+   
     \begin{scope}[even odd rule, fill opacity=0.5]
         \clip \firstcircle (-3,-3) rectangle (3,3);
         \fill[red] \thirdcircle;
     \end{scope}
-    
+   
     \begin{scope}[even odd rule, fill opacity=0.3]
         \clip \firstcircle (-4,-4) rectangle (4,4);
         \clip \thirdcircle (-4,-4) rectangle (4,4);
         \fill[blue] \secondcircle;
     \end{scope}
-    
+   
     \node (x) at (-2,0)  {$\mathrm{I}\left(Z; X \right)$};
     \node (y) at (2,0)   {$\mathrm{I}\left(Z; Y \right)$};
     \node (r) at (0,0)   {$\mathrm{I}_\mathrm{red}\left( Z;X,Y \right)$};
     \node (s) at (0,2.3) {$\mathrm{I}_\mathrm{syn}\left( Z;X,Y \right)$};
     \node (w) at (0,3.2) {$\mathrm{I}\left( Z;X,Y \right)$};
-    
+   
 \end{tikzpicture}
 \end{center}
-\caption{Partial information-diagram showing a PID of a 3-variable system (solid arrow indicates stimulation, dashed arrow indicates inhibition}
+\caption{Partial information-diagram showing a PID of a 3-variable system}
 \label{venn}
 \end{figure}
 Following this split, the synergy is defined as
@@ -160,10 +160,10 @@ $X$ & $Y$ & $Z$ \\
 \label{XOR}
 \end{table}
 
-An attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promotors of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
+An attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promoters of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
 If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
 The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
-This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modelled in the form of an ODE system.
+This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modeled in the form of an ODE system.
 
 %% PICTURE %%
 \begin{figure}[ht]
@@ -172,7 +172,7 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
 
   \tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=6mm]
   \tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
+                fill=black!20,minimum size=4mm]
 
   \tikzstyle{every label}=[black]
 
@@ -190,7 +190,7 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
    \end{scope}
 \end{tikzpicture}
 \end{center}
-\caption{Bi-fan network with additional inhibition element, dots indicate variables captured in model}
+\caption{Bi-fan network with additional inhibition element, (dots indicate variables captured in model, solid arrow indicates stimulation, dashed arrow indicates inhibition)}
 \label{bifan_syn}
 \end{figure}
 
@@ -220,15 +220,15 @@ This is defined as
 %
 where $\mathrm{I}\left( Y = y;X \right)$ is the specific information.
 This quantifies information related to a specific outcome, and can be reduced through summation (or integration in the continuous case) over $y$ to the mutual information.
-In more recent years, this was still cited as the best redundancy measure, although it has its flaws and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
+In recent years, this was still cited as the best redundancy measure, although it is mentioned by Lizier et al. that it does not meet all axioms for an accurate redundancy measure, and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
 
 % Finally bivariate redundancy
 Critics of the minimal informtion have proposed an alternative based on PDF projections \cite{harder2013bivariate}.
-This quantification meets all requirements for redundancy posed by Williams and Beer, and meets an additional criterium that Harder et al. proposed.
+This quantification meets all requirements for redundancy posed by Williams and Beer, and meets an additional criterium that Harder et al. proposed \cite{williams2010nonnegative, harder2013bivariate}.
 The bivariate redundancy is expressed as
 %
 \begin{equation}
-\mathrm{I}_\mathrm{biv} \left( Y;{X_1, X_2} \right) = \min [\mathrm{I}_Z^\pi \left( X_1 \searrow X_2 \right), \mathrm{I}_Z^\pi \left( X_2 \searrow X_1 \right)] 
+\mathrm{I}_\mathrm{biv} \left( Y;{X_1, X_2} \right) = \min [\mathrm{I}_Z^\pi \left( X_1 \searrow X_2 \right), \mathrm{I}_Z^\pi \left( X_2 \searrow X_1 \right)]
 \end{equation}
 %
 where $\mathrm{I}_Z^\pi \left( X_1 \searrow X_2 \right)$ is the projected information of $X_1$ on $X_2$.
@@ -241,18 +241,18 @@ It is also difficult to extend, as it is designed for a scenario with 3 variable
 % From old to new, see Olbrich 2015 and Griffith 2014
 
 % Which requirements should be obeyed
-For synergy, a number of measures have been proposed as well \cite{griffith2014quantifying, olbrich2015information}.
+For synergy, a number of measures have been proposed \cite{griffith2014quantifying, olbrich2015information}.
 A good measure for synergy should meet several criteria, according to \cite{griffith2014quantifying}.
-All in all, we would like the following properties for a synergy measure:
+We require the following properties for a synergy measure:
 %
 \begin{itemize}
 \item Must fall in the range $0 \le \mathrm{I}_\mathrm{syn}\left( X;Y \right) \le \mathrm{I} \left( X;Y \right)$ (correct range)
 \item Is invariant to duplicate predictors (resilience)
-\item Should not systematically under- or overestimate synergy (accuracy)
+\item Should not systematically under- or overestimate synergy (unbiased)
 \item Not resource-intensive to compute (computational cost)
 \end{itemize}
 %
-At this moment there is no synergy measure that meets all these requirements.
+Until this date no synergy measure has been proposed that meets all these requirements.
 The weight of each individual requirement is dependent on the type of research; for instance, a study reliant on repeated synergy computations favors easy-to-compute quantifiers.
 
 An early synergy measure is the $\mathrm{I}_\mathrm{max}$-synergy, denoted $\mathcal{S}_\mathrm{max}$ \cite{williams2010nonnegative}.
@@ -277,7 +277,7 @@ The $\mathrm{I}_\mathrm{max}$-synergy measure is formally defined as
 where $\mathrm{I} \left( X_i ; Y = y \right)$ is called the "specific-surprise".
 The usage of the specific-surprise makes this measure difficult to apply to systems where we have a set of predicted variables $\mathbf{Y}$.
 This measure per definition obeys the axiom in Eq.~\ref{red_plus_syn_is_mi}, as we define the synergy as the difference between the mutual information (the non-unique information) and the redundancy \cite{griffith2014quantifying}.
-It is resilient against duplicate predicotrs, has a low computational cost, and falls in the correct range.
+It is resilient against duplicate predictors, has a low computational cost, and falls in the correct range.
 However, this measure does overestimate synergy as it qualifies unique information as synergy when multiple predictors have unique information on the target.
 
 % LOWER BOUND IS NICE TO IMPLEMENT REGARDLESS, EASY TO DO
@@ -293,7 +293,7 @@ This can be expressed as
 This measure underestimates synergy, as it subtracts redundancy shared by $n$ variables $n$ times instead of once.
 This underestimation becomes worse once systems become larger, as redundancy can be shared by more variables.
 It is cheap to compute, but does not always fall in the preferred range.
-The WMS-synergy can be used a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
+The WMS-synergy can be used as a lower bound for the synergy in a system \cite{griffith2014quantifying, olbrich2015information}.
 
 For the bivariate case, the synergy from unique information can be used, $\mathcal{S}_\mathrm{vk}$ \cite{bertschinger2014quantifying, griffith2014quantifying, olbrich2015information}.
 This is expressed as
@@ -302,16 +302,15 @@ This is expressed as
 \end{equation}
 %
 where $\mathrm{I}_\mathrm{VK}$ is the "union information".
-
-The computation of this union information is a computational process that involves injection of noise into the joint distribution of the entire system, and minimizing a Kullback-Leibler divergence-based measure over the noisified probability distribution.
+The computation of this union information is a computational process that involves injection of noise into the joint distribution of the entire system, and minimizing a Kullback-Leibler divergence-based measure over the noise-injected probability distribution.
 The idea behind this measure is that synergy is about the whole minus the union of all other predictors, not the whole minus the sum of all other predictors.
 This method is cited to be good in the bivariate case, where synergy is measured between $X$ and $Y$ when explaining $Z$ \cite{olbrich2015information}.
-The quantification is a relatively accurate approximation and falls in the desired range, but it is not analytically solvable and computationally expensive to compute.
+This quantification is a relatively accurate approximation and falls in the desired range, but it is not analytically solvable and computationally expensive to compute.
 
 % Quax also has his measure
 A measure of synergy based on synergistic random variables (SRVs) has also been proposed \cite{quax2017quantifying}.
 This method is centered around the determination of a set of SRVs, which have zero mutual information with the individual variables in the inspected system, but a non-zero mutual information with the system as a whole.
-The total synergystic information is defined as
+The total synergistic information is defined as
 \begin{equation}
 \label{SRV}
 \mathrm{I}_\mathrm{syn}\left( X \rightarrow Y\right) \equiv \max_k \sum_i \mathrm{I}\left( Y ; S_{i,k}^\perp \right)
@@ -319,16 +318,14 @@ The total synergystic information is defined as
 where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
 This measure suffers from a high computational cost, as it involves numerical optimization.
 
-%TODO geef IVK
-
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
-Alltogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
+Altogether, this gives us the following summary of the available synergy measures \cite{griffith2014quantifying}:
 %
 \begin{equation}
 \max [0,\mathrm{WMS}\left( X;Y \right)] \le \mathcal{S}_\mathrm{VK} \left( X;Y \right) \le \mathcal{S}_\mathrm{max} \left( X;Y \right) \le \mathrm{I}\left( X;Y \right)
 \end{equation}
 %
-The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.s
+The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.
 Other notable quantifiers used of synergy measures are the correlational importance, which we do not discuss as it was found to measure something else than synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}.
 \end{document}

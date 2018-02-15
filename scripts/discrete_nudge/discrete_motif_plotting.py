@@ -149,7 +149,11 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
                 col_plot.append(colors[i])
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
-        plt.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker="x")
+        if current_color == "red":
+            mark = "x"
+        else:
+            mark = "o"
+        plt.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker=mark)
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')
@@ -187,7 +191,11 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
                 col_plot.append(colors[i])
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
-        ax.scatter(x_plot[:, 0], x_plot[:, 1], x_plot[:, 2], c=col_plot[0], label=lab_plot[0], marker="x")
+        if current_color == "red":
+            mark = "x"
+        else:
+            mark = "o"
+        ax.scatter(x_plot[:, 0], x_plot[:, 1], x_plot[:, 2], c=col_plot[0], label=lab_plot[0], marker=mark)
     plt.legend(loc='upper right', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
         plt.savefig(filename, format='pdf')

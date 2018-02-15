@@ -1,4 +1,4 @@
-% Version: 1.2
+% Version: final
 % In the end I decided to do discrete research, if I need the continuous stuff again go back to commits before Aug 2017
 
 \documentclass[../main.tex]{subfiles}
@@ -9,15 +9,14 @@
 
 \subsubsection{Simulation methodology}
 %TODO te wollig en te veel informatie: nog steeds na opschonen?
-%TODO last check consistency math notation
 
 % First tell what kind of model we use
-As gene regulation is a complicated process of molecular dynamics over time, we are represent reality with a simplified model that behaves similarly to reality.
+As gene regulation is a complicated process of molecular dynamics over time, we are represent reality with a simplified model.
 We use a model with both a discrete time-dimension and discrete expression level to describe a gene regulatory system.
 A system consists of $n$ genes, which can be in state $m \in \{0, 1, ..., l\}$.
 The value $l$, the number of possible states, can be configured to be any integer value given $l \ge 2$.
 When using $l = 2$, this model reduces to the full Boolean model for gene regulation \cite{bolouri2002modeling}.
-Any greater value for $l$ allows for more complex state transistions, and effectively yields us a multi-valued logic model.
+Any greater value for $l$ allows for more complex state transitions, and effectively yields us a multi-valued logic model.
 
 % A reason why we chose this
 We chose this model over an ODE model because of how it provides a naturally constrained sample space.
@@ -32,6 +31,7 @@ A discrete model provides us with a large but finite set, where the size of the 
 \end{equation}
 %
 This makes it easier for us to propose a model that is realistic.
+In addition, a model that has a finite number of expression levels allows us to work with PMFs (probability mass functions).
 
 % Second, explain the two representations that we use
 We use two distinct representations of gene regulation motifs within this framework.
@@ -40,14 +40,14 @@ This table consists of a mapping from every possible state ($l^n$ in total) to i
 Second, we use a graph form.
 In this format, each gene is represented by a node.
 Relations between genes are represented as edges between these nodes.
-These edges mimics the evolution of the joint PMF over time by functioning as a set of Boolean functions, which we will refer to as 'rule functions'.
+These edges define the evolution of the joint PMF over time by functioning as a set of Boolean functions, which we will refer to as 'rule functions'.
 These rule functions define the dynamics through which genes regulate each other.
 
 % A bit more detail into the edges
 Edges have at least one origin and a single target, which map to the in- and outputs of a logic function.
-Most of these edges are one-to-one mappings; these are of the type "gene A activates gene B in the next timestep, if A is activated in the current timestep".
-Many-to-one mappings are possible; gene A might be translated into a promotor for gene B, but only if the co-enzyme for which gene C codes is also present.
-Many-to-many mappings are not included in our model in the framework, as they can be captured by a set of many-to-one relationships, each with the same inputs and a different output.
+Most of these edges are one-to-one mappings; these are of the type "gene A activates gene B in the next time step, if A is activated in the current time step".
+Many-to-one mappings that represent cooperative interactions are possible; gene A might be translated into a promoter for gene B, but only if the co-enzyme for which gene C codes is also present \cite{bolouri2002modeling, de2002modeling}.
+Many-to-many mappings are not included in our model in the Python framework, as they can be captured by a set of many-to-one relationships, each with the same inputs and a different output.
 The possible edges are:
 %
 \begin{itemize}
@@ -60,29 +60,29 @@ The possible edges are:
 With these edges, this representation mimics the relationships between genes in a natural network.
 The AND-variants are designed to mimic co-factors, two gene products that first need to bind to each other before they can simulate or inhibit another gene.
 The minimum expression level of the two inputs is returned, as the two gene products only work when formed into a complex.
-When a gene is not stimulated, it is assumed that the expression level decays by one every timestep.
+When a gene is not stimulated, it is assumed that the expression level decays by one every time step.
 It is allowed for in the model for a gene to stimulate itself, which is commonly seen in GRNs \cite{thomas1995dynamical, zhou2016relative}.
 
 % Final thoughtss
 A single graph form can correspond to $n!$ different transition tables, depending on how we label the genes in the network.
 As all these $n!$ transition tables are in essence the same, we look at all different permutations of the transition table for a single network, and select the top table after sorting.
-Now, a graph form always corresponds to a single transition table. 
+Now, a graph form always corresponds to a single transition table.
 However, one transition table could still be obtained from several different networks.
 
 \subsubsection{Time evolution}
 
 % Third, explain the time evolution, including the jointpdf
-In our study we consider synergetic properties, memory, and resilience of gene regulatory networks.
+In our study we consider synergistic properties, memory, and resilience of gene regulatory networks.
 These properties are measured as the system develops over time.
 The distribution of the system over all possible states is defined through a joint probability mass function (PMF), which represents the probability that the system is found in any state at time $t$.
 We built upon the implementation of this in the jointPDF-framework \cite{jointpdf}\footnote{We discuss features that were not used in this study in Appendix~\ref{appendix_methods}.}.
 In this Python framework, a joint distribution is stored as an $l$-tree of depth $n$, where $l$ is the number of states a variable can be found in and $n$ is the motif size.
 We can compare two PMFs at two different points in time, each representing a distribution of system states at that time.
-As such, we define the system $\mathbf{X}_{t=0}$ as the input system, and system $\mathbf{X}_{t=\delta t}$ as the output system.
-Here, $\delta t$ is an step in time in arbitrary units, where we usually choose the value $\delta t = 1$. 
+As such, we define the system $\mathbf{X}_{t=0}$ as the input system, and system $\mathbf{X}_{t=\Delta t}$ as the output system.
+Here, $\Delta t$ is an step in time in arbitrary units, where we usually choose the value $\Delta t = 1$.
 The jointPDF-framework supports the generation of a new joint PMF from a starting PMF paired with a transition table.
 As a result, we use a transition table for a deterministic time evolution of the distribution of system states.
-The result of this is a new $l$-tree describing the joint PMF at time $t=t_0+\delta t$.
+The result of this is a new $l$-tree describing the joint PMF at time $t=t_0+\Delta t$.
 
 % Turning a network into a transition table
 Building a transition table from a network representation of a GRN motif is not trivial.
@@ -92,15 +92,15 @@ The condition we use, the \texttt{totaleffect}-condition, sums the outputs of al
 An implication of this is that one strong inhibitor can overpower several weak stimulators completely\footnote{All supported deciding conditions are listed in Appendix~\ref{alternative_deciding}}.
 We build a transition table by determining for each possible state of the system what the next state would be.
 It is noted that a self-link is defined to be always active, regardless of its states.
-This is commonly done in the literature as well.
+This is commonly done in the literature as well \cite{thomas1995dynamical, zhou2016relative}.
 If there are no rules acting on a gene, it is assumed that its expression level decreases by one due to chemical decay.
-A side effect of this is that, while the timesteps are in arbitrary units, the resolution in the time dimension becomes higher with higher-valued logic.
-After all, in a Boolean model a gene decays from active to non-active in 1 timestep, whereas in 5-valued logic this will take 5 steps.
+A side effect of this is that, while the time steps are in arbitrary units, the resolution in the time dimension becomes higher with higher-valued logic.
+After all, in a Boolean model a gene decays from active to non-active in 1 time step, whereas in 5-valued logic this will take 5 steps.
 
 % Limitations of the model
 The size of the set of genes $\mathbf{X}$ entered in the model is in theory arbitrarily big, but in reality limited by computational complexity of the evaluation of the model.
-The time evolution of the model runs in $O(l^{c \cdot n})$, as each leaf-value of the $n$-depth tree needs to be evaluated, where $c$ is a constant. 
-% The WMS syenrgy takes N times MI, MI takes c times entropy, entropy uses marginalize and then does some operations that are probably O(c N
+The time evolution of the model runs in $O(l^{n})$, as each leaf-value of the $n$-depth tree needs to be evaluated.
+% The WMS synergy takes N times MI, MI takes c times entropy, entropy uses marginalize and then does some operations that are probably O(c N
 
 \subsubsection{Initialization of the PDF}
 
@@ -118,14 +118,14 @@ Due to the poor scalability of this model, we cannot capture an entire GRN; even
 Smaller GRNs contain of around 50 genes typically, which would require a tree too big to process in Python in reasonable time.
 To overcome this scaling issue, we isolate a motif from the network.
 The rest of the network is inferred through the correlation matrix.
-As the correlation matrix is only applied in the first timestep, this model is not suitable for simulations of many timesteps.
+As the correlation matrix is only applied in the first time step, this model is not suitable for simulations of many time steps.
 
 In this study, we focus on generating random networks, with random initial correlations.
-The key difference between a joint PMFs with correlations as opposed to a uniform PMF is that the initial entropy is lower; after all, the uncertainty in the distribution is maximized if all states have an equal chance of occuring.
+The key difference between a joint PMFs with correlations as opposed to a uniform PMF is that the initial entropy is lower; after all, the uncertainty in the distribution is maximized if all states have an equal chance of occurring.
 Real GRN networks are extremely unlikely to have each state be equally likely to occur.
-As such, the primary goal is to produce initial joint PMFs that are lower in entropy than a uniform distribution, and are closer in entropy to similar real-world motifs. 
+As such, the primary goal is to produce initial joint PMFs that are lower in entropy than a uniform distribution, and are closer in entropy to similar real-world motifs.
 For this purpose we do not need a sophisticated model that samples and applies all possible first-order correlations in the network.
-We assume a system that can be rewritten as a linear system, where each gene correlates with the previous and the next gene in the system.
+We assume that our system is linear system, where each gene correlates with the previous and the next gene in the system.
 As the order of the labels is arbitrary, in practice we assume that our system can be written as a linear system.
 This implies that each gene is correlated with at most two other genes, and that there are no correlation loops\footnote{This is not realistic, but a practical limitation of our model with minimal impact on our results. We discuss this limitation further in section~\ref{sec:discussion}, and discuss future improvements.}.
 
@@ -137,8 +137,8 @@ The new probability is
 %
 \begin{equation}
 \label{parentchild}
- \Pr\left( m_\mathrm{child} \given m_\mathrm{parent} \right) = 
-    \begin{cases} 
+ \Pr\left( m_\mathrm{child} \given m_\mathrm{parent} \right) =
+    \begin{cases}
     \Pr(m_\mathrm{parent}) \cdot (\frac{1}{l} + (1 - \frac{1}{l}) \cdot r) &  m_\mathrm{child} = m_\mathrm{parent} \\
     \Pr(m_\mathrm{parent}) \cdot \frac{(1 - (\frac{1}{l} + (1 - \frac{1}{l}) \cdot r))}{l-1} &  m_\mathrm{child} \neq m_\mathrm{parent} \\
     \end{cases}
@@ -149,26 +149,26 @@ The parent gene is the gene with the index preceding the child gene.
 The correlation here is simply defined as the percentage chance that the child is in the same state as its parent.
 This method ensures that the joint PMF remains normalized after each addition, as in the latter equation we simply divide the remaining probability not assigned to the former case equally over the remaining $l-1$ children.
 
-\subsubsection{Generating random state transitions}
+\subsubsection{Generating uniform random motifs}
 
-As a control group, we generate completely random state transitions, representing a completely random system.
+As a control group, we generate completely random state transitions, representing a URM.
 First, a correlation matrix describing all correlations between the different genes in the motif is randomly generated.
 This defines an initial distribution of states for our random motif, and represents the influence of the part of the GRN that is not part of the motif.
 We use a Python implementation of the vine method, an algorithm to generate random correlation matrices with large off-diagonal values \cite{lewandowski2009generating}.
-We then use values on the band above the diagonal as our correlation list, as specified in Eq.~\ref{parentchild}. %Rick: you mean you consider only corerlations between x and x+1? Not x and x+2? Me: yes, not ideal but good enough given time constraints.
+We then use values on the band above the diagonal as our correlation list, as specified in Eq.~\ref{parentchild}. %Rick: you mean you consider only correlations between x and x+1? Not x and x+2? Me: yes, not ideal but good enough given time constraints.
 
-For the sake of comparison, we sample from the set of all possible transition tables.
+For our random GRN motifs, we sample from the set of all possible transition tables.
 We use a completely randomized design\footnote{Implementing variance reduction is not impossible, but requires a non-standard design that we will elaborate in section~\ref{sec:discussion}.}.
-A transition table can be represented by a base-$l$ number, padded with zeroes to the left until it is of length $n \cdot l^n$.
+A transition table can be represented by a base-$l$ number, padded with zeros to the left until it is of length $n \cdot l^n$.
 The resulting list of digits represents the expression level of all the genes on the side of our transition table that describes the future state of the system.
 To sample a random number, we draw a random integer for each digit where $0 \le x_\mathrm{random} < l$.
 As long as the present states are always represented in the same order in the transition table, this allows us to sample any transition table that is possible.
 
-\subsubsection{Generating random biologically realistic GRNs}
+\subsubsection{Generating biological random motifs}
 
-We compare the previously generated completely random systems with randomly generated biologically realistic systems.
-In contrast drawing samples from the set of all possible transition tables, we also want to draw a sample from the sub-samplespace of all biologically possible transition tables.
-These should adhere to a set of network properties that are characteristic for GRN motifs, as well as be constructable from the stimulation and inhibition rules that exist in GRNs, but should otherwise be completely random.
+We compare the previously generated URMs with a set of BRMs.
+In contrast drawing samples from the set of all possible transition tables, we also want to draw a sample from the sub-sample space of all biologically possible transition tables.
+These should adhere to a set of network properties that are characteristic for GRN motifs, as well as be constructible from the stimulation and inhibition rules that exist in GRNs, but should otherwise be completely random.
 In order to construct these transition tables, we start by constructing a random GRN in graph form.
 This algorithm can be configured by defining a set of possible rules, a number of nodes, a fraction of the edges that should be 1-to-1, and a set of possible indegrees for the motifs.
 
@@ -180,10 +180,9 @@ We do allow self-loops, as these do occur in nature.
 
 With this list, the network generation process is started.
 The network is constructed using a scheme related to the Erdős–Rényi algorithm.
-A scale-free network (such as a Barabási–Albert network) would have been preferable, but generating one that allows some key characteristics of GRNs is not trivial.
+A scale-free network (such as a Barabási–Albert network) would have been preferable, as in the literature it is mentioned that GRN networks tend to have scale-free characteristics, but generating one that allows some key characteristics of GRNs is not trivial \cite{teichmann2004gene}.
 For instance, the Barabási–Albert does not naturally deal with 2-to-1 edges, cannot create cycles in directed graphs, and will not create edges with the same node as the source and target.
-An Erdős–Rényi model is a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart.
-In the literature, the Barabási–Albert seems to be a slightly more common choice.
+An Erdős–Rényi model is a valid choice, as some sources state that this network model applies to gene regulation in some cases in addition to its scale-free counterpart \cite{margolin2006aracne}.
 In addition, we argue that the choice does not make a large difference in the results, as our networks are typically so small that there is little difference between the two.
 
 The Erdős–Rényi algorithm from itself is not equipped to deal with 2-to-1 edges.
@@ -238,16 +237,16 @@ Once an edge has been selected, a random function is attached to it, such as inh
 % General nudging
 The method of nudging used was based on an implementation by Riesthuis \cite{DJ_repository}.
 We pass our motifs, a list of variables that are to be nudged, and a nudge size $0 \le \epsilon \le 1$ that represents the fraction of the total probability that should be moved as part of the nudge.
-The introduce a local nudge, implying that the joint PDF of the variables that are not nudged remains unaltered.
+It is possible to perform a local nudge, implying that the joint PDF of the variables that are not nudged remains unaltered, as well as a global nudge.
 
 % How a nudge works
 The nudge is applied as follows.
 First, we produce the joint probability matrix $z$ for the each possible configuration of our non-nudged variables.
 For instance, if we apply a nudge on the gene $X_0$ in a system with $n=2$ and $l=2$, we might find $z = [0.2, 0.4]$.
-To this matrix $z$, a random nudge matrix of the same shape is added where the total sum is zero, and the absolute sum being equal to $2 \epsilon \times \sum z$. 
+To this matrix $z$, a random nudge matrix of the same shape is added where the total sum is zero, and the absolute sum being equal to $2 \epsilon \times \sum z$.
 The nudge vector is configured in such a way that probabilities always fall in the range $0 \le p \le 1$ after the nudge is applied.
 We do this twice in this example, as the first only covers the system states where $m_{X_1} = 0$.
-The nudged version of the matrix $z^\prime$ is plugged back into the jointPDF-object.
+The nudged version of the matrix $z^\prime$ is inserted back into the jointPDF-object.
 
 In practice, a nudge of $\epsilon \ge \frac{1}{l^{n_\mathrm{nudged}}}$ is not safe to use, where $n_\mathrm{nudged}$ is the number of genes nudged and $l^{n_\mathrm{nudged}}$ is the number of values in $z$.
 If we do apply this nudge, it cannot be guaranteed that the nudge can be applied while keeping probabilities in the range $0 \le p \le 1$ after the nudge.
@@ -268,7 +267,7 @@ This is defined as
 \end{equation}
 %
 where ${x_1 ... x_k}$ are probabilities of states of $X$ occurring, and ${y_1 ... y_k}$ for states of $Y$.
-We apply the nudge to the system at $t = 0$, and compare the nudged and unnudged system at time $t = \delta t$.
+We apply the nudge to the system at $t = 0$, and compare the nudged and unnudged system at time $t = \Delta t$.
 When testing the sensitivity to nudges, we always take the average Hellinger distance after applying every possible nudge of the correct 'width'.
 For instance, when we apply a nudge on a single target in a system of 4 genes we take the average of 4 values.
 This prevents interference of randomness in picking a target gene in our result.
@@ -276,12 +275,12 @@ We chose the Hellinger distance instead of the Kullback-Leibler divergence as th
 Our distributions frequently develop states that have zero probabilities, as GRNs can have unstable states that cannot be reached from any other state.
 
 % Mutual information
-We quantify the memory of a system using the mutual information $\mathrm{I}\left(\mathbf{X}_t ; \mathbf{X}_{t + \delta t}\right)$.
+We quantify the memory of a system using the mutual information $\mathrm{I}\left(\mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$.
 As no effects are taken into account from outside the system, this also represents the magnitude of causal effects in the system.
-A mutual information of zero between $\mathbf{X}_t$ and $\mathbf{X}_{t + \delta t}$ implies that knowledge of the former state provides no insight in the latter.
+A mutual information of zero between $\mathbf{X}_t$ and $\mathbf{X}_{t + \Delta t}$ implies that knowledge of the former state provides no insight in the latter.
 Similarly, a mutual information equal to the system entropy would imply that everything is known about the system in the latter state when examining the former.
 It is implemented as described in Eq.~\ref{MI}, and imported from the jointPDF package \cite{jointpdf}.
-We normalize this by dividing by $\mathrm{H}\left(\mathbf{X}_{t + \delta t}\right)$, which yields a measure bounded by zero and one.
+We normalize this by dividing by $\mathrm{H}\left(\mathbf{X}_{t + \Delta t}\right)$, which yields a measure bounded by zero and one.
 
 % Synergy: WMS
 % Synergy: Quax
@@ -292,7 +291,7 @@ This is a computationally cheap measure, and as the systems we measure synergy i
 For an upper bound, we use the maximum entropy of a single element of the system and the entropy of the entire system
 %
 \begin{equation}
-\mathrm{I}\left( \mathbf{X}_{t=0}; \mathbf{X}_{t=\delta t} \right) - \max_i [\mathrm{I}\left( X_{t=0,i};\mathbf{X}_{t=\delta t}\right)]
+\mathrm{I}\left( \mathbf{X}_{t=0}; \mathbf{X}_{t=\Delta t} \right) - \max_i [\mathrm{I}\left( X_{t=0,i};\mathbf{X}_{t=\Delta t}\right)]
 \end{equation}
 %
 where $x_i$ is the $i$-th element of the system, and $X$ is the full system.
@@ -300,22 +299,22 @@ This is a variant of the $\mathrm{I}_\mathrm{max}$-synergy described in section~
 This resembles the WMS-synergy lower bound, but whereas the WMS-synergy assumes that there is no redundancy between the elements in the system, this measure assumes there is full redundancy.
 As a result, this measure assumes that all information that does not originate from the system component with the largest MI with the predicted system is synergistic in nature, creating an upper bound for synergy.
 The used implementation for the WMS synergy is imported from the jointPDF package \cite{jointpdf}.
-We normalize this to fall between 0 and 1 by dividing by $\mathrm{I}\left( \mathbf{X}_t ; \mathbf{X}_{t + \delta t}\right)$.
+We normalize this to fall between 0 and 1 by dividing by $\mathrm{I}\left( \mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$.
 
 \subsubsection{Sample space visualization}
 
-An important sanity check is to verify that the sample of biologically possible transition tables shows that this is a subspace of all possible transition tables.
+An important sanity check is to verify that the sample of biological random transition tables shows that this is a subspace of all possible transition tables.
 To achieve this, we consider every gene's expression level in every future state of the transition table as an independent variable.
-We then create a 2-dimensional embedding of this vector of random variables using t-Distributed Stochastic Neighbor Embedding (t-SNE), a form of dimensionality reduction that works well on datasets with many variables per datapoint \cite{maaten2008visualizing}.
-All datapoints that are cast in this 2-dimensional embedding are colored to indicate whether they are part of the biologically possible set, or the completely random set.
-If a portion of the datapoints of one set are clearly not mixing with the other, it is implied that this set covers a part of the sample space that the other does not.
-We used a perplexity of 10, which is below the usually recommended value by the Scikit Learn.
-This was done as we found that for higher values the datapoints clumped up too much.
+We then create a 2-dimensional embedding of this vector of random variables using t-Distributed Stochastic Neighbor Embedding (t-SNE), a form of dimensionality reduction that works well on datasets with many variables per data point \cite{maaten2008visualizing}.
+All data points that are cast in this 2-dimensional embedding are colored to indicate whether they are part of the biological random set, or the completely random set.
+If a portion of the data points of one set are clearly not mixing with the other, it is implied that this set covers a part of the sample space that the other does not.
+We used a perplexity of 10, which is below the usually recommended value by the Scikit-Learn.
+This was done as we found that for higher values the data points clumped up too much.
 
 \subsubsection{Cycle finding}
 
 Cyclical sequences of state transitions are a key element of biological networks, and can be found in real GRN motifs without considering the rest of the network \cite{burda2011motifs}.
-To recognize cycles, we include a cycle-finder in the our framework.
+To recognize cycles, we include a cycle-finder in the our Python framework.
 The input for this function is a motif of either type, as well as a maximum cycle length $N_\mathrm{cycle,max}$.
 The maximum length, naturally, is limited in theory by the number of possible states.
 We work with deterministic systems, so for each state a subsequent state is defined.
@@ -324,15 +323,15 @@ For each possible initial state we do $N_\mathrm{cycle,max}$ time evaluation.
 If we return to the original state, we save this sequence of states as a cycle.
 If we encounter a state that is already in a known cycle, we do not return the same cycle twice.
 The return value is a list of cycles, each captured in a list of states.
-A loop of size 1 is a point attractor, a larger loop is a cyclical attractor. 
+A loop of size 1 is a point attractor, a larger loop is a cyclical attractor.
 
 \subsubsection{Complexity profile}
 
 % Introduction to our synergy profile
 % Link to introduction
 In previous research, the mutual information within a system has been used to investigate complexity in systems of independent and dependent random variables.
-A multiple mutual information-based profile has been proposed in the literature that is able to give insights beyond pairwise relations.
-A synergy profile can be considered as a plot of the fraction captured of the total mutual information between all input variables and all output variables versus the number of variables taken into consideration, or
+A full mutual information profile has been proposed in the literature that is able to give insights beyond pairwise relations.
+This profile can be considered as a plot of the fraction captured of the total mutual information between all input variables and all output variables versus the number of variables taken into consideration, or
 %
 \begin{equation}
 C_\mathrm{mult}(k) = \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [\mathbf{X}]^k} [\mathrm{I}\left( X_i;Y \right)]}{\mathrm{I}\left( \mathbf{X};Y\right)}
@@ -342,7 +341,7 @@ This profile has the property $C_\mathrm{mult}\left( 0 \right) = 0$, as for $k =
 In addition, we know that $C_\mathrm{mult}\left( n\right) = 1$, as this simply results in
 %
 \begin{align}
-C_\mathrm{mult}\left( k \right)  
+C_\mathrm{mult}\left( k \right) 
 &= \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [\mathbf{X}]^k} [\mathrm{I}\left( X_i;Y\right)]}{\mathrm{I}\left( \mathbf{X};Y\right)} \\
 &= \frac{\mathrm{I}\left( \mathbf{X};Y\right)}{\mathrm{I}\left( \mathbf{X};Y\right)} \\
 &= 1
@@ -374,7 +373,7 @@ In the discrete case, we can simply calculate the mutual information as in Eq.~\
 We now can approximate the total mutual information between the input- and the output system.
 To produce a plot, we must obtain a mutual information estimate for subsets of each size $1 \le k \le X$, versus the entire output system.
 Too obtain this overall estimate for each subset size, we first find the set of mutual informations between every possible subset of $X$ of size $k$, versus the entire system $Y$.
-Then, we take the average of the set and divide by the total mutual information between the input- and output system to arrive at the value that corresponds to subset size $k$ in our synergy profile.
+Then, we take the average of the set and divide by the total mutual information between the input and output system to arrive at the value that corresponds to subset size $k$ in our full mutual information profile.
 We repeat this system for each possible subset size.
 Finally, the plot is produced by plotting the $k$ against the corresponding measure.
 
@@ -385,29 +384,29 @@ Finally, the plot is produced by plotting the $k$ against the corresponding meas
 We hypothesize that:
 
 \begin{enumerate}
-\itemsep0em 
-\item There is a positive correlation between synergy and nudge resilience in random motifs
-\item There is a positive correlation between synergy and nudge resilience in biologically possible motifs
-\item There is a positive correlation between synergy and system memory in random motifs
-\item There is a positive correlation between synergy and system memory in biologically possible motifs
-\item There is significantly more synergy in a biologically possible motif than in a random motif
-\item A biologically possible motif scores significantly better in memory than a random motif
-\item A biologically possible motif scores significantly better in single-nudge resilience than a random GRN motif
-\item A biologically possible GRN does not score significantly differently in multiple-nudge resilience to a random GRN motif
+\itemsep0em
+\item There is a positive correlation between synergy and nudge resilience in URMs
+\item There is a positive correlation between synergy and nudge resilience in BRMs
+\item There is a positive correlation between synergy and system memory in URMs
+\item There is a positive correlation between synergy and system memory in BRMs
+\item There is significantly more synergy in a BRM than in a URM
+\item A BRM scores significantly better in memory than a URM
+\item A BRM scores significantly better in single-nudge resilience than a URM
+\item A BRM does not score significantly differently in multiple-nudge resilience to a URM
 %\item There is a stronger than linear decrease in resilience when increasing the number of variables nudged in a biological GRN motif
 \end{enumerate}
 % Rick: dus je hebt eigenlijk wel DRIE populaties van PMFs die je considert, niet slechts twee...? Me: Nee?
 
-To support these tests, we visualize the distribution of both biologically possible- and completely random motif in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
-We also produce all 2D projections from this 3D distribution of our motifs, three in total, leaving out one of the three variables in each.
+To support these tests, we visualize the distribution of both URMs and BRMs in 3D-space, with axes corresponding to the synergy, the system memory, and the system nudge resilience.
+We also produce 2D projections from this 3D distribution of our motifs, three in total, leaving out one of the three variables in each.
 We calculate both the bivariate correlation and the partial correlation for hypotheses (1)-(4).
-In addition, we also produce ensemble of complexity profiles for each experiment, in order to compare the distribution of synergy and redundancy in both random and biologically possible systems.
+In addition, we also produce ensemble of complexity profiles for each experiment, in order to compare the distribution of synergy and redundancy in both URMs and BRMs.
 
 We perform several sanity checks to validate our model.
-We check that the biologically feasible motifs are a sub-samplespace through a t-SNE visualization.
-We also look at the prevalence of cycles in both samples, as well as how common several real network motifs are in the samples.
-In both cases we expect a higher rate of occurence in the biologically feasible motifs.
-\footnote{We also validated the experimental design by running a few transition tables through the model of which we know the expected result. An example is the X-OR, which should have high synergy and high resilience. This validation is included in the code section of the repository \url{github.com/dgoldsb/synergy-jointpdf}.}
+We check that the set of BRMs are a sub-sample space through a t-SNE visualization.
+We also look at the prevalence of cycles in both samples.
+In both cases we expect a higher rate of occurrence in the set of BRMs.
+\footnote{We also validate the experimental design by running a few transition tables through the model of which we know the expected result. An example is the X-OR, which should have high synergy and high resilience. This validation is included in the code section of the repository \url{github.com/dgoldsb/synergy-jointpdf}.}
 
 \subsubsection{Parameter ranges}
 
@@ -417,12 +416,11 @@ The ranges, along with the increments with which we increase in our sweep, are s
 As part of the experiments all possible numbers of genes targeted by a nudge are evaluated, thus this was excluded from this table.
 We decided on an average indegree of 4, which seems typical for the smaller GRN networks \cite{lahdesmaki2003learning}.
 With this indegree, along with a scale-free design, the random motifs will have similar network properties to actual networks.
-Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{lahdesmaki2003learning, karlebach2008modelling}.
-The nudge size was limited to 80\% of the maximum safe nudge in the parameter sweep, as for higher values the nudging function stopped performing well.
+Larger networks typically have higher average indegrees, but as Boolean networks are not a good approximation for larger networks this is out of our scope \cite{karlebach2008modelling, lahdesmaki2003learning}.
+The nudge size is limited to 80\% of the maximum safe nudge in the parameter sweep, as for higher values the nudging function stopped performing well.
 In many cases, the nudged PDF would not remain close to normalized.
 
-
-\begin{table}
+\begin{table}[H]
 \begin{tabular}{| l | c | c | c |}
 \hline
 Parameter & Start & End & Increment \\
@@ -440,3 +438,4 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 In addition to these parameter ranges, we utilize the \texttt{totaleffect} transition function decision rule, and a chance for a 1-to-1 edge of 75\%.
 This value is chosen as an educated guess, as we did not find a reasonable statistic in the available literature.
 \end{document}
+

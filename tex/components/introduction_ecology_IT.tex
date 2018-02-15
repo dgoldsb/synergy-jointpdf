@@ -1,4 +1,4 @@
-% Version: 0.0
+% Version: final
 
 \documentclass[../main.tex]{subfiles}
 
@@ -6,35 +6,34 @@
 
 \subsubsection{Stability and complexity in system biology}
 % The unanswered question
-Entropy has been used in ecology to quantify complexity, but has gone out of favor since \cite{ulanowicz2001information}.
 
-A major unanswered question in ecology is the relationship between the stability and the complexity of a system \cite{macarthur1955fluctuations, pimm1977number, kondoh2003foraging}.
+A major unanswered question in ecology is the relationship between the stability and the complexity of a system \cite{kondoh2003foraging, macarthur1955fluctuations, pimm1977number}.
 Stability is a key factor in the survival of a natural system over longer periods of time.
-Some research suggests that natural networks become more stable when they increase in complexity, while others suggest the network become more stable when they are smaller and less densily connected.
-Both ideas can be backed by emperical evidence, both from the field and in some cases from computational studies \cite{chen2001global, kondoh2003foraging}.
-As a result, it seems we do not have a full understanding of how complexity interacts with stability, and under what circumstances an increasing complexity in thee system also yields a higher stability.
-Understanding what these circumstances are can help us interacting with these systems, for instance in the form of conservation for ecological systems \cite{kondoh2003foraging}.
-This question is not only relevant to predator-prey system, but also in many other biological systems, such as neural networks \cite{tononi1999measures}.
+Some research suggests that natural networks become more stable when they increase in complexity, while others suggest the network become more stable when they are smaller and less densely connected.
+Both ideas can be backed by empirical evidence, both from the field and in some cases from computational studies \cite{chen2001global, kondoh2003foraging}.
+As a result, it seems we do not have a full understanding of how complexity interacts with stability, and under what circumstances an increasing complexity in the system also yields a higher stability.
+Understanding what these circumstances are can help us interact with these systems, for instance in conservation efforts for ecological systems \cite{kondoh2003foraging}.
+This question is not only relevant to ecological systems with many predator-prey relations, but also in many other biological systems such as neural networks \cite{tononi1999measures}.
 
 On the one hand, it is proposed that larger ecological systems are more stable \cite{macarthur1955fluctuations}.
 Natural systems in many cases take the form of directed graphs, be it a predator-prey network, a neural network, or a gene regulation network.
-Nodes in these networks tend to rely on incoming flows, in food webs for intance of energy.
-In larger, densily connected systems, a node has more incoming flows.
+Nodes in these networks tend to rely on incoming flows, in food webs for instance of energy.
+In larger, densely connected systems, a node has more incoming flows.
 This reduces the importance of any single edge in the network, making the impact of a single disturbance smaller.
 For instance, in a predator-prey network a predator can hunt different types of prey.
-Hunting a wider range of species will reduce the impact of a single prey species disappearing.
-MacArthur argues that food webs with more links are more stable for this reason, and that this benefit of having as many links as possible is ofset only by a lower trophic efficiency that comes with generalization \cite{macarthur1955fluctuations}.
+Hunting a wider range of species will reduce the impact of the disappearance of a single prey species.
+MacArthur argues that food webs with more links are more stable for this reason, and that the benefit of having as many links as possible is offset only by a lower trophic efficiency that comes with generalization of the diet \cite{macarthur1955fluctuations}.
 
 However, it is also observed that biological networks never appear to have a larger diameter\footnote{Disregarding paths between unreachable pairs of nodes, as not in all cases a path can be drawn between a pair of nodes.} than 4 or 5 edges \cite{pimm1977number}.
-It was further argued by Pimm et al. that for food webs in particular this is not due to the loss of energy over trophic levels, a phenomenom unique to food webs where energy flow only is able to convert 10\% of the energy flowing in into usable energy for the recipient, but due to properties of the network.
+It was further argued by Pimm et al. that for food webs in particular this is not due to the loss of energy over trophic levels, a phenomenon in food webs where energy flow only is able to convert 10\% of the energy flowing in into usable energy for the recipient, but due to properties of the network itself \cite{pimm1977number}.
 Computational studies using models such as the Lotka-Volterra Cascade Models backed this up, suggesting that both an increase in the number of species and a denser connectance between these species decrease the stability of an ecological system \cite{chen2001global}.
 
-The preliminary answers to this question of stability and complicatedness in ecosystems in more recent years have remained conflicting, especially between emperical studies that observe large networks, and computational studies that favor smaller networks \cite{pimm1984complexity}.
+The preliminary answers to this question of stability and complicatedness in ecosystems in more recent years have remained conflicting, especially between empirical studies that observe large networks, and computational studies that favor smaller networks \cite{pimm1984complexity}.
 Attempts have been made to identify a missing element in computational models that can bridge the gap with reality.
-An example of such an attempt is the introduction of flexibility for predators in predator-prey networks, suggesting that an adapive food choice can preserve stability in larger networks \cite{kondoh2003foraging}.
+An example of such an attempt is the introduction of flexibility for predators in predator-prey networks, suggesting that an adaptive food choice can preserve stability in larger networks \cite{kondoh2003foraging}.
 However, these attempts are highly problem specific where it might be preferable to look at previously unexplored system properties, such as the presence of synergy. % bit cheeky to introduce this, but this is the point why I discuss this
 
-\subsubsection{Use of IT in system biology}
+\subsubsection{Use of information theory in system biology}
 % History of IT and biology
 %TODO meer focus per paragraaf, evt elimineer
 
@@ -50,23 +49,23 @@ In this paradigm, complexity is defined through the entropy on the PDF that defi
 In many cases, the amount of biomass is used instead of the number of individuals, as the number of individuals can be a poor representation of the relative presence of a species.
 This method ignores the relationships between species, as edges are not taken into account.
 This primarily gives us an image of how evenly spread biomass is across all species in an ecosystem, and not necessarily of the complexity of this system.
-This method does appear to work in some cases; it correctly classifies a monoculture as a system with a very low complexity, as the system is dominated by a single species.
-However, it cannot distinguish between a large system with densily connected species, and an equally large system that has very few edges.
+The Shannon entropy does appear to work in some cases; it correctly classifies a mono-culture as a system with a very low complexity, as the system is dominated by a single species.
+However, it cannot distinguish between a large system with densely connected species, and an equally large system that has very few edges.
 As a result, this application of Shannon entropy did not prove very useful to explain complexity \cite{ulanowicz2001information}.
 
 %% Flows approach
-The second movement was reactionary against Shannon, and continued from the work of MacArthur on the complexity-resilience question \cite{ulanowicz2009quantifying}.
+The second movement was reactionary against the use of the Shannon entropy, and continued from the work of MacArthur on the complexity-resilience question \cite{ulanowicz2009quantifying}.
 Here, the Shannon-entropy is applied on biomass flows, not stock numbers, to determine if all edges in the food web are of similar importance, or if one is vastly more important than the rest.
-This circumenvents the problem that the edges in the system are not considered.
-In recent years, this concept was elaborated on by Ulanowicz to contrast the efficiency of pathways against the robustness of a predator-prey network \cite{ulanowicz2009quantifying}.
+This circumvents the problem that the edges in the system are not considered.
+In recent years, this concept was elaborated by Ulanowicz to contrast the efficiency of pathways against the robustness of a predator-prey network \cite{ulanowicz2009quantifying}.
 He adds an information theory-based measure for the efficiency of a system, measured utilizing the conversion rate of energy in a system if all biomass where to travel through the most efficient channels, as well as the reserves, less efficient channels that can pick up slack when more efficient channels fail.
 In the end, as most ecologists think in stock sizes, not in biomass flows, information theory was written off \cite{ulanowicz2001information}.
 
 %% Dyadic
-To the best of our knowledge, dyadic inforation theory principles have only taken hold in neurology.
+To the best of our knowledge, dyadic information theory principles have only taken hold in neurology.
 An analysis using redundancy has suggested that robustness in neural networks is due to degeneracy and redundancy \cite{tononi1999measures}.
 However, this paper is not recent, and uses a definition of redundancy that has fallen out of favor.
-We could find few papers discussing a similar topic, although the idea to view in biological complex system in general through redundancy was suggested in a few years after the study by Tononi \cite{edelman2001degeneracy}.
+We could find few papers discussing a similar topic, although the idea to view biological complex systems in general through redundancy was suggested a few years after the study by Tononi \cite{edelman2001degeneracy}.
 
 \subsubsection{Finding synergy in biological complex systems}
 % General biology link
@@ -74,19 +73,19 @@ We could find few papers discussing a similar topic, although the idea to view i
 
 In most previous attempts at using information theory in system biology, it has either been applied on a single ecosystem variable, or for quantifying dyadic interactions.
 For instance, the entropy over the distribution of biomass or biomass flows within ecosystems has been used as a crude measure for diversity \cite{ulanowicz2009quantifying}.
-Correlations between two genes hae been used in research into the role of genes in disease \cite{lu2004gene}.
+Correlations between two genes have been used in research into the role of genes in disease \cite{lu2004gene}.
 Polyadic relationships are typically not investigated, and only appear in few studies.
 
-It has been suggested that synergy in complex systems increases the resilience of this system against nudges \cite{quax2017quantifying}.
-The concept of synergy also seems to be present on a high level in biological systems; many phenotypical traits we observe in animals are not coded by one gene, but emerge from a set of cooperating genes \cite{griffith2014quantifying}.
+It has been suggested that synergy in complex systems increases the resilience of these systems against nudges \cite{quax2017quantifying}.
+The concept of synergy also seems to be present on a high level in biological systems; many phenotype traits we observe in animals are not coded by one gene, but emerge from a set of cooperating genes \cite{griffith2014quantifying}.
 As a result, synergy might be an interesting new approach to the complexity-resilience question.
 
-To look at synergy in biological networks, we need review the manner in which we examine then.
-To make a shift away from low-level quantities, such as entropy, we ought to look at the system as a set of related stochastic variables.
-For instance, if we do not treat the species of a randomly drawn 'unit' as the random variable we can consider the population size of each species individually.
+To look at synergy in biological networks, we need to review the manner in which we examine them.
+To step away from low-level quantities, such as entropy, we ought represent the system as a set of related stochastic variables.
+For instance, if we do not treat the species of a randomly drawn 'unit' from the pool of all individuals as the random variable, we can consider the population size of each species as a continuous random variable each.
 
 As soon as we model the system as a system of dependent random variables, we can start looking at interactions between random variables in order to examine redundancy and synergy in a biological network.
-This is a very natural step; after all, the disturbances that an ecoystem has to deal with usually manifest itelf as an increase or decrease in the population size of one or several species due to outside forces.
+This is a very natural step; after all, the disturbances that an ecosystem has to deal with usually manifest itself as an increase or decrease in the population size of one or several species due to outside forces.
 We can use the time dimension as a way to establish relationships between the state of the system now and later.
 This allows us to measure the impact of a shock on the future state of the system \cite{QuaxPersonal}.
 In addition, by simply measuring mutual information between the system now and later we can quantify the amount of memory in a system.

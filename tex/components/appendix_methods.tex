@@ -30,7 +30,7 @@ This allows us to search sets of randomly generated motifs for a particular moti
 This function takes a network-type motif as an input, as well as a set of motifs of any kind.
 First, it converts this input motif to a transition table.
 Then, all possible variations of the transition table that represent the same motif are produced.
-After all, if we switch the labels of two genes in the motif the transition table changes, while the network-motif stays the same.
+This is necessary as the transition table changes when we switch the labels of two genes in the motif, while the network-motif stays the same.
 For each transition table in the sample, we check if it is in the set of transition tables we produced in the previous step.
 
 %TODO meer hier?

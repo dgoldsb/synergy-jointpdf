@@ -9,7 +9,7 @@
 
 \subsection{2D scatterplots}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.3\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=2/scatter2D_synergy_memory.pdf}
@@ -27,7 +27,7 @@
     \label{fig:2d22}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.3\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=2_l=4/scatter2D_synergy_memory.pdf}
@@ -45,7 +45,7 @@
     \label{fig:2d24}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.3\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=5_l=2/scatter2D_synergy_memory.pdf}
@@ -63,7 +63,7 @@
     \label{fig:2d52}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.3\textwidth}
         \includegraphics[width=\textwidth]{./../result_pandas/k=5_l=4/scatter2D_synergy_memory.pdf}
@@ -81,14 +81,13 @@
     \label{fig:2d54}
 \end{figure}
 
-\clearpage
 \subsection{Tables}
 
 %%% MULTIPLE NU
 \subsubsection{Comparison of means}
 
-\begin{table}[ht]
-\begin{tabular}{|c|l|l|l|l|}
+\begin{table}[H]
+\begin{tabular}{|c|c|c|c|c|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
 \hline
@@ -122,14 +121,13 @@
 \hline
 \end{tabular}
 \centering
-\caption{Comparison of the mean nudge impact (all system variables being nudged) between random and biological networks ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. Green background implies higher mean in the biological network, yellow higher mean in the random network.}
+\caption{Comparison of the mean global nudge impact (all system variables being nudged) between BRMs and URMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. A green background implies higher mean in the BRM, yellow higher mean in the URM.}
 \label{resilience_multiple}
 \end{table}
 
-\clearpage
 \subsubsection{Correlation synergy and nudge impact}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -164,11 +162,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and nudge impact (a single variable being nudged) for biological systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and local nudge impact (a single variable being nudged) for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{GRN_rho_syn_singleimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -203,11 +201,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and nudge impact (a single variable being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and local nudge impact (a single variable being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{random_rho_syn_singleimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -242,11 +240,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and nudge impact (all system variables being nudged) for biological systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and global nudge impact (all system variables being nudged) for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{GRN_rho_syn_multimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -281,14 +279,13 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and nudge impact (all system variables being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and global nudge impact (all system variables being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{random_rho_syn_multimpact}
 \end{table}
 
-\clearpage
 \subsubsection{Correlation memory and nudge impact}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -323,11 +320,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between memory and nudge impact (a single variable being nudged) for biological systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between memory and local nudge impact (a single variable being nudged) for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{GRN_rho_mem_singleimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -362,11 +359,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between memory and nudge impact (a single variable being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between memory and local nudge impact (a single variable being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{random_rho_mem_singleimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -401,11 +398,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between memory and nudge impact (all system variables being nudged) for biological systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between memory and global nudge impact (all system variables being nudged) for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{GRN_rho_mem_multimpact}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
@@ -440,15 +437,14 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between memory and nudge impact (all system variables being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between memory and global nudge impact (all system variables being nudged) for random systems ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{random_rho_mem_multimpact}
 \end{table}
 
-\clearpage
 \subsubsection{Partial correlation synergy and nudge impact}
 
-\begin{table}[ht]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{table}[H]
+\begin{tabular}{|c|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
 \hline
@@ -482,11 +478,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between synergy and nudge impact (all system variables being nudged) for biological systems, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_synergy_multimpact}
+\caption{Spearman partial correlation between synergy and global nudge impact (all system variables being nudged) for BRMs, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_synergy_multimpact}
 \end{table}
 
-\begin{table}[ht]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{table}[H]
+\begin{tabular}{|c|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
 \hline
@@ -520,14 +516,13 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between synergy and nudge impact (all system variables being nudged) for random systems, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_synergy_multimpact}
+\caption{Spearman partial correlation between synergy and global nudge impact (all system variables being nudged) for random systems, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_synergy_multimpact}
 \end{table}
 
-\clearpage
 \subsubsection{Partial correlation memory and nudge impact}
 
-\begin{table}[ht]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{table}[H]
+\begin{tabular}{|c|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
 \hline
@@ -561,11 +556,11 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between memory and nudge impact (all system variables being nudged) for biological systems, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_memory_multimpact}
+\caption{Spearman partial correlation between memory and global nudge impact (all system variables being nudged) for BRMs, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_memory_multimpact}
 \end{table}
 
-\begin{table}[ht]
-\begin{tabular}{|c|c|c|c|c|}
+\begin{table}[H]
+\begin{tabular}{|c|l|l|l|l|}
 \hline
 \# nodes & \diagbox{\# states}{$\epsilon$}  & 0.1 & 0.25 & 0.4\\
 \hline
@@ -599,7 +594,7 @@
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between memory and nudge impact (all system variables being nudged) for random systems, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_memory_multimpact}
+\caption{Spearman partial correlation between memory and global nudge impact (all system variables being nudged) for random systems, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_memory_multimpact}
 \end{table}
 
 \end{document}

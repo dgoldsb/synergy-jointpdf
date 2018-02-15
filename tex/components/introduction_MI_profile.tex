@@ -1,4 +1,4 @@
-% Version: 0.0
+% Version: final
 
 \documentclass[../main.tex]{subfiles}
 
@@ -10,12 +10,12 @@ However, synergy and redundancy can occur at many different levels.
 In a 5-predictor system, information could be shared by two variables, but also by five.
 Similarly, synergy could emerge from the combination of two variables, or only if all predictors are considered together.
 As a result, the number of quantifiable relations explodes with a larger system size.
-Even when we consider just the pairwise mutual information between all possible subsets of a network, and the output variable, we obtain $2^n$ measurements (including the empty set), an exponential increase.
+Even when we consider just the pairwise mutual information between all possible subsets of a network, and the output variable, we obtain $2^n$ measurements (including the empty set), which is an exponential increase.
 
 Due to this rapid increase of the number of quantifiable relations, we would like to extract key characteristics of the system.
 For instance, a system might only start showing emergent synergy when considering all predictors together, yet nothing when looking at smaller subsets.
 This could be achieved by compressing this information in a visual format, that highlights interesting properties of the system as a whole, and disregards unimportant details.
-This visualization can take the format of a 'profile' that is characteristic for the type system.
+This visualization can take the format of a 'profile' that is characteristic for the type of system.
 When looking at complex systems, the scale is often an important factor regarding complexity, and as such it is often picked as the independent variable in profiles \cite{bar2013computationally, quax2017quantifying, tononi1999measures}.
 The variable on the y-axis in the profile shows more variation, and is usually an information theory quantification that is averaged over all subsets of a specified size.
 
@@ -25,10 +25,10 @@ It was investigated how redundancy is distributed over the different scales (fro
 Several information theory quantifications were proposed as the dependent variable in these profiles, such as
 %
 \begin{itemize}
-\item The average MI with the output $<\mathrm{I}\left( X^k;Y \right) >$, with $X^k$ being a subset of size $k$
-\item The average shared information between the subset, the inverse set, and the output  $<\mathrm{I}\left( X^k;X - X^k;Y\right) >$
-\item The average redundancy $<\mathrm{I}_\mathrm{red}\left( X;Y\right) >$
-\item The average system integration $<\sum_{i = 1}^{\binom{n}{k}}[\mathrm{H}(X^k)] - \mathrm{H}\left( X\right) >$
+\item The average MI with the output $<\mathrm{I}\left( \mathbf{X}^k;Y \right) >$, with $\mathbf{X}^k$ being a subset of size $k$
+\item The average shared information between the subset, the inverse set, and the output  $<\mathrm{I}\left( \mathbf{X}^k;\mathbf{X} - \mathbf{X}^k;Y\right) >$
+\item The average redundancy $<\mathrm{I}_\mathrm{red}\left( \mathbf{X};Y\right) >$
+\item The average system integration $<\sum_{i = 1}^{\binom{n}{k}}[\mathrm{H}(\mathbf{X}^k)] - \mathrm{H}\left( X\right) >$
 \end{itemize}
 %
 The focus lies strongly on identifying degeneracy or complexity, as these quantities can be derived by design through integration of the complexity profile.
@@ -73,7 +73,7 @@ This complexity measure is especially suitable for spatial information, such as 
 
 % Talk about MI profile
 % Details go in the methods section, here goes only what Rick said to me
-It has been suggested by Quax that a mutual information profile such as those proposed by Tononi, where $< \mathrm{I}\left( X^k;Y \right) >$ is plotted against the subset size $k$ \cite{QuaxPersonal, tononi1999measures}. 
+A full mutual information profile, such as the one proposed by Tononi, has been proposed by Quax, where $< \mathrm{I}\left( \mathbf{X}^k;Y \right) >$ is plotted against the subset size $k$ \cite{QuaxPersonal, tononi1999measures}. 
 When normalized, this would provide a non-decreasing, non-negative profile with a range from 0 to 1 that allows us to detect extreme cases of synergy and redundancy.
 If there is no redundancy or synergy, a straight line would form.
 If the profile is above the straight line, there is more redundancy than synergy in the system, and vice versa if the profile falls below this line, as synergy expresses itself as negative mutual information.

@@ -1,18 +1,18 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [1][-]{section.2}{Glossary and Notation}{}% 2
+\BOOKMARK [1][-]{section.2}{Glossary and notation}{}% 2
 \BOOKMARK [1][-]{section.3}{Theoretical background}{}% 3
-\BOOKMARK [2][-]{subsection.3.1}{Synergy}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.1}{Classification of information in a system}{section.3}% 4
 \BOOKMARK [3][-]{subsubsection.3.1.1}{Partial information decomposition}{subsection.3.1}% 5
 \BOOKMARK [3][-]{subsubsection.3.1.2}{Practical example of synergy}{subsection.3.1}% 6
 \BOOKMARK [3][-]{subsubsection.3.1.3}{Quantifying redundancy}{subsection.3.1}% 7
 \BOOKMARK [3][-]{subsubsection.3.1.4}{Quantifying synergy}{subsection.3.1}% 8
-\BOOKMARK [2][-]{subsection.3.2}{Complexity Profiles}{section.3}% 9
-\BOOKMARK [2][-]{subsection.3.3}{Ecology and Information Theory}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.2}{Complexity profiles}{section.3}% 9
+\BOOKMARK [2][-]{subsection.3.3}{Ecology and information theory}{section.3}% 10
 \BOOKMARK [3][-]{subsubsection.3.3.1}{Stability and complexity in system biology}{subsection.3.3}% 11
-\BOOKMARK [3][-]{subsubsection.3.3.2}{Use of IT in system biology}{subsection.3.3}% 12
+\BOOKMARK [3][-]{subsubsection.3.3.2}{Use of information theory in system biology}{subsection.3.3}% 12
 \BOOKMARK [3][-]{subsubsection.3.3.3}{Finding synergy in biological complex systems}{subsection.3.3}% 13
-\BOOKMARK [2][-]{subsection.3.4}{Complexity and Gene Regulatory Networks}{section.3}% 14
-\BOOKMARK [3][-]{subsubsection.3.4.1}{Describing gene regulatory networks}{subsection.3.4}% 15
+\BOOKMARK [2][-]{subsection.3.4}{Complexity and gene regulatory networks}{section.3}% 14
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Models of gene regulatory networks}{subsection.3.4}% 15
 \BOOKMARK [3][-]{subsubsection.3.4.2}{Information theory and GRNs}{subsection.3.4}% 16
 \BOOKMARK [3][-]{subsubsection.3.4.3}{Available GRN models}{subsection.3.4}% 17
 \BOOKMARK [1][-]{section.4}{Methodology}{}% 18
@@ -20,8 +20,8 @@
 \BOOKMARK [3][-]{subsubsection.4.1.1}{Simulation methodology}{subsection.4.1}% 20
 \BOOKMARK [3][-]{subsubsection.4.1.2}{Time evolution}{subsection.4.1}% 21
 \BOOKMARK [3][-]{subsubsection.4.1.3}{Initialization of the PDF}{subsection.4.1}% 22
-\BOOKMARK [3][-]{subsubsection.4.1.4}{Generating random state transitions}{subsection.4.1}% 23
-\BOOKMARK [3][-]{subsubsection.4.1.5}{Generating random biologically realistic GRNs}{subsection.4.1}% 24
+\BOOKMARK [3][-]{subsubsection.4.1.4}{Generating uniform random motifs}{subsection.4.1}% 23
+\BOOKMARK [3][-]{subsubsection.4.1.5}{Generating biological random motifs}{subsection.4.1}% 24
 \BOOKMARK [3][-]{subsubsection.4.1.6}{Parameter nudging}{subsection.4.1}% 25
 \BOOKMARK [2][-]{subsection.4.2}{Analytical methods}{section.4}% 26
 \BOOKMARK [3][-]{subsubsection.4.2.1}{Quantification measures}{subsection.4.2}% 27
@@ -45,8 +45,8 @@
 \BOOKMARK [1][-]{section.6}{Discussion}{}% 45
 \BOOKMARK [2][-]{subsection.6.1}{Limitations of the model}{section.6}% 46
 \BOOKMARK [2][-]{subsection.6.2}{Limitations of the experiments}{section.6}% 47
-\BOOKMARK [2][-]{subsection.6.3}{Future research}{section.6}% 48
-\BOOKMARK [1][-]{section.7}{Conclusion}{}% 49
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 48
+\BOOKMARK [1][-]{section.8}{Acknowledgements}{}% 49
 \BOOKMARK [1][-]{section*.21}{Appendices}{}% 50
 \BOOKMARK [1][-]{Appendix.a.A}{Methods}{}% 51
 \BOOKMARK [2][-]{subsection.a.A.1}{Alternative deciding conditions}{Appendix.a.A}% 52

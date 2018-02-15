@@ -1,4 +1,4 @@
-% Version: 1.1
+% Version: final
 
 \documentclass[../main.tex]{subfiles}
 
@@ -6,26 +6,26 @@
 % Kern thesis: ik heb twee modellen, een supernaif en een een beetje naief, ik kijk of het verschil in eigebschappen de resilience en memory verklaard, en of dit verschil ook synergyverschil oplevert
 
 % Summary and restate thesis statement
-In this study we investigated the link between the synergy and memory of a system and its resilience.
+In this study we investigated the link between the synergy and memory of a GRN system and its resilience.
 We compared two types of random systems with discrete states and time steps.
 One system is completely random in nature, and is evolved following a completely random state transisition table.
 The other is meant to mimic GRNs, and is evolved following a state transition table computed from a random GRN motif.
-The set of biologically possible systems was found to be a small subset of the set of completely random systems, thus providing a tighter set around the set of real GRN motifs.
+The set of BRMs was found to be a small subset of the set of URMs, thus providing a tighter set around the set of real GRN motifs.
 
-% Answer (1) 
+% Answer (1)
 We found a strong positive correlation between the system memory and the impact of nudges.
 This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
 We also observed a negative correlation between the synergy and the nudge impact.
 This observed relation is in line with the findings of Quax et al.~\cite{quax2017quantifying}.
 However, we found that synergy is uncorrelated with the nudge impact when we normalize for the system memory.
-Memory does remain correlated with the nudge impact when we normalize for the system memory.
+Memory does remain correlated with the nudge impact when we normalize for the system synergy.
 We did observe a negative correlation between the system synergy and the system memory.
-These results were the same for random and biologically possible motifs.
+These results were the same for URMs and BRMs.
 
 As such, we conclude for hypotheses (1) and (2) that there is no direct correlation between synergy and nudge resilience.
-There does appear to be an indirect correlation memory, as there is a correlation that disappears when we normalize for memory.
+There does appear to be an indirect correlation with memory, as there is a correlation that disappears when we normalize for memory.
+A summary of this correlation finding is shown in Fig.~\ref{venn_results}.
 We did observe a correlation between synergy and memory, but this relationship was of the opposite sign as hypothesized in hypotheses (3) and (4).
-A summary of the correlation findings is shown in Fig.~\ref{venn_results}.
 
 % Now we can draw the sets:
 \def\firstcircle{(0:-0.9cm) circle (2cm)}
@@ -69,23 +69,23 @@ A summary of the correlation findings is shown in Fig.~\ref{venn_results}.
 \end{figure}
 
 % Answer (2) means
-We found that the group of GRN-like systems score have a significantly lower synergy and memory.
+We found that the set of BRMs score have a significantly lower synergy and memory.
 This is opposite to our hypotheses (5) and (6), as we predicted that biological systems would score high in both these properties.
 The amount of memory in gene regulation systems is not low by any means, preserving more than 50\% of the mutual information typically.
 However, the amount of mutual information preserved in random networks is usually exceptionally high, close to 90\%.
-The high level of memory in random systems can be explained; the memory decreases as more states in the transition table lead to the same state in the next timestep.
+The high level of memory in random systems can be explained; the memory decreases as more states in the transition table lead to the same state in the next time step.
 The chance that many states lead to the same state is small when randomly generating a transition table, resulting in a very high memory.
 As to the lower amount of synergy in our natural networks, we propose that synergetic relations are difficult to build using the components of gene regulation networks; gene regulation works mostly using positive and negative feedback, with an occasional AND-gate.
 Typical structures that provide synergy, such as a XOR-gate, are unlikely to come into existence from randomly combining these components.
 
-We found that gene regulation systems where more resilient to nudges than random systems.
+We found that BRMs where more resilient to nudges than URMs.
 This is in line with our hypothesis (7), as biological networks have a strong need for resilience to function.
 However, contrary to our hypothesis (8), this difference in resilience was observed regardless of how many variables in the system where nudged.
 The difference in resilience can likely be attributed to the great difference in memory, as a higher memory was found to correlate with a decreased resilience.
 We suggest that the type of relations in gene regulatory networks cause the system to only evolve to a select few states.
-As this results in multiple states all leading to the same state in the transitition table, information is lost and the memory will be lower.
+As this results in multiple states all leading to the same state in the transition table, information is lost and the memory will be lower.
 
-These results where found to be consistent with an increasing network size, as well with an higher 'resolution' by increasing the number of possible states of each variable.
+These results were found to be consistent with an increasing network size, as well with an higher 'resolution' by increasing the number of possible states of each variable.
 Larger networks and those with a higher resolution yielded more significant results.
 These larger systems are also closer to reality, as GRNs often include tens to hundreds of genes.
 In theory a higher resolution is also closer to reality, although this does depend on whether our extension of the conversion model from GRN to transition table is correct for multi-valued logic systems.
@@ -93,22 +93,35 @@ In theory a higher resolution is also closer to reality, although this does depe
 
 % Variance (addition to means)
 % RICK: ik snap deze uitleg niet helemaal... zou het ook niet kunnen zijn dat de natuur misschien deze manier van GRNs modelleren gebruikt (dus edges en 2-to-1 edges) om juist te zorgen dat het gemakkelijk een brede varieteit aan memory en synergy kan bereiken, wat moeilijk zou zijn door de evolueren in de random systems? DYLAN: ik heb het duidelijker geschreven, maar er is geen evolutie van random systemen; random is echt random, en elke transition table heeft een gelijke kans getrokken te worden
-We observed that our biologically possible sampled systems had a much higher variance in their synergy, memory, and resilience.
-This is odd, as all these samples can also be sampled from the set of random systems.
+We observed that our sampled set of BRMs had a much higher variance in their synergy, memory, and resilience.
+This is unexpected, as all these samples can also be sampled from the set of random systems.
 Furthermore, this discrepancy in their ranges becomes greater when increasing the size of the sample space, either through increasing $l$ or $n$.
-This can be explained through this increase in the sample space.
-If we hypothesize that the subspace of biologically possible systems grows less quickly than the overall sample space and has properties much different from the rest of the sample space, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section.
-This could explain why the random measurements get bunched up around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
+This could be explained through this increase in the sample space.
+If we hypothesize that the subspace of BRMs grows less quickly than the overall sample space and has properties much different from the rest of the sample space, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section of the sample space.
+This could explain why the random measurements get clustered around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
 
 % Answer (3)
-Random systems where found to be well-balanced between synergy and redundancy at all levels, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
-To gain a better insight, however, this method should be tested on larger network; a system with $n$ components only provides $n-1$ possible emergence levels for synergy and redundancy, and in this study we were limited to $n \le 5$.
+Random systems were found to be well-balanced between synergy and redundancy at all emergence levels in full mutual information profiles, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.
+To gain a better insight, however, this method should be tested on a larger network; a system with $n$ components only provides $n-1$ possible emergence levels for synergy and redundancy, and in this study we were limited to $n \le 5$.
 
-In summary, biologically possible networks were found to contain less synergy and memory than random networks.
+In summary, BRMs were found to contain less synergy and memory than URMs.
 They were found to be more resilient to nudges, regardless of the scale of the nudge.
 This is mostly attributable to the difference in memory, as memory was found to have a strong correlation with the impact of nudges.
 Biologically possible systems were found to have a much larger variance in synergy and memory, which supports the idea that this set is a small subset of the space of all random tables.
 Our results suggest that synergy does not function as a mechanism to improve resilience.
 This means that synergy does not seem to be an answer to the question why specific levels of complexity yield resilient systems, while others do not.
-In addition, it remains a question whether synergy plays a role at larger scales in biological systems, and what this role might be. %TODO ben ik goed teruggekomen bij de intro?
+In addition, it remains a question whether synergy plays a role at larger scales in biological systems, and what this role might be.
+
+%\subsection{Future research}
+% section: limitations in scope of the study
+% section: future research
+A first step in improving on this study in future research is to verify the model against real, empirically obtained gene regulatory networks.
+This can be used as a means of verifying our model, and even for direct comparison with random transition tables.
+If it is found that the used model is not sufficiently complex, a selective criterion could be added.
+A second step would be the improvement of the initialization with gene correlation, by supporting non-transitive correlation matrices.
+It would also be better to incorporate correlation statistics from empirical studies in the generation of our correlation matrix.
+A third improvement would be to use a model that considers the rest of the network in the time steps.
+A possible solution would be a continuous model.
+This would allow us to do multiple time steps reliably, and to better represent large gene regulatory networks when measuring synergy and memory. % BECAUSE, this is important, our measurements involve a time step
+Finally, the accuracy of the results would be significantly improved by using a better synergy measure and nudge method.
 \end{document}
