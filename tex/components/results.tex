@@ -14,9 +14,9 @@ We show two t-SNE plots in Fig.~\ref{fig:TSNE}, for both a smaller and larger sy
 For larger systems, we see a very clear division between the URMs (red crosses) and the BRMs (blue circles).
 It is important to keep in mind that t-SNE is a dimensionality reduction method that clusters similar data points.
 As such, the fact that one color does not visibly contain another has no implication on whether one of the two is a subsample.
-The fact that here and there a random system is mixed in with the biologically inspired system does indicate that we are dealing with a small subspace; it seems possible to sample a BRM when drawing a URM, but not the other way around.
+The fact that BRMs and URMs are separated, and that there are large portions of the URM-cluster that have no BRMs mixed in does indicate that we are dealing with a small subspace; it seems possible to sample a BRM when drawing a URM, but not always the other way around.
 This also suggests that sampling transition tables from the set of BRMs yields transition tables with similar properties.
-For very small systems the sample space is very small, it seems that in this case the biologically possible systems are less easily distinguished from the random systems.
+For very small systems the sample space is very small, it seems that in this case the BRMs are less easily distinguished from the URMs.
 
 \begin{figure}[ht]
     \centering
@@ -60,7 +60,7 @@ As there is always either a cycle or a sink, a maximum cycle length of 1 is the 
 \subsubsection{Normality and outliers}
 
 % Normality and all
-To determine if the Pearson test for correlation and the Student's t-test for comparing means were suitable, we check our sample for normality and outliers.
+To determine if the Pearson test for correlation and the Student's t-test for comparing means were suitable, we checked our sample for normality and outliers.
 In our parameter sweep we drew a large number of separate samples containing the synergy, memory, and resilience-properties of networks.
 We found that most of these sample were not normally distributed.
 Furthermore, those that did fit a normal distribution often contained outliers, and suffered from varying variances.
@@ -88,7 +88,7 @@ These results are compiled in Table~\ref{synergy}.
 \hline
 \end{tabular}
 \centering
-\caption{Comparison of the mean synergy between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$). A green background implies higher mean in the BRM, yellow higher mean in the URM.}
+\caption{Comparison of the mean synergy between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$). A green background indicates a higher mean in the BRM, a yellow background indicates a higher mean in the URM.}
 \label{synergy}
 \end{table}
 
@@ -111,7 +111,7 @@ These results are compiled in Table~\ref{memory}\footnote{The implementation of 
 \hline
 \end{tabular}
 \centering
-\caption{Comparison of the mean memory between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$). A green background implies higher mean in the BRM, yellow higher mean in the URM.}
+\caption{Comparison of the mean memory between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$). A green background indicates a higher mean in the BRM, a yellow background indicates a higher mean in the URM.}
 \label{memory}
 \end{table}
 
@@ -158,13 +158,13 @@ It appears that models with a higher number of states (a higher resolution in th
 \hline
 \end{tabular}
 \centering
-\caption{Comparison of the mean local nudge impact (a single variable being nudged) between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. A green background implies higher mean in the BRM, yellow higher mean in the URM.}
+\caption{Comparison of the mean local nudge impact (a single variable being nudged) between URMs and BRMs ($n = 100$). Cells contain the $T$-statistic and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$) with n=300. A green background indicates a higher mean in the BRM, a yellow background indicates a higher mean in the URM.}
 \label{resilience_single}
 \end{table}
 
 In Fig.~\ref{fig:3dscatter} we provide several scatterplots of experiments showing the distribution of memory, synergy, and resilience for both types of systems with varying system sizes and numbers of expression levels\footnote{2-dimensional versions of these plots are included in Fig.~\ref{fig:2d22}-\ref{fig:2d54} in Appendix~\ref{appendix_figures}}.
-We find that the variance reduces significantly when increasing the number of possible states, showing a much clearer pattern.
-The same effect is seen in when increasing the system size.
+We find that the variance decreases significantly when increasing the number of possible states, showing a much clearer pattern.
+The same effect is seen when increasing the system size.
 This is likely due to the increase in the sample space; the sample space grows strongly when increasing either the system size or number of possible states.
 We notice that URMs are very tightly clustered, and typically have an extremely high memory paired with high synergy.
 The BRMs are much more spread out, and while there are outliers with higher memory than any random system, most samples have a lower memory and synergy.
@@ -199,10 +199,10 @@ The spread of nudge impacts is also much higher in biological systems than in ra
 % Relationship synergy and memory
 
 An increase in synergy appears to be paired with a decrease in memory for BRMs, as shown in Table~\ref{GRN_rho_syn_mem}.
-This relation is not strong, however, and only consistently significant in larger systems with more than two expression levels.
-In Table~\ref{random_rho_syn_mem}, we observe the same highly significant and strong relationship between synergy and memory for URMs.
+This relationship is not strong, however, and only consistently significant in larger systems with more than two expression levels.
+In Table~\ref{random_rho_syn_mem}, we observe a highly significant and strong relationship between synergy and memory for URMs.
 In URMs, this relationship appears to be much stronger than in BRMs.
-The difference in the strength between these correlations can be explained by the fact that random systems always have a high memory, whereas BRMs occupy a wider range.
+The difference in the strength between these correlations can be explained by the fact that URMs always have a high memory, whereas BRMs occupy a wider range.
 
 \begin{table}[H]
 \begin{tabular}{|c|l|l|l|}
@@ -219,7 +219,7 @@ The difference in the strength between these correlations can be explained by th
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and memory for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and memory for BRMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{GRN_rho_syn_mem}
 \end{table}
 
@@ -238,7 +238,7 @@ The difference in the strength between these correlations can be explained by th
 \hline
 \end{tabular}
 \centering
-\caption{Spearman correlation between synergy and memory for URMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
+\caption{Spearman correlation between synergy and memory for URMs ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}
 \label{random_rho_syn_mem}
 \end{table}
 
@@ -249,10 +249,11 @@ In some of our correlation experiments we find a weak negative correlation betwe
 These results are compiled in Table~\ref{GRN_rho_syn_singleimpact}-\ref{random_rho_syn_multimpact} in the Appendix.
 However, when we add the memory in the system as a confounding variable, this relationship disappears.
 This is shown in Table~\ref{GRN_rho_partial_synergy_singleimpact} and Table~\ref{random_rho_partial_synergy_singleimpact}.
-Only a few experiments yield a result with a $p$-value under our threshold of $\alpha = 0.05$.
+Only a few experiments yield a result with a $p$-value below our threshold of $\alpha = 0.05$.
 However, these $p$-values are relatively high, and the sign of the observed effect is inconsistent.
-As we carried out a large number of experiments experiments, we should be wary of false positives by chance.
-We observe the same behavior when all system variables were included in the nudge, as can be seen in Table~\ref{GRN_rho_partial_synergy_multimpact} and Table~\ref{random_rho_partial_synergy_multimpact} in the Appendix.
+As we carried out a large number of experiments with $\alpha$ as $0.05$, one in every twenty experiments is expected to lead to a false positive conclusion.
+The statistically significant results could very well be attributed to chance.
+We observed the same behavior when all system variables were included in the nudge, as can be seen in Table~\ref{GRN_rho_partial_synergy_multimpact} and Table~\ref{random_rho_partial_synergy_multimpact} in the Appendix.
 
 \begin{table}[H]
 \begin{tabular}{|c|l|l|l|l|}
@@ -289,7 +290,7 @@ We observe the same behavior when all system variables were included in the nudg
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between synergy and local nudge impact (one variable being nudged) for BRMs, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_synergy_singleimpact}
+\caption{Spearman partial correlation between synergy and local nudge impact (one variable being nudged) for BRMs, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_synergy_singleimpact}
 \end{table}
 
 
@@ -328,7 +329,7 @@ We observe the same behavior when all system variables were included in the nudg
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between synergy and local nudge impact (one variable being nudged) for URMs, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_synergy_singleimpact}
+\caption{Spearman partial correlation between synergy and local nudge impact (one variable being nudged) for URMs, with memory as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_synergy_singleimpact}
 \end{table}
 
 \subsubsection{Correlation between memory and resilience}
@@ -337,6 +338,7 @@ We observe the same behavior when all system variables were included in the nudg
 We do observe a strong positive correlation between the memory and the impact of local nudges.
 These results are compiled in Table~\ref{GRN_rho_mem_singleimpact}-\ref{random_rho_mem_multimpact} in the Appendix.
 When we add the synergy in the system as a confounding variable, this relationship persists.
+This relationship was most significant in BRMs.
 This is shown in Table~\ref{GRN_rho_partial_memory_singleimpact} and Table~\ref{random_rho_partial_memory_singleimpact} for BRMs and URMs respectively.
 The same behavior was observed when all system variables were included in the nudge, as can be seen in Table~\ref{GRN_rho_partial_memory_multimpact} and Table~\ref{random_rho_partial_memory_multimpact} in the Appendix.
 
@@ -375,7 +377,7 @@ The same behavior was observed when all system variables were included in the nu
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between memory and local nudge impact (one variable being nudged) for BRMs, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_memory_singleimpact}
+\caption{Spearman partial correlation between memory and local nudge impact (one variable being nudged) for BRMs, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{GRN_rho_partial_memory_singleimpact}
 \end{table}
 
 \begin{table}[H]
@@ -413,17 +415,17 @@ The same behavior was observed when all system variables were included in the nu
 \hline
 \end{tabular}
 \centering
-\caption{Spearman partial correlation between memory and local nudge impact (one variable being nudged) for URMs, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* implies $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_memory_singleimpact}
+\caption{Spearman partial correlation between memory and local nudge impact (one variable being nudged) for URMs, with synergy as a confounding variable ($n=300$). Cells contain the correlation statistic $\rho$ and significance per experiment (* denotes $p<0.05$, ** $p<0.005$, *** $p<0.0005$).}\label{random_rho_partial_memory_singleimpact}
 \end{table}
 
-\subsection{MI-Profile}
+\subsection{Full mutual information profile}
 
-In Fig.~\ref{fig:profilel4}, we show the ensembles of complexity profiles for both random and GRN-like systems.
+In Fig.~\ref{fig:profilel4}, we show the ensembles of complexity profiles for both URMs and BRMs.
 In the complexity profiles, we find that excess synergy or redundancy is more common in BRMs than in URMs, as profiles tend to take much more extreme maximum and minimum values.
 Like in previous experiments, we find that increasing the number of possible expression levels $l$ makes the difference between the two system types more pronounced.
-We find that random systems stay much closer to a straight line than GRN-like systems, implying that at all levels similar amounts of redundancy and synergy occur.
+We find that URMs stay much closer to a straight line than BRMs, implying that at all levels similar amounts of redundancy and synergy occur.
 In biological systems, this balance is less present, as we see that in many samples there is much more redundancy synergy at some levels.
-This is less present, but still noticeable, for fewer expression levels (Fig.~\ref{fig:profilel2}).
+This is less present, but still noticeable, when there are fewer gene expression levels (Fig.~\ref{fig:profilel2}).
 
 \begin{figure}[ht]
     \centering

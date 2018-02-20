@@ -14,11 +14,11 @@ The set of BRMs was found to be a small subset of the set of URMs, thus providin
 
 % Answer (1)
 We found a strong positive correlation between the system memory and the impact of nudges.
-This is not unsurprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
+This is not surprising; a static system is per definition very sensitive to nudges, and a system where there is no link between now and the future is not disturbed by nudges.
 We also observed a negative correlation between the synergy and the nudge impact.
 This observed relation is in line with the findings of Quax et al.~\cite{quax2017quantifying}.
-However, we found that synergy is uncorrelated with the nudge impact when we normalize for the system memory.
-Memory does remain correlated with the nudge impact when we normalize for the system synergy.
+However, we found that synergy is uncorrelated with the nudge impact when we correct for the system memory.
+Memory does remain correlated with the nudge impact when we correct for the system synergy.
 We did observe a negative correlation between the system synergy and the system memory.
 These results were the same for URMs and BRMs.
 
@@ -69,23 +69,23 @@ We did observe a correlation between synergy and memory, but this relationship w
 \end{figure}
 
 % Answer (2) means
-We found that the set of BRMs score have a significantly lower synergy and memory.
+We found that the set of BRMs have a significantly lower synergy and memory.
 This is opposite to our hypotheses (5) and (6), as we predicted that biological systems would score high in both these properties.
-The amount of memory in gene regulation systems is not low by any means, preserving more than 50\% of the mutual information typically.
+The amount of memory in gene regulation systems is not low by any means, typically preserving more than 50\% of the mutual information.
 However, the amount of mutual information preserved in random networks is usually exceptionally high, close to 90\%.
 The high level of memory in random systems can be explained; the memory decreases as more states in the transition table lead to the same state in the next time step.
 The chance that many states lead to the same state is small when randomly generating a transition table, resulting in a very high memory.
 As to the lower amount of synergy in our natural networks, we propose that synergetic relations are difficult to build using the components of gene regulation networks; gene regulation works mostly using positive and negative feedback, with an occasional AND-gate.
 Typical structures that provide synergy, such as a XOR-gate, are unlikely to come into existence from randomly combining these components.
 
-We found that BRMs where more resilient to nudges than URMs.
+We found that BRMs were more resilient to nudges than URMs.
 This is in line with our hypothesis (7), as biological networks have a strong need for resilience to function.
 However, contrary to our hypothesis (8), this difference in resilience was observed regardless of how many variables in the system where nudged.
 The difference in resilience can likely be attributed to the great difference in memory, as a higher memory was found to correlate with a decreased resilience.
 We suggest that the type of relations in gene regulatory networks cause the system to only evolve to a select few states.
 As this results in multiple states all leading to the same state in the transition table, information is lost and the memory will be lower.
 
-These results were found to be consistent with an increasing network size, as well with an higher 'resolution' by increasing the number of possible states of each variable.
+These results were found to be consistent over an increasing network size, as well over a higher 'resolution' by increasing the number of possible states of each variable.
 Larger networks and those with a higher resolution yielded more significant results.
 These larger systems are also closer to reality, as GRNs often include tens to hundreds of genes.
 In theory a higher resolution is also closer to reality, although this does depend on whether our extension of the conversion model from GRN to transition table is correct for multi-valued logic systems.
@@ -96,9 +96,9 @@ In theory a higher resolution is also closer to reality, although this does depe
 We observed that our sampled set of BRMs had a much higher variance in their synergy, memory, and resilience.
 This is unexpected, as all these samples can also be sampled from the set of random systems.
 Furthermore, this discrepancy in their ranges becomes greater when increasing the size of the sample space, either through increasing $l$ or $n$.
-This could be explained through this increase in the sample space.
-If we hypothesize that the subspace of BRMs grows less quickly than the overall sample space and has properties much different from the rest of the sample space, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section of the sample space.
-This could explain why the random measurements get clustered around a most common point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
+This could be explained through the increase in the sample space.
+If we hypothesize that the subspace of BRMs grows not as quickly as the overall sample space and has properties which are very different from the rest of the sample space, then an increase in the sample space will make it less and less likely that random samples are drawn from the biological section of the sample space.
+This could explain why the random measurements get clustered around a point in the 3D space, and are not found anymore in the area of space occupied by the biological tables.
 
 % Answer (3)
 Random systems were found to be well-balanced between synergy and redundancy at all emergence levels in full mutual information profiles, whereas gene regulation systems are more prone to contain excess redundancy or synergy at some scale.

@@ -14,7 +14,7 @@ Even when we consider just the pairwise mutual information between all possible 
 
 Due to this rapid increase of the number of quantifiable relations, we would like to extract key characteristics of the system.
 For instance, a system might only start showing emergent synergy when considering all predictors together, yet nothing when looking at smaller subsets.
-This could be achieved by compressing this information in a visual format, that highlights interesting properties of the system as a whole, and disregards unimportant details.
+The extraction of the key characteristics could be achieved by compressing this information in a visual format, that highlights interesting properties of the system as a whole, and disregards unimportant details.
 This visualization can take the format of a 'profile' that is characteristic for the type of system.
 When looking at complex systems, the scale is often an important factor regarding complexity, and as such it is often picked as the independent variable in profiles \cite{bar2013computationally, quax2017quantifying, tononi1999measures}.
 The variable on the y-axis in the profile shows more variation, and is usually an information theory quantification that is averaged over all subsets of a specified size.
@@ -56,11 +56,11 @@ with
 \overset{~}{C} \left( k \right)  = \sum_{i=1}^n \overset{~}{C}_i \left( k \right) 
 \end{equation}
 
-As only pairs are examined, this method is computationally a lot cheaper than models that examine all possible subset sizes, costing $\binom{n}{2}$ mutual information computations.
+As only pairs are examined, this method is computationally a lot cheaper than models that examine all possible subset sizes, requiring $\binom{n}{2}$ mutual information computations.
 This system is not without downsides: due to the pairwise nature higher-order relations, such as synergy, are not captured.
 
 % Another option, that is not non-decreasing/increasing
-As a response to Bar-Yam's proposal for a complexity function, an alternative that separates structure from entropy has been suggested \cite{arbona2014statistical}.
+As a response to Bar-Yam's proposal for a complexity function, an alternative that separates structure from entropy has been suggested by Arbona et al. \cite{arbona2014statistical}.
 They provide a complexity function of the form
 %
 \begin{equation}
@@ -77,9 +77,9 @@ A full mutual information profile, such as the one proposed by Tononi, has been 
 When normalized, this would provide a non-decreasing, non-negative profile with a range from 0 to 1 that allows us to detect extreme cases of synergy and redundancy.
 If there is no redundancy or synergy, a straight line would form.
 If the profile is above the straight line, there is more redundancy than synergy in the system, and vice versa if the profile falls below this line, as synergy expresses itself as negative mutual information.
-With this information, Quax argues that it is possible to maximum bounds to synergy and redundancy.
+With this information, Quax argues that it is possible to draw maximum bounds to synergy and redundancy.
 For instance, if the profile reaches the maximum possible value for a small subset size there cannot be synergy in the system.
-In addition, this can enable one to not only attach bounds to synergy and redundancy, but also observe at what subset size-level it occurs.
+In addition, this can enable one to not only attach bounds to synergy and redundancy, but also observe at what subset size-level an increase in synergy or redundancy occurs.
 This can provide valuable information about the way synergy and redundancy are incorporated in the structure of the system.
 
 % Theoretische simpele cases uitwerken

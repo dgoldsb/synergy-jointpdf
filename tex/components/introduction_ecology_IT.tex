@@ -9,7 +9,7 @@
 
 A major unanswered question in ecology is the relationship between the stability and the complexity of a system \cite{kondoh2003foraging, macarthur1955fluctuations, pimm1977number}.
 Stability is a key factor in the survival of a natural system over longer periods of time.
-Some research suggests that natural networks become more stable when they increase in complexity, while others suggest the network become more stable when they are smaller and less densely connected.
+Some research suggests that natural networks become more stable when they increase in complexity, while others suggest the networks become more stable when they are smaller and less densely connected.
 Both ideas can be backed by empirical evidence, both from the field and in some cases from computational studies \cite{chen2001global, kondoh2003foraging}.
 As a result, it seems we do not have a full understanding of how complexity interacts with stability, and under what circumstances an increasing complexity in the system also yields a higher stability.
 Understanding what these circumstances are can help us interact with these systems, for instance in conservation efforts for ecological systems \cite{kondoh2003foraging}.
@@ -17,7 +17,7 @@ This question is not only relevant to ecological systems with many predator-prey
 
 On the one hand, it is proposed that larger ecological systems are more stable \cite{macarthur1955fluctuations}.
 Natural systems in many cases take the form of directed graphs, be it a predator-prey network, a neural network, or a gene regulation network.
-Nodes in these networks tend to rely on incoming flows, in food webs for instance of energy.
+Nodes in these networks tend to rely on incoming flows, in food webs for instance a flow of energy.
 In larger, densely connected systems, a node has more incoming flows.
 This reduces the importance of any single edge in the network, making the impact of a single disturbance smaller.
 For instance, in a predator-prey network a predator can hunt different types of prey.
@@ -31,7 +31,7 @@ Computational studies using models such as the Lotka-Volterra Cascade Models bac
 The preliminary answers to this question of stability and complicatedness in ecosystems in more recent years have remained conflicting, especially between empirical studies that observe large networks, and computational studies that favor smaller networks \cite{pimm1984complexity}.
 Attempts have been made to identify a missing element in computational models that can bridge the gap with reality.
 An example of such an attempt is the introduction of flexibility for predators in predator-prey networks, suggesting that an adaptive food choice can preserve stability in larger networks \cite{kondoh2003foraging}.
-However, these attempts are highly problem specific where it might be preferable to look at previously unexplored system properties, such as the presence of synergy. % bit cheeky to introduce this, but this is the point why I discuss this
+However, these attempts are highly problem specific whereas it might be preferable to look at previously unexplored system properties, such as the presence of synergy. % bit cheeky to introduce this, but this is the point why I discuss this
 
 \subsubsection{Use of information theory in system biology}
 % History of IT and biology
@@ -40,7 +40,7 @@ However, these attempts are highly problem specific where it might be preferable
 % Key: two different approaches
 Information theory has found applications in research into biological systems.
 However, while ecology does deal with complex systems at many different scales, information theory never took hold as the primary analytical method \cite{ulanowicz2001information}. % Reference to earlier (A)
-We can see this manifest itself in the movement away from theoretical studies that involve information theory definitions of complexity to computational studies.
+We can see this manifest itself in the movement away from theoretical studies which involve information theory definitions of complexity to computational studies.
 If we look at the applications of information theory in ecology, we see two general approaches to how information theory is applied \cite{ulanowicz2001information}.
 
 %% Shannon entropy
@@ -71,18 +71,18 @@ We could find few papers discussing a similar topic, although the idea to view b
 % General biology link
 % end how we might be able to answer it now
 
-In most previous attempts at using information theory in system biology, it has either been applied on a single ecosystem variable, or for quantifying dyadic interactions.
+In most previous attempts at using information theory in system biology, it has either been applied to a single ecosystem variable, or for quantifying dyadic interactions.
 For instance, the entropy over the distribution of biomass or biomass flows within ecosystems has been used as a crude measure for diversity \cite{ulanowicz2009quantifying}.
 Correlations between two genes have been used in research into the role of genes in disease \cite{lu2004gene}.
 Polyadic relationships are typically not investigated, and only appear in few studies.
 
 It has been suggested that synergy in complex systems increases the resilience of these systems against nudges \cite{quax2017quantifying}.
-The concept of synergy also seems to be present on a high level in biological systems; many phenotype traits we observe in animals are not coded by one gene, but emerge from a set of cooperating genes \cite{griffith2014quantifying}.
+The concept of synergy also seems to be present in a high emergence level in biological systems; many phenotype traits we observe in animals are not coded by one gene, but emerge from a set of cooperating genes \cite{griffith2014quantifying}.
 As a result, synergy might be an interesting new approach to the complexity-resilience question.
 
 To look at synergy in biological networks, we need to review the manner in which we examine them.
-To step away from low-level quantities, such as entropy, we ought represent the system as a set of related stochastic variables.
-For instance, if we do not treat the species of a randomly drawn 'unit' from the pool of all individuals as the random variable, we can consider the population size of each species as a continuous random variable each.
+To step away from low-level quantities, such as entropy, we ought to represent the system as a set of related stochastic variables.
+For instance, if we do not treat the species of a randomly drawn 'unit' from the pool of all individuals as the only random variable, we can consider the population size of each species as a continuous random variable each.
 
 As soon as we model the system as a system of dependent random variables, we can start looking at interactions between random variables in order to examine redundancy and synergy in a biological network.
 This is a very natural step; after all, the disturbances that an ecosystem has to deal with usually manifest itself as an increase or decrease in the population size of one or several species due to outside forces.

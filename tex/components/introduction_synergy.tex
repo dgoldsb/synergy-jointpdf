@@ -8,7 +8,7 @@
 % Discuss the current dominant paradigm: PID
 
 % Key: complexity can be measured using IT, biological sciences are skeptical but all revolves around quantifying information
-While there is no general consensus how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose \cite{bar2013computationally, williams2010nonnegative}. % Referenced to later (a)
+While there is no general consensus on how to measure complexity of systems, only that complexity should be a convex function between order and chaos, information theory (IT) is utilized in many fields for this purpose \cite{bar2013computationally, williams2010nonnegative}. % Referenced to later (a)
 Basic principles in IT are the (conditional) entropy and mutual information, measured in bits.
 The principles are widely accepted and applied, and operate at the monadic and dyadic level.
 In more recent years, new concepts from IT at the polyadic level have been proposed in information theory, such as synergy.
@@ -61,10 +61,10 @@ Unfortunately, this measure can become negative, making it less intuitive to int
 % Current paradigm, not final
 There is no general consensus on which measure is superior as of yet, or how to do a partial information decomposition (PID) \cite{griffith2011quantifying, williams2010nonnegative}.
 The current dominant paradigm in IT splits the information of a system into three basic principles: redundancy, synergy and unique information \cite{williams2010nonnegative}.
-All information in the system can be classified and quantified in these categories, allowing for a full decomposition of which improves our understanding of this system.
+All information in the system can be classified and quantified in these categories, allowing for a full decomposition which improves our understanding of this system.
 The unique information and redundancy are easily quantified, as they are intuitively linked to entropy and mutual information.
 However, a weakness of this system is that beyond a few variables this system explodes computationally.
-In addition, no measure capable of measuring synergy that satisfies all axioms has been proposed yet \cite{griffith2011quantifying}.
+In addition, no measure capable of measuring synergy that satisfies all axioms has yet been proposed  \cite{griffith2011quantifying}.
 
 % Level 3: synergy/redundancy
 % Give meaning to what synergy is
@@ -160,7 +160,7 @@ $X$ & $Y$ & $Z$ \\
 \label{XOR}
 \end{table}
 
-An attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promoters of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $A$ and $B$ (Figure~\ref{bifan_syn}).
+An attractive example in the continuous realm is that of bi-fan motif, where input variables $X$ and $Y$ are both promoters of variables $A$ and $B$, but where $B$ is a strong inhibitor of $A$ when its production is promoted by both $X$ and $Y$ (Figure~\ref{bifan_syn}).
 If we know whether the $X$ is of a high concentration, we do not know if $A$ will be too, as we do not know if $Y$ is present in high enough concentrations to cause inhibition of the production of $A$.
 The same is true of the concentration of $Y$; only when we know both, we obtain information of $A$.
 This creates a similar situation as an X-OR gate in a continuous setting, as the network motifs can be modeled in the form of an ODE system.
@@ -190,7 +190,7 @@ This creates a similar situation as an X-OR gate in a continuous setting, as the
    \end{scope}
 \end{tikzpicture}
 \end{center}
-\caption{Bi-fan network with additional inhibition element, (dots indicate variables captured in model, solid arrow indicates stimulation, dashed arrow indicates inhibition)}
+\caption{Bi-fan network with additional inhibition element (dots indicate variables captured in model, solid arrow indicates stimulation, dashed arrow indicates inhibition)}
 \label{bifan_syn}
 \end{figure}
 
@@ -220,7 +220,7 @@ This is defined as
 %
 where $\mathrm{I}\left( Y = y;X \right)$ is the specific information.
 This quantifies information related to a specific outcome, and can be reduced through summation (or integration in the continuous case) over $y$ to the mutual information.
-In recent years, this was still cited as the best redundancy measure, although it is mentioned by Lizier et al. that it does not meet all axioms for an accurate redundancy measure, and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
+In recent years, this was still cited as the best redundancy measure, although it is stated by Lizier et al. that it does not meet all axioms for an accurate redundancy measure, and should be used with discretion \cite{lizier2013towards, olbrich2015information}.
 
 % Finally bivariate redundancy
 Critics of the minimal informtion have proposed an alternative based on PDF projections \cite{harder2013bivariate}.
@@ -242,7 +242,7 @@ It is also difficult to extend, as it is designed for a scenario with 3 variable
 
 % Which requirements should be obeyed
 For synergy, a number of measures have been proposed \cite{griffith2014quantifying, olbrich2015information}.
-A good measure for synergy should meet several criteria, according to \cite{griffith2014quantifying}.
+A good measure for synergy should meet several criteria, according to Griffith et al. \cite{griffith2014quantifying}.
 We require the following properties for a synergy measure:
 %
 \begin{itemize}
@@ -316,7 +316,7 @@ The total synergistic information is defined as
 \mathrm{I}_\mathrm{syn}\left( X \rightarrow Y\right) \equiv \max_k \sum_i \mathrm{I}\left( Y ; S_{i,k}^\perp \right)
 \end{equation}
 where $S_{i,k}$ represents the $i$th SRV in the $k$th set of possible sets of SRVs.
-This measure suffers from a high computational cost, as it involves numerical optimization.
+This measure involves a high computational cost, as it involves numerical optimization.
 
 % IGNORE CORRELATIONAL IMPORTANT, THIS IS NOT A GOOD UPPER BOUND FOR SYNERGY
 % SYNERGY FROM MAX ENTROPY ARGUMENTS BECOMES NEGATIVE
@@ -327,5 +327,5 @@ Altogether, this gives us the following summary of the available synergy measure
 \end{equation}
 %
 The more accurate of these measures rely on numerical optimization, and thus require more effort to compute.
-Other notable quantifiers used of synergy measures are the correlational importance, which we do not discuss as it was found to measure something else than synergy, and the synergy from maximum entropy arguments, which can take negative values \cite{griffith2014quantifying, olbrich2015information}.
+Other notable quantifiers of synergy are the correlational importance, which we do not discuss as it was found to measure something other than synergy, and the synergy from maximum entropy arguments, which can take on negative values \cite{griffith2014quantifying, olbrich2015information}.
 \end{document}

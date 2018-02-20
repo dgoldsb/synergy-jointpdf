@@ -11,13 +11,13 @@ In this study, we used an Erdős–Rényi model to generate a random small motif
 However, it is reported that complete gene regulatory networks might better be described using a Barabási–Albert network.
 The algorithm associated with Barabási–Albert networks is difficult to make suitable for gene regulation, as gene regulation networks in our model can contain 2-to-1 edges and cycles.
 At a small scale these two network types are similar, but nonetheless it is possible that this design choice has affected the results of this study.
-In addition, these network types are observed on the scale of an entire gene regulatory network.
+In addition, these network types are established on the scale of an entire gene regulatory network.
 We could not find information on the network properties of functional motifs in these networks.
 
 We also made a significant design choice in the translation step from a gene regulatory network to a transition table.
 We implemented several possible "rules" that determine how conflicting edges in the network interact.
 Ultimately, we chose the method that explicitly allows a strong inhibitor to match several weaker stimulators, as we think it is important to capture in our model that some relationships are stronger than others.
-As some real motifs show transition cycles without requiring influence of the rest of the network, we considered the number of transition cycles in our generated systems \cite{burda2011motifs}.
+As some real motifs show transition cycles without requiring influence of the rest of the network, we examined the number of transition cycles in our generated systems \cite{burda2011motifs}.
 While the number of cycles was still much lower than in completely URMs, we at least found that this rule combined with our Erdős–Rényi random network produced transition tables with cycles.
 This is also consistent with results from a similar study by Kauffman et al. \cite{kauffman2003random}.
 Other rules did not yield any cycles, or very few.
@@ -25,7 +25,7 @@ All of the rules were based on literature that applies to Boolean networks, and 
 While the similar results inspire confidence that this was done correctly, the fact that this is not based on prior research is a weakness of this study.
 
 We used correlations between genes to replace influence from the omitted part of the network in the inital distribution of system states.
-The fact that these correlations are not used past the initialization makes it so that the framework is not suited for prolonged simulations, as the omitted part of the network is neglected in all time steps.
+The fact that these correlations are not used past the initialization makes the framework not suited for prolonged simulations, as the omitted part of the network is neglected in all time steps.
 The only way to overcome this problem is to simulate the complete network.
 This would not be possible in our model, as the joint PMF quickly becomes too big to evaluate and it becomes infeasible to quantify the mutual information.
 A possible solution would be switching to a continuous model, as k-Nearest Neighbor quantifiers for mutual information exist in continuous space.
@@ -36,7 +36,7 @@ This would involve sampling a random number represented in base-$l$ where $0 \le
 This was found to be a difficult endeavor due to the sheer size of the sample space; for our largest experiments, the maximum value that should be sampled is approximately $3.5 \times 10^{3082}$.
 Existing Python libraries, such as the \texttt{pyDOE} library, are not equipped to deal with numbers this large.
 
-A limitation in our design that varies the number of possible expression levels $l$ is that, with this property, our timescale shifts too.
+A limitation in our design with varying number of possible expression levels $l$ is that, with this property, our timescale shifts too.
 This is caused by the decay of the expression level without stimulation.
 Activated genes are programmed to lose one expression level per time step.
 This means that in a $l=2$ system a gene will go from the highest expression level to zero in one time step, whereas this takes four time steps in an $l=5$ network.
@@ -48,12 +48,11 @@ In our methodology we generate a non-transitive correlation matrix.
 We only utilize the band above the diagonal from this matrix, and treat the remaining values as if the matrix were transitive.
 This implies that if gene A and gene B share a correlation that is known, and gene B and gene C share a correlation that is known, the correlation of gene A and gene C can be derived as the product of these two individual correlations.
 This is not how genes necessarilly correlate in reality: gene A and C might have another direct interaction that is not captured by the indirect correlation through gene B.
-For future research support for non-transitive correlation matrices should be added.
+For future research support in our Python library for non-transitive correlation matrices should be added.
 
 Another improvement would be to base the properties of the correlation matrix on empirical data.
-Now we assumed that the correlations are distributed around zero, but this might not be the case in reality.
+In this study we assumed that the correlations are distributed around zero, but this might not be the case in reality.
 For the purpose of this study this approach was deemed good enough, as the goal of reducing the overall entropy is achieved.
-
 
 We originally intended to compare our BRM model with empirical data.
 However, due to the limited availability of datasets that are well-established, available as a Boolean network, and small enough to do computationally feasible measurements this was not possible.
@@ -73,7 +72,7 @@ Reimplementing parts of the project in C would perhaps allow us to evaluate slig
 However, the time complexity increases exponentially with the number of genes in the network, making it not feasible to extend this model to a full-size gene regulatory network of more than 50 genes.
 A possible solution would be to only model a part of the network, and approximate the effect of the rest of the network every timestep.
 
-We were also limited by our computational power in the choice of a synergy measure.
+Our computational power also limited our choice of a synergy measure.
 We would have preferred to use synergistic random variables to quantify synergy, but this measure has no analytical solution and relies on numerical optimization. 
 Calculating this synergy measure proved too time-consuming even for small networks.
 As a result, we were forced to use the mean between the lower- and upper bound for synergy, which yields an imprecise but easily computed synergy measure.
