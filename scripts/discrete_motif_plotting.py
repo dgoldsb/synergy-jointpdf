@@ -25,16 +25,16 @@ __author__ = 'dgoldsb'
 
 
 def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
-    """
+    '''
     Make a sample of
 
-    :param samples: list of lists of integers
-    :param colors: the color of each bar
-    :param labels: the label of each bar
-    :param title: the plot title
-    :param filename: the file to save to
-    :param axes_labels: labels for the axes
-    """
+    @param samples: list of lists of integers
+    @param colors: the color of each bar
+    @param labels: the label of each bar
+    @param title: the plot title
+    @param filename: the file to save to
+    @param axes_labels: labels for the axes
+    '''
     # to determine the range on the x-axis
     total_sample = []
 
@@ -80,16 +80,16 @@ def plot_bar(samples, colors, labels, title, filename=None, axes_labels=None):
 
 
 def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
-    """
+    '''
     Make a line plot
 
-    :param values: numpy array, should be a list containing [x-value, [y-values]]
-    :param colors: the color of each point
-    :param labels: the label of each point
-    :param title: the plot title
-    :param filename: the file to save to
-    :param axes_labels: labels for the axes
-    """
+    @param values: numpy array, should be a list containing [x-value, [y-values]]
+    @param colors: the color of each point
+    @param labels: the label of each point
+    @param title: the plot title
+    @param filename: the file to save to
+    @param axes_labels: labels for the axes
+    '''
     if title is not None:
         plt.title(title)
     if axes_labels is not None:
@@ -124,16 +124,16 @@ def plot_line(values, colors, labels, title, filename=None, axes_labels=None):
 
 
 def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=None):
-    """
+    '''
     example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
 
-    :param x_values: numpy array
-    :param colors: the color of each point
-    :param labels: the label of each point
-    :param title: the plot title
-    :param filename: the file to save to
-    :param axes_labels: labels for the axes
-    """
+    @param x_values: numpy array
+    @param colors: the color of each point
+    @param labels: the label of each point
+    @param title: the plot title
+    @param filename: the file to save to
+    @param axes_labels: labels for the axes
+    '''
     if title is not None:
         plt.title(title)
     if axes_labels is not None:
@@ -149,10 +149,10 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
                 col_plot.append(colors[i])
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
-        if current_color == "red":
-            mark = "x"
+        if current_color == 'red':
+            mark = 'x'
         else:
-            mark = "o"
+            mark = 'o'
         plt.scatter(x_plot[:, 0], x_plot[:, 1], c=col_plot[0], label=lab_plot[0], marker=mark)
     plt.legend(loc='upper left', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
@@ -163,16 +163,16 @@ def plot_scatter(x_values, colors, labels, title, filename=None, axes_labels=Non
 
 
 def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=None):
-    """
+    '''
     example: http://alexanderfabisch.github.io/t-sne-in-scikit-learn.html
 
-    :param x_values: numpy array
-    :param colors: the color of each point
-    :param labels: the label of each point
-    :param title: the plot title
-    :param filename: the file to save to
-    :param axes_labels: labels for the axes
-    """
+    @param x_values: numpy array
+    @param colors: the color of each point
+    @param labels: the label of each point
+    @param title: the plot title
+    @param filename: the file to save to
+    @param axes_labels: labels for the axes
+    '''
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     if title is not None:
@@ -191,10 +191,10 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
                 col_plot.append(colors[i])
                 lab_plot.append(labels[i])
         x_plot = np.array(x_plot)
-        if current_color == "red":
-            mark = "x"
+        if current_color == 'red':
+            mark = 'x'
         else:
-            mark = "o"
+            mark = 'o'
         ax.scatter(x_plot[:, 0], x_plot[:, 1], x_plot[:, 2], c=col_plot[0], label=lab_plot[0], marker=mark)
     plt.legend(loc='upper right', numpoints=1, ncol=3, fontsize=8)
     if filename is not None:
@@ -204,9 +204,8 @@ def plot_scatter_3d(x_values, colors, labels, title, filename=None, axes_labels=
         plt.show()
 
 
-# TODO: below obsolete? no... this seems to work, in contrast to the actual implementation in the class
 def state_transition_table(motif, rule):
-    """
+    '''
     Find the state transition table, and return it as a list of list.
     This list of lists can be turned into a nice table using tabulate and display(HTML()).
 
@@ -218,21 +217,21 @@ def state_transition_table(motif, rule):
     RETURNS:
     ---
     trans_table: a list of lists
-    """
+    '''
     # set up the table
     table = []
     header = []
-    genes = list(range(0, motif.grn_vars["gene_cnt"]))
+    genes = list(range(0, motif.grn_vars['gene_cnt']))
     for _gene in genes:
-        header.append("Gene "+str(_gene)+" t=0")
+        header.append('Gene '+str(_gene)+' t=0')
     for _gene in genes:
-        header.append("Gene "+str(_gene)+" t=1")
+        header.append('Gene '+str(_gene)+' t=1')
     table.append(header)
 
     # construct the leafcodes, each leafcode represents a state at T=0
     states = list(range(motif.numvalues))
-    leafcodes = list(itertools.product(states, repeat=motif.grn_vars["gene_cnt"]))
-    genes = list(range(0, motif.grn_vars["gene_cnt"]))
+    leafcodes = list(itertools.product(states, repeat=motif.grn_vars['gene_cnt']))
+    genes = list(range(0, motif.grn_vars['gene_cnt']))
 
     # loop over all states
     for _leafcode in leafcodes:
@@ -244,9 +243,9 @@ def state_transition_table(motif, rule):
         for _gene in genes:
             # filter rules with this gene as the target
             transition_functions = []
-            for _rule in motif.grn_vars["rules"]:
+            for _rule in motif.grn_vars['rules']:
                 # check if gene is the target, if so add
-                if _gene in _rule["outputs"]:
+                if _gene in _rule['outputs']:
                     transition_functions.append(_rule)
 
             # tally over all rules what state this should be
@@ -259,15 +258,15 @@ def state_transition_table(motif, rule):
             for _func in transition_functions:
                 # prepare inputs
                 inputs = []
-                for index_input in _func["inputs"]:
+                for index_input in _func['inputs']:
                     inputs.append(_leafcode[index_input])
 
                 outputs = []
-                for index_output in _func["outputs"]:
+                for index_output in _func['outputs']:
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_func = _func["rulefunction"](inputs)
+                output_value_func = _func['rulefunction'](inputs)
 
                 # add to the tally
                 tally[str(int(output_value_func))] += 1
@@ -287,42 +286,37 @@ def generate_id(size=7, chars=string.ascii_uppercase + string.digits):
 
 def append_id(filename):
     name, ext = os.path.splitext(filename)
-    return "{name}_{uid}{ext}".format(name=name, uid=generate_id(), ext=ext)
+    return '{name}_{uid}{ext}'.format(name=name, uid=generate_id(), ext=ext)
 
 
 def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, colors=None, labels=None,
                                     filename=None, verbose=False):
-    """
+    '''
     Adds variables, enforcing set total correlations between them.
 
-    PARAMETERS
-    ---
-    motifs: a list of DiscreteGrnMotif objects
-    width: number of variables nudged (int)
-    size: size of the nudge (float)
-    synergy_measure: the synergy function to use (object)
-    colors: the color of a scatterpoint
-    labels: the label of a scatterpoint
-    filename: name of pdf to save to (string)
-
-    RETURNS
-    ---
-    impacts: list of the impact of the nudge per motif
-    synergies: list of the synergy per motif
-    """
+    @param motifs: a list of DiscreteGrnMotif objects
+    @param width: number of variables nudged (int)
+    @param size: size of the nudge (float)
+    @param synergy_measure: the synergy function to use (object)
+    @param colors: the color of a scatterpoint
+    @param labels: the label of a scatterpoint
+    @param filename: name of pdf to save to (string)
+    @returns: impacts, list of the impact of the nudge per motif
+    @returns: synergies, list of the synergy per motif
+    '''
     impacts = []
     synergies = []
     for motif in motifs:
         if verbose:
-            print("trying to find datapoint "+str(len(impacts)+1))
+            print('trying to find datapoint '+str(len(impacts)+1))
 
         # find the targets
         targets = []
         if motif.evaluation_style == 'network':
-            for rule in motif.grn_vars["rules"]:
-                targets = list(set(targets + rule["outputs"]))
+            for rule in motif.grn_vars['rules']:
+                targets = list(set(targets + rule['outputs']))
             if verbose:
-                print("the rules affect "+str(targets))
+                print('the rules affect '+str(targets))
 
         # try to evaluate and find synergy
         try:
@@ -335,11 +329,11 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, colors
             time_end = time.time()
             time_diff = time_end - time_start
             if verbose:
-                print("finding synergy took: "+str(time_diff))
+                print('finding synergy took: '+str(time_diff))
 
             # find the nudge impact
             motif.reset_to_state(0)
-            operations.nudge_variable(motif, width, size, "DJ")
+            operations.nudge_variable(motif, width, size, 'DJ')
             motif.evaluate_motif()
             impact = measures.abs_diff(motif.states[-2], motif.states[-1])
 
@@ -347,30 +341,34 @@ def scatterplot_synergy_nudgeimpact(motifs, width, size, synergy_measure, colors
             synergies.append(float(synergy)/float(mutual_information))
             impacts.append(impact)
         except:
-            print("failed to find the synergy")
+            print('failed to find the synergy')
             # to make sure the labels are still correct
             synergies.append(None)
             impacts.append(None)
 
     # create the plot
     if colors is None:
-        colors = ["red"] * len(motifs)
+        colors = ['red'] * len(motifs)
     if labels is None:
         labels = [motif.evaluation_style] * len(motifs)
     if filename is not None:
         filename = append_id(filename)
     x_values = zip(impacts, synergies)
-    axes_labels = ["Nudge impact", "Synergy/MI"]
-    title = "Relation between synergy and nudge impact (%s variables, %s-valued\
-            logic, %s nudge affecting %s variables)" % (motifs[0].grn_vars["gene_cnt"],
+    axes_labels = ['Nudge impact', 'Synergy/MI']
+    title = 'Relation between synergy and nudge impact (%s variables, %s-valued\
+            logic, %s nudge affecting %s variables)' % (motifs[0].grn_vars['gene_cnt'],
                                                         motifs[0].numvalues, size, width)
     plot_scatter(x_values, colors, labels, title, filename, axes_labels)
 
     return impacts, synergies
 
+
 def create_mi_profile(motif, mode):
     '''
     This function creates a MI profile from a system, which can be used later.
+
+    @param motif: a motif object
+    @param mode: the type of profile to create (string)
     '''
     # reset and timestep
     motif.evaluate_motif()
@@ -383,7 +381,7 @@ def create_mi_profile(motif, mode):
     plot_data = [0]
 
     # Determine the system size
-    system_size = motif.grn_vars["gene_cnt"]
+    system_size = motif.grn_vars['gene_cnt']
 
     # Relabel to be sure
     labels = range(0, system_size)
@@ -399,7 +397,7 @@ def create_mi_profile(motif, mode):
             combination = list(combination)
             
             mi = measures.mutual_information(motif, combination)
-            # print("found entropy of "+str(entropy)+" for combination "+str(combination))
+            # print('found entropy of '+str(entropy)+' for combination '+str(combination))
             mis.append(mi)
         if mode == 'average':
             plot_data.append(np.average(mis)/mi_system)
@@ -412,9 +410,15 @@ def create_mi_profile(motif, mode):
 
     return plot_data
 
+
 def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
     '''
     This function plots a profile, or a set of profiles
+
+    @param motifs: a list of motif objects
+    @param title: a string
+    @param mode: the type of profile to create (string)
+    @param filename: a string
     '''
     plot_data = create_mi_profile(motifs[0], mode)
     system_size = len(plot_data)-1
@@ -426,12 +430,12 @@ def plot_mi_profile(motifs, title=None, mode='maximum', filename=None):
             print('You supplied a list')
         else:
             plt.plot(x_ax, plot_data)
-    axes_labels = ["MI (%s)" % mode, "System size"]
+    axes_labels = ['MI (%s)' % mode, 'System size']
     plt.xlabel(axes_labels[0])
     plt.ylabel(axes_labels[1])
     if title is not None:
-        title = "Complexity profile of %d motifs" % len(motifs)
-    plt.plot(x_ax, y_ax, ls="--")
+        title = 'Complexity profile of %d motifs' % len(motifs)
+    plt.plot(x_ax, y_ax, ls='--')
     if title is not None:
         plt.title(title)
     if filename is not None:

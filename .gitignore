@@ -1,6 +1,8 @@
+.vscode/*
 *.pkl
 *.xml
 *.iml
+*.out
 */.idea/*
 ./scripts/discrete_nudge/jointpdf/*
 ./scripts/continuous_nudge/NPEET/*

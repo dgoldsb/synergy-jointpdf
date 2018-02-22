@@ -1,28 +1,26 @@
-"""
+'''
 Author: Dylan Goldsborough
 Email:  dgoldsb@live.nl
 
 This file builds a discrete GRN motif, and contains some of the common operations used.
-"""
+'''
 
 from __future__ import print_function
 
 from copy import deepcopy
 import itertools
 import json
-from operator import itemgetter
+import numpy as np
 import os
 import random
-import sys
 
 from jointpdf.jointpdf import JointProbabilityMatrix
-import numpy as np
 
-ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..')
+ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 CONFIG = os.path.join(ROOT, 'config')
 
 class DiscreteGrnMotif(JointProbabilityMatrix):
-    """
+    '''
     A motif which consists of:
 
     - a set of Genes, each assigned a number
@@ -35,9 +33,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
     When we advance time, each leaf of the original tree will sprout a new tree.
     If we advance time for all vars, we can sum all these trees together to get the object for t+1.
     It is an extension of the jointpdf package from Rick Quax.
-    """
-
+    '''
     def __init__(self, numvariables, numvalues, mode='uniform'):
+        '''
+        Initialize a discrete motif.
+
+        @param numvariables: the number of genes
+        @param numvalues: the number of expression levels
+        @param mode: the initialization mode of the jointpdf object (is often overwritten)
+        '''
         # call the super init
         super(DiscreteGrnMotif, self).__init__(numvariables, numvalues, mode)
 
@@ -45,71 +49,69 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         self.evaluation_style = 'network'
 
         # global variables of a GRN network
-        # TODO: refactor this away, the dict is annoying
         self.grn_vars = {}
         ## important to store the number of genes, as this is not the same as the numvariables
-        self.grn_vars["gene_cnt"] = 0
+        self.grn_vars['gene_cnt'] = 0
         ## the rules are not part of the original framework
-        self.grn_vars["rules"] = []
+        self.grn_vars['rules'] = []
         ## correlation matrix for the dependent PDF of the initial conditions
-        self.grn_vars["correlations"] = None
+        self.grn_vars['correlations'] = None
         ## set the default to downregulation dominates
-        self.grn_vars["conflict_rule"] = 'totaleffect'
+        self.grn_vars['conflict_rule'] = 'totaleffect'
         ## also there has been a sequence of states, the latest is the current state
         self.states = []
 
         # global variables of a transition table
         self.transition_table = None
 
+
     def setter_grn_to_file(self, filename):
-        """
+        '''
         Set the settings for the GRN from a json.
 
-        PARAMETERS
-        ---
-        filename: string
-        """
+        @param filename: string with the desired filename
+        '''
         filepath = os.path.join(CONFIG, filename)
         with open(filepath, 'w') as outfile:
             json.dump(self.grn_vars, outfile)
 
+
     def getter_grn_from_file(self, filename):
-        """
+        '''
         Save the settings for the GRN to a json.
 
-        PARAMETERS
-        ---
-        filename: string
-        """
+        @param filename: string with the desired filename
+        '''
         filepath = os.path.join(CONFIG, filename)
         with open(filepath) as infile:
             self.grn_vars = json.load(infile)
 
+
     def construct_grn(self):
-        """
+        '''
         Creates a FullNestedArrayOfProbabilities object from the settings provided.
-        """
+        '''
         # reset the object
         self.reset(1, self.numvalues, self.joint_probabilities)
 
         # nasty thing with the states intially taking over those of the last created object
         self.states = []
-        
+
         # check
         if self.transition_table is None:
-            self.set_transition_table(self.grn_vars["conflict_rule"])
+            self.set_transition_table(self.grn_vars['conflict_rule'])
 
         # add all the genes
-        if self.grn_vars["correlations"] is None:
+        if self.grn_vars['correlations'] is None:
             # use the default append_variable with random dependencies
-            for _ in range(1, self.grn_vars["gene_cnt"]):
+            for _ in range(1, self.grn_vars['gene_cnt']):
                 self.append_variables(num_added_variables=1
                                       , added_joint_probabilities=None)
         else:
             # use the total correlation append_variable
-            for i in range(1, self.grn_vars["gene_cnt"]):
+            for i in range(1, self.grn_vars['gene_cnt']):
                 # find the correlation of the to-be-appended gene with previous
-                row = self.grn_vars["correlations"][i]
+                row = self.grn_vars['correlations'][i]
                 correlation = row[self.numvariables - 1]
                 self.append_variable_correlation(correlation)
             # resample the probabilities, otherwise they get messed up somehow
@@ -121,12 +123,13 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # as such, we generate all permutations, sort them and pick the top one
         permutations = self.find_transition_table_permutations()
         permutations.sort()
-        self.transition_table = permutations[0] 
-        
+        self.transition_table = permutations[0]
+
         self.states.append(self.joint_probabilities.joint_probabilities)
 
+
     def append_variable_correlation(self, correlation):
-        """
+        '''
         Adds variables, enforcing set total correlations between them.
 
         I thought a bit more about this, and I think the correlation matrix
@@ -139,11 +142,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         This should still be normalized, which is good!
 
-        PARAMETERS
-        ---
-        correlations: defines the correlations with all existing variables
-                      (list of floats)
-        """
+        @param correlations: defines the correlations with all existing variables
+                             (list of floats)
+        '''
         # deepen the tree, use the correlation with the previous variable
         states = list(range(self.numvalues))
         leafcodes = list(itertools.product(states, repeat=self.numvariables))
@@ -163,59 +164,57 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # increase the number of variables
         self.numvariables += 1
 
+
     def append_rule(self, inputs, outputs, rulefunction):
-        """
+        '''
         Append rule to the motif, keep in mind that the order of the inputs could matter.
         The function defines a truthtable, which is part of the motif operations.
         Rulefunctions are applied in a set order, so it does not matter in which order you add them.
 
-        PARAMETERS
-        ---
-        inputs: list of gene indices (integers)
-        outputs: list of gene indices (integers)
-        rulefunction: function to call to evaluate this rule
-        """
-
+        @param inputs: list of gene indices (integers)
+        @param outputs: list of gene indices (integers)
+        @param rulefunction: function to call to evaluate this rule
+        '''
         # check if the gene actually exists
         for _input in inputs:
-            if (_input < self.grn_vars["gene_cnt"]) is False:
-                raise RuntimeError("you are referencing a non-existing gene")
+            if (_input < self.grn_vars['gene_cnt']) is False:
+                raise RuntimeError('you are referencing a non-existing gene')
         for _output in outputs:
-            if (_output < self.grn_vars["gene_cnt"]) is False:
-                raise RuntimeError("you are referencing a non-existing gene")
+            if (_output < self.grn_vars['gene_cnt']) is False:
+                raise RuntimeError('you are referencing a non-existing gene')
 
         # we do not validate if the number of inputs/outputs match the rule
         # add the rule
         rule = {}
-        rule["inputs"] = inputs
-        rule["outputs"] = outputs
-        rule["rulefunction"] = rulefunction
-        self.grn_vars["rules"].append(rule)
+        rule['inputs'] = inputs
+        rule['outputs'] = outputs
+        rule['rulefunction'] = rulefunction
+        self.grn_vars['rules'].append(rule)
+
 
     def fetch_leafcode(self, leafcode, nested):
-        """
+        '''
         Fetches the value at the leafcode in the list.
 
-        PARAMETERS
-        ---
-        leafcode: list of integers (corresponding to Boolean values)
-        nested: a nested list, depth same as length of leafcode
-        """
+        @param leafcode: list of integers (corresponding to Boolean values)
+        @param nested: a nested list, depth same as length of leafcode
+        @returns: a float value stored under this leafcode
+        '''
         if len(leafcode) > 1:
             return self.fetch_leafcode(leafcode[1:], nested[leafcode[0]])
         else:
             return nested[leafcode[0]]
 
+
     def add_leafcode(self, leafcode, nested, addition):
-        """
+        '''
         Alters the value at the leafcode in the list.
 
-        PARAMETERS
-        ---
-        leafcode: list of integers (corresponding to Boolean values)
-        nested: a nested list, depth same as length of leafcode
-        addition: float
-        """
+        @param leafcode: list of integers (corresponding to Boolean values)
+        @param nested: a nested list, depth same as length of leafcode
+        @param addition: float that should be added to the probability in this leafcode
+        @returns: new branch (list of lists)
+        '''
         if len(leafcode) > 1:
             new_branches = []
             for i in range(0, self.numvalues):
@@ -237,17 +236,16 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                     new_branches.append(old_subbranch)
             return np.array(new_branches)
 
+
     def deepen_leafcode_with_corr(self, leafcode, nested, corr, popped=None):
-        """
+        '''
         Deepens a tree with copies of the parent.
         The leafcode we receive is 1 longer than the tree is deep.
 
-        PARAMETERS
-        ---
-        leafcode: list of integers (corresponding to Boolean values)
-        nested: a nested list, depth same as length of leafcode
-        """
-
+        @param leafcode: list of integers (corresponding to Boolean values)
+        @param nested: a nested list, depth same as length of leafcode
+        @returns: new branch (list of lists)
+        '''
         if len(leafcode) > 1:
             new_branches = []
             for i in range(0, self.numvalues):
@@ -283,24 +281,25 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 new_branch = new_branch + [new_leaf]
             return list(new_branch)
 
+
     def check_normalization(self):
-        """
+        '''
         Tiny normalization check.
 
-        RETURNS
-        ---
-        normalization: Boolean
-        """
+        @param normalization: Boolean
+        @returns: result of equality check
+        '''
         total_probabilities = np.array(np.minimum(np.maximum(self.joint_probabilities, 0.0), 1.0)
                                        , dtype=np.float128)
         return np.testing.assert_almost_equal(np.sum(total_probabilities), 1.0)
 
+
     def half_tree(self):
-        """
+        '''
         Halves the tree, leaving only the new state.
-        """
+        '''
         # find the indices sans the initial state
-        indices = range(self.grn_vars["gene_cnt"], self.numvariables)
+        indices = range(self.grn_vars['gene_cnt'], self.numvariables)
 
         # marginalize the distribution
         marginalized_object = self.marginalize_distribution(indices)
@@ -309,21 +308,17 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         self.joint_probabilities = marginalized_object.joint_probabilities
         self.numvariables = marginalized_object.numvariables
 
+
     def decide_outcome(self, tally, rule, old_value):
-        """
+        '''
         Decides what happens when multiple rules affect a gene.
         The most basic rules are majority rules, and downregulation dominates.
 
-        PARAMETERS
-        ---
-        tally: how many times each outcome was decided by all rules (dict)
-        rule: the way we decide the outcome
-        old_value: the old state of the gene (int)
-
-        RETURNS
-        ---
-        output_value: the new state of the gene (int)
-        """
+        @param tally: how many times each outcome was decided by all rules (dict)
+        @param rule: the way we decide the outcome
+        @param old_value: the old state of the gene (int)
+        @returns output_value: the new state of the gene (int)
+        '''
         if rule == 'totaleffect':
             # find the sum
             total_effect = 0
@@ -388,9 +383,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             if divide_by > 0:
                 return max(0, min(int(round(total/divide_by)), self.numvalues - 1))
             else:
-                raise ValueError("divide by zero")
+                raise ValueError('divide by zero')
         elif rule == 'odds':
-            raise ValueError("stochastic method is not re-implemented...")
+            raise ValueError('stochastic method is not re-implemented...')
             #diceroll = np.random.randint(0, sum(tally))
             #running_total = 0
             #for index in range(0, len(tally)):
@@ -398,19 +393,18 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             #    if running_total > diceroll:
             #        return index
         else:
-            raise ValueError("no valid rule defined!")
+            raise ValueError('no valid rule defined!')
 
 
     def append_variable_grn(self, gene_index, transition_functions):
-        """
+        '''
         Can be removed if the transition table method works.
 
         Appends a GRN-ruled variable.
 
-        PARAMETERS
-        ---
-        gene_index: index of the gene that should be added at the next timestep
-        """
+        @param gene_index: index of the gene that should be added at the next timestep
+        @param transition_functions: the functions applying to this gene (list of functions)
+        '''
         # construct the leafcodes
         states = list(range(self.numvalues))
         leafcodes = list(itertools.product(states, repeat=self.numvariables))
@@ -429,28 +423,28 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             # some trickery to make sure you can also append a state
             # when you did not clear the initial one
             _leafcode_original = deepcopy(_leafcode)
-            _leafcode = _leafcode[-self.grn_vars["gene_cnt"]:]
+            _leafcode = _leafcode[-self.grn_vars['gene_cnt']:]
 
             # loop over all relevant rules
             for _func in transition_functions:
                 # prepare inputs
                 inputs = []
-                for index_input in _func["inputs"]:
+                for index_input in _func['inputs']:
                     inputs.append(_leafcode[index_input])
 
                 outputs = []
-                for index_output in _func["outputs"]:
+                for index_output in _func['outputs']:
                     outputs.append(_leafcode[index_output])
 
                 # figure out the output state
-                output_value_func = _func["rulefunction"](inputs)
+                output_value_func = _func['rulefunction'](inputs)
 
                 # add to the tally
                 tally[str(int(output_value_func))] += 1
 
             # decide what it will be this leafcode
             output_value = self.decide_outcome(tally,
-                                               self.grn_vars["conflict_rule"],
+                                               self.grn_vars['conflict_rule'],
                                                _leafcode[gene_index])
 
             # update the leafcode
@@ -465,8 +459,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # validate everything is still normalized
         self.check_normalization()
 
+
     def evaluate_motif(self, genes=None, cleanup_first=True):
-        """
+        '''
         At every leaf, this builds a new probability tree on the initial one.
         This new tree is created based on the rules, and is sparse in nature.
         The sparseness is because the rules are deterministic (for the most part).
@@ -476,21 +471,20 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         The original object at t+1 can be obtained by summing over all the
         trees that are appended to the old tree.
 
-        PARAMETERS
-        ---
-        genes: list of integers (correspond to gene indices)
-        """
+        @param genes: list of integers (correspond to gene indices)
+        @param cleanup_first: boolean whether to clean the history of states
+        '''
         if cleanup_first:
             # drop old timestep
-            if self.numvariables == 2 * self.grn_vars["gene_cnt"]:
+            if self.numvariables == 2 * self.grn_vars['gene_cnt']:
                 self.half_tree()
-            elif self.numvariables != self.grn_vars["gene_cnt"]:
-                raise ValueError("cannot do a timestep after partial timestep")
+            elif self.numvariables != self.grn_vars['gene_cnt']:
+                raise ValueError('cannot do a timestep after partial timestep')
         else:
-            if self.numvariables == 3 * self.grn_vars["gene_cnt"]:
+            if self.numvariables == 3 * self.grn_vars['gene_cnt']:
                 # find the indices sans the initial state
-                indices = range(0, self.grn_vars["gene_cnt"]) +\
-                          range(2*self.grn_vars["gene_cnt"], self.numvariables)
+                indices = range(0, self.grn_vars['gene_cnt']) +\
+                          range(2*self.grn_vars['gene_cnt'], self.numvariables)
 
                 # marginalize the distribution
                 marginalized_object = self.marginalize_distribution(indices)
@@ -498,68 +492,69 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 # set the new properties
                 self.joint_probabilities = marginalized_object.joint_probabilities
                 self.numvariables = marginalized_object.numvariables
-            elif self.numvariables % self.grn_vars["gene_cnt"] != 0:
-                raise ValueError("cannot do a timestep after partial timestep")
+            elif self.numvariables % self.grn_vars['gene_cnt'] != 0:
+                raise ValueError('cannot do a timestep after partial timestep')
 
         # we don't need to update all genes, but the default is we do
         if genes is None:
-            genes = list(range(0, self.grn_vars["gene_cnt"]))
+            genes = list(range(0, self.grn_vars['gene_cnt']))
 
         if self.transition_table is None and self.evaluation_style == 'network':
             for _gene in genes:
                 # filter rules with this gene as the target
                 transition_functions = []
-                for _rule in self.grn_vars["rules"]:
+                for _rule in self.grn_vars['rules']:
                     # check if gene is the target, if so add
-                    if _gene in _rule["outputs"]:
+                    if _gene in _rule['outputs']:
                         transition_functions.append(_rule)
                 self.append_variable_grn(_gene, transition_functions)
         elif self.transition_table is not None and (self.evaluation_style == 'transition_table' or self.evaluation_style == 'network'):
-            if len(genes) < self.grn_vars["gene_cnt"]:
-                raise ValueError("Transition tables only support full system evaluations")
+            if len(genes) < self.grn_vars['gene_cnt']:
+                raise ValueError('Transition tables only support full system evaluations')
             # adjusting state transitions
             self.append_variables_using_state_transitions_table(self.transition_table)
             self.check_normalization()
         else:
-            raise ValueError("Invalid method of getting a transition table, should be transition_table or network")
+            raise ValueError('Invalid method of getting a transition table, should be transition_table or network')
 
         # add to the list of states
         ## find the indices sans the initial state
-        indices = range(self.grn_vars["gene_cnt"], self.numvariables)
+        indices = range(self.grn_vars['gene_cnt'], self.numvariables)
         ## marginalize the distribution
         marginalized_object = self.marginalize_distribution(indices)
         ## append the state
         self.states.append(marginalized_object.joint_probabilities.joint_probabilities)
 
+
     def reset_to_state(self, index):
-        """
+        '''
         Reset to the state at the index.
 
-        PARAMETERS
-        ---
-        index: integer
-        """
+        @param index: integer
+        '''
         if index > (len(self.states) - 1):
-            raise ValueError("state does not exist")
+            raise ValueError('state does not exist')
 
         self.joint_probabilities.joint_probabilities = deepcopy(self.states[index])
-        self.numvariables = self.grn_vars["gene_cnt"]
+        self.numvariables = self.grn_vars['gene_cnt']
+
 
     def set_transition_table(self, rule='totaleffect'):
-        """
+        '''
         Find the state transition table, and set it. 
         Note that this always uses the total effect method if not otherwise specified!
-        """
-        if self.evaluation_style != 'network':
-            raise ValueError("can only do this step for network motifs")
 
+        @param rule: the rule to be used to resolve conflicts
+        '''
+        if self.evaluation_style != 'network':
+            raise ValueError('can only do this step for network motifs')
         # set up the table
         table = []
 
         # construct the leafcodes, each leafcode represents a state at T=0
         states = list(range(self.numvalues))
-        leafcodes = list(itertools.product(states, repeat=self.grn_vars["gene_cnt"]))
-        genes = list(range(0, self.grn_vars["gene_cnt"]))
+        leafcodes = list(itertools.product(states, repeat=self.grn_vars['gene_cnt']))
+        genes = list(range(0, self.grn_vars['gene_cnt']))
 
         # loop over all states
         for _leafcode in leafcodes:
@@ -571,9 +566,9 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
             for _gene in genes:
                 # filter rules with this gene as the target
                 transition_functions = []
-                for _rule in self.grn_vars["rules"]:
+                for _rule in self.grn_vars['rules']:
                     # check if gene is the target, if so add
-                    if _gene in _rule["outputs"]:
+                    if _gene in _rule['outputs']:
                         transition_functions.append(_rule)
 
                 # tally over all rules what state this should be
@@ -586,21 +581,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 for _func in transition_functions:
                     # prepare inputs
                     inputs = []
-                    for index_input in _func["inputs"]:
+                    for index_input in _func['inputs']:
                         inputs.append(_leafcode[index_input])
 
                     outputs = []
-                    for index_output in _func["outputs"]:
+                    for index_output in _func['outputs']:
                         outputs.append(_leafcode[index_output])
 
-                    # TODO: if I want to allow self-activation, I should switch this around again... Although honestly this implementation is stupid, it makes self-references super static.
                     # figure out the output state
-                    #if set(_func["inputs"]) == set(_func["outputs"]):
-                    #    # this means it is self-activating
-                    #    output_value_func = _func["rulefunction"]([self.numvalues-1])
-                    #else:
-                    #    output_value_func = _func["rulefunction"](inputs)
-                    output_value_func = _func["rulefunction"](inputs)
+                    output_value_func = _func['rulefunction'](inputs)
 
                     # add to the tally
                     tally[str(int(output_value_func))] += 1
@@ -619,18 +608,17 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # set the state
         self.transition_table = table
 
+
     def is_cyclical(self, max_cycle_length=10):
-        """
+        '''
         Tests if the motif contains a cycle of max. n timesteps,
-        where n is given as a parameter "max_cycle_length".
+        where n is given as a parameter 'max_cycle_length'.
         We use the transition table extensively to do this.
 
-        :parameter
-        :param max_cycle_length: the maximum length of the cycle (integer)
+        @param max_cycle_length: the maximum length of the cycle (integer)
 
-        :returns
-        :return cycles: list of all cycles
-        """
+        @returns cycles: list of all cycles
+        '''
         # create the return variable
         cycles = []
 
@@ -670,22 +658,21 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
                 if np.array_equal(b, c):
                     # this is a static state, so we can quit looking if no cycle was found yet
                     break
-                
+
                 state_current = state_next
 
         # the number of states that are in a cycle is len(cyclical_states)
         return cycles
 
+
     def match_row(self, state_current):
-        """
+        '''
         Find the next state, according to the transition table.
 
-        :parameter
-        :param state_current: the current state (list of integers)
+        @param state_current: the current state (list of integers)
 
-        :returns
-        :return state_next: the next state (list of integers)
-        """
+        @returns state_next: the next state (list of integers)
+        '''
         state_next = None
         for row in self.transition_table:
             half_length = len(row)/2
@@ -702,26 +689,25 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
         # if nothing is found, return None
         return state_next
 
+
     def find_in_sample(self, sample, strict=True):
-        """
+        '''
         See if an identical motif to self can be found in the sample.
         This is tricky, as we want to find every motif that in essence is the same...
         This means motif where 1 stimulates 2 is the same as a motif where 2 stimulates 1.
 
-        :parameter
-        :param sample: the set to compare to (list of DiscreteGrnMotif objects)
-        :param strict: if True, we ignore matches with the same transition table,
+        @param sample: the set to compare to (list of DiscreteGrnMotif objects)
+        @param strict: if True, we ignore matches with the same transition table,
             but different functions (bool)
-        :returns
-        :return found: the matches of the search (list of DiscreteGrnMotif objects)
-        """
+        @returns return found: the matches of the search (list of DiscreteGrnMotif objects)
+        '''
         # create the return variable
         found = []
 
         # loop over our sample
         for motif in sample:
             # first we check if the the functions are the same, if not it is a different motif
-            if not strict or (self.grn_vars["rules"].sorted() == motif.grn_vars["rules"].sorted()):
+            if not strict or (self.grn_vars['rules'].sorted() == motif.grn_vars['rules'].sorted()):
                 # find all transition table mutations
                 permutations = self.find_transition_table_permutations()
                 for permutation in permutations:
@@ -733,18 +719,18 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         return found
 
+
     def find_transition_table_permutations(self):
-        """
+        '''
         Find all permutations of a transition table that are the same motif.
 
-        :returns
-        :return permutations: list of transition tables
-        """
+        @returns permutations: list of transition tables
+        '''
         # create return variable
         permutations = []
 
         # find all possible gene mappings (e.g. 0 > 1 and 1 > 0)
-        genes = list(range(0, self.grn_vars["gene_cnt"]))
+        genes = list(range(0, self.grn_vars['gene_cnt']))
         genes_permutations = itertools.permutations(genes)
 
         # loop over all possible mappings, n! possibilities sadly
@@ -753,16 +739,15 @@ class DiscreteGrnMotif(JointProbabilityMatrix):
 
         return permutations            
 
+
     def permute_transition_table(self, mapping):
-        """
+        '''
         Permutes a transition table following a mapping.
 
-        :parameter
-        :param mapping: gene index becomes gene value of index (list of integers)
+        @param mapping: gene index becomes gene value of index (list of integers)
 
-        :returns
-        :return table_new: new transistion table (list of list of ints)
-        """
+        @returns table_new: new transistion table (list of list of ints)
+        '''
         # create return value
         table_old = self.transition_table
         table_new = []

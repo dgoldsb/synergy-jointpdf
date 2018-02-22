@@ -1,9 +1,9 @@
-"""
+'''
 Author: Dylan Goldsborough
 Email:  dgoldsb@live.nl
 
 Generates random discrete motif objects and saves them.
-"""
+'''
 
 from copy import deepcopy
 from decimal import *
@@ -11,34 +11,28 @@ from fractions import Fraction
 import itertools
 import math
 import numpy as np
-from operator import mul    # or mul=lambda x,y:x*y
+from operator import mul
 from pyDOE import *
 import random
 
-
 from discrete_motif import DiscreteGrnMotif
 import discrete_motif_functions as functions
-
 
 def nCk(n,k): 
   return int( reduce(mul, (Fraction(n-i, i+1) for i in range(k)), 1) )
 
 
 def generate_correlation_matrix(gene_cnt, betaparam = 10):
-    """
+    '''
     Generate a completely random gene correlation matrix.
     We cannot just fill the diagonal band and derive from there, as the we asume the system labels
     represent the flow of information.
     We use the vine method from a paper by Lewandowski, Kurowicka, and Joe.
 
-    PARAMETERS
-    ---
-    gene_cnt: number of genes (int)
+    @param gene_cnt: number of genes (int)
 
-    RETURNS
-    ---
-    matrix: a gene_cnt x gene_cnt matrix (ndarray of floats)
-    """
+    @returns: a gene_cnt x gene_cnt matrix (ndarray of floats)
+    '''
     P = np.zeros((gene_cnt, gene_cnt))
     S = np.eye(gene_cnt)
 
@@ -69,7 +63,7 @@ def generate_correlation_matrix(gene_cnt, betaparam = 10):
 
 
 def generate_rules(no_rules, no_nodes, p_1to1):
-    """
+    '''
     We use a Erdos-Renyi approach, without preferential attachment.
     We only use 1-to-1 and 2-to-1 functions, and randomly select origins
     and targets.
@@ -82,16 +76,11 @@ def generate_rules(no_rules, no_nodes, p_1to1):
     To compensate, we manually turn this to an approximately 25-75 ratio
     (configurable).
 
-    PARAMETERS
-    ---
-    no_rules: the number of rules requested (int)
-    no_nodes: the number of nodes requested (int)
-    p_1to1: the chance that an edge is 1-to-1 (float)
-
-    RETURNS
-    ---
-    rules: a list of rule dictionaries
-    """
+    @param no_rules: the number of rules requested (int)
+    @param no_nodes: the number of nodes requested (int)
+    @param p_1to1: the chance that an edge is 1-to-1 (float)
+    @returns: a list of rule dictionaries
+    '''
     # we store all rule-dictionaries in this list
     rules = []
 
@@ -147,9 +136,9 @@ def generate_rules(no_rules, no_nodes, p_1to1):
 
             # set the values
             rule = {}
-            rule["inputs"] = deepcopy(edge[0])
-            rule["outputs"] = [deepcopy(edge[1])]
-            rule["rulefunction"] = choice["f"]
+            rule['inputs'] = deepcopy(edge[0])
+            rule['outputs'] = [deepcopy(edge[1])]
+            rule['rulefunction'] = choice['f']
 
             # append to rules
             rules.append(rule)
@@ -158,25 +147,20 @@ def generate_rules(no_rules, no_nodes, p_1to1):
 
 
 def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_rule='totaleffect', chance_1to1=0.75):
-    """
+    '''
     Returns a list of objects.
     Improvable Barabasi-Albert network.
     This returns networks, which represent a part of the transition table search
     space that we think contains all biological GRN networks.
 
-    PARAMETERS
-    ---
-    samplesize: number of objects in list
-    no_nodes: number of genes
-    indegrees: list of possible indegree desired (average indegree will tend
-    towards the average of the list), if None random (list of integers)
-    numvalues: number of possible values (int)
-    conflict_rule: the rule for deciding what state we get when rules conflict (str)
-
-    RETURNS
-    ---
-    motifs: list of DiscreteGrnMotif objects
-    """
+    @param samplesize: number of objects in list
+    @param no_nodes: number of genes
+    @param indegrees: list of possible indegree desired (average indegree will tend
+    @param towards the average of the list), if None random (list of integers)
+    @param numvalues: number of possible values (int)
+    @param conflict_rule: the rule for deciding what state we get when rules conflict (str)
+    @returns: list of DiscreteGrnMotif objects
+    '''
     # create empty list for the objects
     motifs = []
 
@@ -199,10 +183,10 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_
         grn_vars = {}
 
         # set the size
-        grn_vars["gene_cnt"] = no_nodes
-        grn_vars["conflict_rule"] = conflict_rule
+        grn_vars['gene_cnt'] = no_nodes
+        grn_vars['conflict_rule'] = conflict_rule
         # set the correlation matrix
-        grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
+        grn_vars['correlations'] = generate_correlation_matrix(no_nodes)
 
         # generate a random indegree if not given
         if indegrees is None:
@@ -214,7 +198,7 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_
         rules_total += no_rules
 
         # the rules are not part of the original framework
-        grn_vars["rules"] = generate_rules(no_rules, no_nodes, chance_1to1)
+        grn_vars['rules'] = generate_rules(no_rules, no_nodes, chance_1to1)
 
         motif = DiscreteGrnMotif(1, numvalues)
         motif.grn_vars = deepcopy(grn_vars)
@@ -227,18 +211,13 @@ def generate_motifs(samplesize, no_nodes, numvalues=2, indegrees=None, conflict_
 
 
 def random_transition_table(no_nodes, num_values):
-    """
+    '''
     Generate a random transition table.
 
-    PARAMETERS
-    ---
-    no_nodes: number of genes
-    numvalues: number of possible values (int)
-
-    RETURNS
-    ---
-    trans_table: a np array
-    """
+    @param no_nodes: number of genes
+    @param numvalues: number of possible values (int)
+    @returns: a numpy array with the random transition table
+    '''
 
     # construct the leafcodes
     states = list(range(num_values))
@@ -262,21 +241,15 @@ def random_transition_table(no_nodes, num_values):
 
 
 def generate_random(samplesize, no_nodes, numvalues = 2):
-    """
+    '''
     This is a true random generator of transition table-based GRNs,
     and covers the entire search space, not just the bio-GRN part.
 
-
-    PARAMETERS
-    ---
-    samplesize: number of objects in list
-    no_nodes: number of genes
-    numvalues: number of possible values (int)
-
-    RETURNS
-    ---
-    motifs: list of DiscreteGrnMotif objects
-    """
+    @param samplesize: number of objects in list
+    @param no_nodes: number of genes
+    @param numvalues: number of possible values (int)
+    @returns: list of DiscreteGrnMotif objects
+    '''
     # create empty list for the objects
     motifs = []
 
@@ -286,9 +259,9 @@ def generate_random(samplesize, no_nodes, numvalues = 2):
         grn_vars = {}
 
         # set the size
-        grn_vars["gene_cnt"] = no_nodes
+        grn_vars['gene_cnt'] = no_nodes
         # set the correlation matrix
-        grn_vars["correlations"] = generate_correlation_matrix(no_nodes)
+        grn_vars['correlations'] = generate_correlation_matrix(no_nodes)
 
         motif = DiscreteGrnMotif(1, numvalues)
         motif.grn_vars = deepcopy(grn_vars)

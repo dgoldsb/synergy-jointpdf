@@ -22,7 +22,7 @@ from time import gmtime, strftime
 
 # settings for the experiment
 synergy_measure = measures.synergy_middleground
-nudge_method = "DJ"
+nudge_method = 'DJ'
 sample_size = 50 # in practice this is times two, we draw a random and a GRN sample
 network_sizes = [2, 3, 4, 5]
 logic_sizes = [2, 3, 4]
@@ -30,9 +30,9 @@ max_nudge = 1 - (1.0 / min(logic_sizes))
 nudge_sizes = [0.2 * max_nudge, max_nudge/2, 0.8 * max_nudge]
 
 # set folders
-data_location = "../../data_pandas"
-archive_location = "../../archive_pandas"
-log_location = "../../log"
+data_location = '../data'
+archive_location = '../archive'
+log_location = '../log'
 
 def loop_impacts(network_size, nudge_size, motif):
     # find the memory
@@ -62,25 +62,25 @@ def draw_sample(lst):
     mylogger = lst[4]
 
     # create dataframe
-    dataframe = pd.DataFrame(columns=["system_size", "logic_size", "nudge_size", "type", "motif", "synergy", "memory", "impacts"])
+    dataframe = pd.DataFrame(columns=['system_size', 'logic_size', 'nudge_size', 'type', 'motif', 'synergy', 'memory', 'impacts'])
 
     # we generate our samples
-    mylogger.info("Sampling random with %s nodes and %s-valued logic" % (network_size, logic_size))
+    mylogger.info('Sampling random with %s nodes and %s-valued logic' % (network_size, logic_size))
     samples_random = generator.generate_random(sample_size, network_size, logic_size)
-    mylogger.info("Sampling GRN with %s nodes and %s-valued logic" % (network_size, logic_size))
+    mylogger.info('Sampling GRN with %s nodes and %s-valued logic' % (network_size, logic_size))
     samples_grn = generator.generate_motifs(sample_size, network_size, logic_size, [4])[0]
 
     # draw the samples
-    mylogger.info("Computing measures per sample...")
+    mylogger.info('Computing measures per sample...')
     loc_counter = 0
     for motif in samples_grn:
-        mylogger.info("sample %d" % loc_counter)
+        mylogger.info('sample %d' % loc_counter)
         # get the basic inputs in the dataframe row
         df_row = []
         df_row.append(network_size)
         df_row.append(logic_size)
         df_row.append(nudge_size)
-        df_row.append("GRN")
+        df_row.append('GRN')
         df_row.append(motif)
         motif.set_transition_table()
 
@@ -97,13 +97,13 @@ def draw_sample(lst):
 
     # enrich the random tables
     for motif in samples_random:
-        mylogger.info("sample %d" % loc_counter)
+        mylogger.info('sample %d' % loc_counter)
         # get the basic inputs in the dataframe row
         df_row = []
         df_row.append(network_size)
         df_row.append(logic_size)
         df_row.append(nudge_size)
-        df_row.append("random")
+        df_row.append('random')
         df_row.append(motif)
 
         # compute outputs of experiments
@@ -121,9 +121,9 @@ def draw_sample(lst):
 
 
 def draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylogger):
-    """
+    '''
     Wrapper that allows us to sample in parallel
-    """
+    '''
     pool = Pool(processes=2)
     jobs = []
     samples_realized = 0
@@ -150,10 +150,11 @@ def draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylog
 
     return dataframe, samples_grn, samples_random
 
+
 def main():
     # logger
     mylogger = logging.getLogger('mylogger')
-    handler1 = logging.FileHandler(filename=os.path.join(log_location, 'experiments_%s.log' % strftime("%Y-%m-%d %H:%M:%S", gmtime())), mode='w')
+    handler1 = logging.FileHandler(filename=os.path.join(log_location, 'experiments_%s.log' % strftime('%Y-%m-%d %H:%M:%S', gmtime())), mode='w')
     handler1.setLevel(logging.INFO)
     handler1.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
     mylogger.addHandler(handler1)
@@ -173,24 +174,24 @@ def main():
         shutil.copytree(data_location, archive_folder)
         shutil.rmtree(data_location)
         os.mkdir(data_location)
-        shutil.copy(os.path.join(archive_location, ".gitignore"), os.path.join(data_location, ".gitignore"))
+        shutil.copy(os.path.join(archive_location, '.gitignore'), os.path.join(data_location, '.gitignore'))
 
     # save the experiment parameters
     parameters = {}
-    parameters["synergy_measure"] = synergy_measure
-    parameters["nudge_method"] = nudge_method
-    parameters["sample_size"] = sample_size * 2 # because we take two samples #TODO dit lijkt niet altijd te kloppen
-    parameters["network_sizes"] = network_sizes
-    parameters["logic_sizes"] = logic_sizes
-    parameters["nudge_sizes"] = nudge_sizes
-    with open(os.path.join(data_location, "parameters.pkl"), 'wb') as output:
+    parameters['synergy_measure'] = synergy_measure
+    parameters['nudge_method'] = nudge_method
+    parameters['sample_size'] = sample_size * 2 # because we take two samples #TODO dit lijkt niet altijd te kloppen
+    parameters['network_sizes'] = network_sizes
+    parameters['logic_sizes'] = logic_sizes
+    parameters['nudge_sizes'] = nudge_sizes
+    with open(os.path.join(data_location, 'parameters.pkl'), 'wb') as output:
         pickle.dump(parameters, output, pickle.HIGHEST_PROTOCOL)
 
     # draw a few completely random samples, with different parameters
     for network_size in network_sizes:
         for logic_size in logic_sizes:
             for nudge_size in nudge_sizes:
-                mylogger.info("sampling %d nodes, %d logic size, %f nudge size, %s as nudge_method, %s as synergy measure" % (network_size, logic_size, nudge_size, nudge_method, synergy_measure))
+                mylogger.info('sampling %d nodes, %d logic size, %f nudge size, %s as nudge_method, %s as synergy measure' % (network_size, logic_size, nudge_size, nudge_method, synergy_measure))
                 start = time.time()
                 result = draw_sample([sample_size, network_size, logic_size, nudge_size, mylogger])
                 dataframe = result[0]
@@ -199,9 +200,9 @@ def main():
                 #dataframe, samples_grn, samples_random = draw_sample_wrapper(sample_size, network_size, logic_size, nudge_size, mylogger)
 
                 # save the data for future use/reruns
-                name_df = "experiment_k=%d_l=%d_e=%f_df.pkl" % (network_size, logic_size, nudge_size)
-                name_grn = "samples_grn_k=%d_l=%d_e=%f.pkl" % (network_size, logic_size, nudge_size)
-                name_random = "samples_random_k=%d_l=%d_e=%f.pkl" % (network_size, logic_size, nudge_size)
+                name_df = 'experiment_k=%d_l=%d_e=%f_df.pkl' % (network_size, logic_size, nudge_size)
+                name_grn = 'samples_grn_k=%d_l=%d_e=%f.pkl' % (network_size, logic_size, nudge_size)
+                name_random = 'samples_random_k=%d_l=%d_e=%f.pkl' % (network_size, logic_size, nudge_size)
                 with open(os.path.join(data_location, name_df), 'wb') as output:
                     pickle.dump(dataframe, output, pickle.HIGHEST_PROTOCOL)
                 with open(os.path.join(data_location, name_grn), 'wb') as output:
@@ -211,8 +212,9 @@ def main():
 
                 # log the finished experiment
                 end = time.time()
-                mylogger.info("sampled %d motifs" % sample_size)
-                mylogger.info("sample took %d seconds" % (end - start))
+                mylogger.info('sampled %d motifs' % sample_size)
+                mylogger.info('sample took %d seconds' % (end - start))
+
 
 if __name__ == '__main__':
     main()
