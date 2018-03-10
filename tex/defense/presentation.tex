@@ -3,15 +3,26 @@
 \usetheme{Frankfurt}
 \usepackage{natbib}
 \usepackage{apalike}
+\usepackage{amsmath}
+\usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{diagbox}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
+\usepackage{geometry}
 \lstset{basicstyle=\ttfamily, escapeinside={\%*}{*)}}
 
 \title{The role of synergy in the memory and resilience of random discrete gene regulatory networks}
 \author{Dylan Goldsborough}
 \date{12\textsuperscript{th} of March 2017}
+
+% Citations
+\bibliographystyle{plain}
 
 \begin{document}
 \begin{frame}
@@ -24,62 +35,512 @@
 \tableofcontents
 \end{frame} 
 
+%% LOOP DOOR MIJN THESIS HEEN EN VIND DE JUISTE ZINNEN MET REFERENCES
+
 %%% Introduction
 \section{Introduction} 
 \setcounter{subsection}{1}
-%% Who am I and what did I do?
+
+% STORY: I have always found this fascinating, how a complicated system can both attribuate to stability and chaos
+% I should tell why absence and excess both change this
+%
 \begin{frame}
 \frametitle{Introduction}
-Who am I?
 \begin{itemize}
-\item Dylan Goldsborough
-\item Student at the computational science master
-\item Attended the course on biomolecular simulation
-\item Enjoyed figuring out \textsc{TIPSI} in class
-\item Did a project to write a tutorial that introduces \textsc{TIPSI} over the past months!
+\item Many natural systems are complex
+\begin{itemize}
+\item Consist of many units
+\item Many interactions between units
+\item Emergent properties at a higher level
+\end{itemize}
+\item Both absence and excess of complexity make systems more vulnerable to change \cite{kondoh2003foraging, macarthur1955fluctuations} \dots{}
+\begin{itemize}
+\item Less importance of a single interaction
+\item Vulnerability of large systems to cascades
+\end{itemize}
+\item What is the relationship between complicatedness and resilience in biological complex systems? 
+\end{itemize}
+\end{frame}
+
+% STORY: Rick did research into synergy, found that it helps resilience
+% Natural systems can only remain in existence if they can cope with the perturbations
+\begin{frame}
+\frametitle{Introduction}
+\begin{itemize}
+\item It has been suggested that synergy increases the resilience of a system against perturbation in a single input variable \cite{quax2017quantifying}
+\item Natural systems require two things to operate \dots{}
+\begin{itemize}
+\item Resilience against single-variable perturbations
+\item Retention of information over time ("memory")
+\end{itemize}
+\item Extreme memory brings low resilience, and vice versa
+\item To function well, systems should optimize a combination of memory and resilience
+\item \textbf{Idea}: what if synergy plays a role in optimizing this balance?
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Introduction}
+\begin{itemize}
+\item Focus so far on dyadic interactions of variables \cite{ideker2001integrated, lu2004gene, tononi1999measures}
+\begin{itemize}
+\item Mutual information between random variables
+\item Correlations between gene expression
+\end{itemize}
+\item Synergy is a polyadic relationship
+\item Allows us to investigate properties that emerge at the polyadic level
+\item Maybe this is a piece of the puzzle of the relationship between complexity, resilience and memory
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Introduction}
+Partial information decomposition shows these higher level interactions.
+Let us consider a system with random variables $X$ and $Y$ predicting $Z$.
+\begin{itemize}
+\item Unique information, contained only in $X$ or $Y$
+\item Redundant information contained in both $X$ and $Y$
+\item Synergetic information contained in neither $X$ and $Y$, but derived from a combination of the two
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Partial information-diagram showing a PID of a 3-variable system}
+%% PICTURE %%
+\def\firstcircle{(0:-0.9cm) circle (2cm)}
+\def\secondcircle{(0:0cm) circle (3cm)}
+\def\thirdcircle{(0:0.9cm) circle (2cm)}
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+    \draw \firstcircle;
+    \draw \secondcircle;
+    \draw \thirdcircle;
+   
+    \begin{scope}[fill opacity=0.5]
+        \clip \firstcircle;
+        \fill[orange] \thirdcircle;
+    \end{scope}
+   
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \thirdcircle (-3,-3) rectangle (3,3);
+        \fill[yellow] \firstcircle;
+    \end{scope}
+   
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \firstcircle (-3,-3) rectangle (3,3);
+        \fill[red] \thirdcircle;
+    \end{scope}
+   
+    \begin{scope}[even odd rule, fill opacity=0.3]
+        \clip \firstcircle (-4,-4) rectangle (4,4);
+        \clip \thirdcircle (-4,-4) rectangle (4,4);
+        \fill[blue] \secondcircle;
+    \end{scope}
+   
+    \node (x) at (-2,0)  {$\mathrm{I}\left(Z; X \right)$};
+    \node (y) at (2,0)   {$\mathrm{I}\left(Z; Y \right)$};
+    \node (r) at (0,0)   {$\mathrm{I}_\mathrm{red}\left( Z;X,Y \right)$};
+    \node (s) at (0,2.3) {$\mathrm{I}_\mathrm{syn}\left( Z;X,Y \right)$};
+    \node (w) at (0,3.2) {$\mathrm{I}\left( Z;X,Y \right)$};
+\end{tikzpicture}
+\end{center}
+\label{venn}
+\end{figure}
+\end{frame}
+
+% STORY: give an intuitive example of resilience and 
+\begin{frame}
+\frametitle{Introduction}
+\begin{itemize}
+\item An example of synergy is an XOR-gate
+\item Quantifying synergy is an open problem \cite{griffith2011quantifying, olbrich2015information} \dots{}
+\end{itemize}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c||c|}
+\hline
+$X$ & $Y$ & $Z$ \\
+\hline
+\hline
+1 & 1 & 0 \\
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+0 & 0 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Truth table of an X-OR gate}
+\label{XOR}
+\end{table}
+\end{frame}
+
+% To set the expectations, kind of like the abstract
+% Mention that the last two are double, we test it for both but found no difference
+\begin{frame}
+\frametitle{Research question}
+\begin{itemize}
+\item Is there a form of synergistic control on memory and resilience in gene regulatory networks?
+\item Comparison of BRM and URM
+\item Hypotheses \dots{}
+\begin{itemize}
+\item There is significantly more synergy in a BRM than in a URM
+\item A BRM scores better in memory than a URM
+\item A BRM scores better in single-nudge resilience than a URM
+\item There is a positive correlation between synergy and resilience
+\item There is a positive correlation between synergy and memory
+\end{itemize}
 \end{itemize}
 \end{frame}
 
 \section{Methodology}
 \setcounter{subsection}{1}
 
-% Linux and GROMACS not very interesting, but included a guide to very basic parameter files
+%TODO continuous was too expensive, mention this
 \begin{frame}
-\frametitle{Cheatsheets}
-As an appendix, I included:
+\frametitle{A model for GRNs}
 \begin{itemize}
-\item A Linux cheatsheet, for students who are unfamiliar
-\item A \textsc{gromacs} cheatsheet (which I caught myself use often too)
-\item A \textsc{tipsi} cheatsheet
+\item We model GRN motifs as discrete networks
+\item A total of $n$ genes
+\item Gene can be in state $m \in \{0, 1, ..., l\}$
+\item Time is discrete
+\item Deterministic model
+\item Two representations in Python-implementation
+\begin{itemize}
+\item Graph form
+\item Transition table form
 \end{itemize}
-The last adresses the documentation problem with \textsc{tipsi}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Graph form}
+\begin{itemize}
+\item Graph form mimics real GRN motifs
+\item Genes can have four types of relations
+\begin{itemize}
+\item Stimulation (+)
+\item Inhibition (-)
+\item AND-stimulation (mimics co-factor)
+\item AND-inhibition (mimics co-factor)
+\end{itemize}
+\item Non-stimulated genes experience decay over time
+\item Self-stimulation is allowed \cite{thomas1995dynamical, zhou2016relative}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Graph form}
+PLAATJE NETWERK
+\end{frame}
+
+\begin{frame}
+\frametitle{Transition table form}
+\begin{itemize}
+\item We can convert a graph form to a transition table
+\item The transition table defines the state of the system at $t + \delta t$ for each possible system state at $t$
+\item Total of $l^n$ states
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Transition table form}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c|c||c|c|c|}
+\hline
+$A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \\
+\hline
+\hline
+1 & 1 & 1 & 0 & 0 & 0 \\
+1 & 1 & 0 & 1 & 0 & 1 \\
+1 & 0 & 1 & 1 & 1 & 1 \\
+1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 1 & 0 & 0 & 1 \\
+0 & 1 & 0 & 1 & 0 & 1 \\
+0 & 0 & 1 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 & 1 & 1 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Transition table form for $n=3$ and $l=2$}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{Generating BRMs}
+\begin{itemize}
+\item We sample biological random motifs (BRMs) using the Erdős–Rényi algorithm \cite{margolin2006aracne}
+\item We run the algorithm twice; for 1-to-1 edges, and for 2-to-1 edges
+\item We allow self-referring edges
+\item A random eligible function is attached to an edge
+\item We then convert to a transition table to perform time evolution
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Generating URMs}
+\begin{itemize}
+\item We sample uniform random motifs (URMs) using a randomized design
+\item We generate a transition table, skipping the graph form
+\item Each expression level in the future state is randomly determined
+\item We draw from a uniform distribution between $0$ and $l-1$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Generating URMs}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c|c||c|c|c|}
+\hline
+$A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \\
+\hline
+\hline
+1 & 1 & 1 & ? & ? & ? \\
+1 & 1 & 0 & ? & ? & ? \\
+1 & 0 & 1 & ? & ? & ? \\
+1 & 0 & 0 & ? & ? & ? \\
+0 & 1 & 1 & ? & ? & ? \\
+0 & 1 & 0 & ? & ? & ? \\
+0 & 0 & 1 & ? & ? & ? \\
+0 & 0 & 0 & ? & ? & ? \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Transition table form for $n=3$ and $l=2$}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{Measurement methods: synergy}
+\begin{itemize}
+\item Most synergy measures are too expensive to compute
+\item We use the mean of an upper- and lower bound
+\item Upper: $\mathrm{I}\left( \mathbf{X}_{t=0}; \mathbf{X}_{t=\Delta t} \right) - \max_i [\mathrm{I}\left( X_{t=0,i};\mathbf{X}_{t=\Delta t}\right)]$
+\item Lower: $\mathrm{WMS} \left( X;Y \right) = \mathrm{I} \left( X;Y \right) - \sum_i [\mathrm{I} \left( X_i;Y \right)]$
+\item We normalize this to fall between 0 and 1 by dividing by $\mathrm{I}\left( \mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Measurement methods: memory}
+\begin{itemize}
+\item We define the memory as the MI between the state at $t$ and $t + \delta t$
+\item Expression: $\mathrm{I}\left(\mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$
+\item We normalize by dividing by the entropy $\mathrm{H}\left(\mathbf{X}_{t + \Delta t}\right)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Measurement methods}
+\begin{itemize}
+\item We perform a local nudge on between 1 and $n$ genes
+\item Joint PDF of the variables that are not nudged remains unaltered
+\item Nudge size $0 \le \epsilon \le 1$, represents the fraction of the total probability tl be moved as part of the nudge
+\item We define the resilience as the difference between the nudged and unnudged state at $t + \delta t$
+\item Difference is defined using the Hellinger distance
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Complexity profile}
+%
+\begin{equation}
+C_\mathrm{mult}(k) = \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [\mathbf{X}]^k} [\mathrm{I}\left( X_i;Y \right)]}{\mathrm{I}\left( \mathbf{X};Y\right)}
+\end{equation}
+VOORBEELD COMPLEXITY PROFILE
+\end{frame}
+
+\begin{frame}
+\frametitle{Experimental design}
+\begin{itemize}
+\item We draw a sample of BRMs and a sample of URMs
+\item We compare the means (synergy, memory, resilience) using Wilcoxon rank test
+\item We compute Spearman correlations within the samples
+\begin{itemize}
+\item Synergy and memory
+\item Synergy and resilience
+\item Memory and resilience
+\end{itemize}
+\item We generate complexity profiles
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Parameters}
+\begin{itemize}
+\item We do a parameter sweep
+\item Average indegree of 4 \cite{lahdesmaki2003learning}
+\item 75\% of edges are 1-to-1 
+\end{itemize}
+\begin{table}[H]
+\begin{tabular}{| l | c | c | c |}
+\hline
+Parameter & Start & End & Increment \\
+\hline
+Network size (\#) & 2 & 5 & 1 \\
+Logic size (\#) & 2 & 5 & 1 \\
+Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
+\hline
+\end{tabular}
+\centering
+\caption{The parameter ranges used for the experiments}
+\label{parameters}
+\end{table}
 \end{frame}
 
 \section{Results}
 \setcounter{subsection}{1}
+% STORY: analyse the results already in this section, I will only give a summary later
 
-% Linux and GROMACS not very interesting, but included a guide to very basic parameter files
 \begin{frame}
-\frametitle{Cheatsheets}
-As an appendix, I included:
-\begin{itemize}
-\item A Linux cheatsheet, for students who are unfamiliar
-\item A \textsc{gromacs} cheatsheet (which I caught myself use often too)
-\item A \textsc{tipsi} cheatsheet
-\end{itemize}
-The last adresses the documentation problem with \textsc{tipsi}.
+\frametitle{t-SNE}
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=2_l=2/tsne2D.pdf}
+        \caption{t-SNE for $k=2$ and $l=4$ ($n=300$)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=5_l=4/tsne2D.pdf}
+        \caption{t-SNE for $k=5$ and $l=4$ ($n=300$)}
+    \end{subfigure}
+    \caption{t-SNE plots for varying experiments}
+    \label{fig:TSNE}
+\end{figure}
 \end{frame}
 
-\section{Future Research}
+\begin{frame}
+\frametitle{Scatterplots}
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=3_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \caption{Distribution for $k=3$ and $l=2$ ($n=300$)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=5_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
+        \caption{Distribution for $k=5$ and $l=4$ ($n=300$)}
+    \end{subfigure}
+    \caption{Scatterplots of synergy, memory and nudge impact (varying $l$ and $k$, $\epsilon = 0.25$)}
+    \label{fig:3dscatter}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Wilcoxon rank test}
+\begin{itemize}
+\item In all experiments URMs have a higher synergy
+\item In all experiments URMs have a higher memory
+\item In all experiments BRMs are more resilient
+\item Significance increase with larger $n$ and $l$
+\item Exeriments have $N = 100$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Spearman correlation}
+\begin{itemize}
+\item Negative correlation between synergy and memory
+\begin{itemize}
+\item Not in all experiments observed, but majority
+\item Relationship gets stronger with larger $n$ and $l$
+\end{itemize}
+\item Negative correlation between memory and resilience
+\begin{itemize}
+\item \textit{This relationship persists when we control for synergy}
+\item Strong and highly significant in all experiments
+\end{itemize}
+\item Weak positive correlation between synergy and resilience
+\begin{itemize}
+\item \textit{This relationship disappears when we control for memory}
+\end{itemize}
+\item Correlations were observed in both URMs and BRMs
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Complexity profiles}
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=4_l=4/MIprofile_random.pdf}
+        \caption{Profile ensemble of URMs}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{../../result/k=4_l=4/MIprofile_GRN.pdf}
+        \caption{Profile ensemble of BRMs}
+    \end{subfigure}
+    \caption{MI-profiles with $k=4$ and $l=4$ ($n=900$)}
+    \label{fig:profilel4}
+\end{figure}
+\end{frame}
+
+\section{Conclusion}
 \setcounter{subsection}{1}
 
 \begin{frame}
-\frametitle{Summary} 
+\frametitle{Conclusion}
+About what this means
+Summary slide, discuss for a long time
+Discuss Rick his hypothesis, and how I claim against this
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusion}
+Conclusion plaatje over mijn idee over Rick zijn ding.
+No difference between URM BRM
+No difference detected single multiple nudge
+\end{frame}
+
+\section{Discussion}
+\setcounter{subsection}{1}
+
+\begin{frame}
+\frametitle{Limitations in experimental design}
+* Een goed voorbeeld van het niveau waarop emergence/synergy gaat werken is flocking behavior; 4 vogels zullen zich nog niet als een flock gedragen, 100 wel. In het geval van genen is 5 genen niet genoeg, maar 10 motieven misschien wel.
+\end{frame}
+
+\begin{frame}
+\frametitle{Limitations in the model}
+* Stochastic in twee opzichten een verbetering: introduceer rest netwerk elke tijdstap, en stochastisch decay
+\end{frame}
+
+\section{Future research}
+\setcounter{subsection}{1}
+
+\begin{frame}
+\frametitle{Future research}
+Resources: repository
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+\frametitle{Literature}
+
+\bibliography{../sources}
+\end{frame}
+
+%% BACKUP SLIDES
+
+\section{Backup} 
+\setcounter{subsection}{1}
+
+% STORY: give an intuitive example of resilience and 
+\begin{frame}
+\frametitle{Introduction}
 \begin{itemize}
-\item I wrote a tutorial for students/people interested in \textsc{tipsi} with a fast but not so rare example, and a more computationally demanding but actually interesting example
-\item Added a bash script that finishes the output to make it fit for further analysis
-\item Added a basic script that helps understand the shooting moves made
-\item Compiled all calculator options, and how to set up a parameter file for \textsc{tipsi}
+\item Memory can be demonstrated with repeated die-rolls $X_t$
+\begin{itemize}
+\item Memory is maximized if we roll a die, and assume $X_{t=0} = X_{t=1}$
+\item Memory is minimized if we roll a die, and do an independent reroll
+\end{itemize}
+\item Resilience can be seen as an adjustment of $X_{t=0}$
+\begin{itemize}
+\item Resilience is low when we roll $X_{t=0}$, adjust this, and then assume $X_{t=0} = X_{t=1}$
+\item Resilience is higher when we roll several dice, adjust one, and reroll the others
+\end{itemize}
 \end{itemize}
 \end{frame}
 
