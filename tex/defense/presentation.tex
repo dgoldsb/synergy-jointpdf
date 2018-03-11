@@ -2,7 +2,6 @@
 \usepackage{lmodern}
 \usetheme{Frankfurt}
 \usepackage{natbib}
-\usepackage{apalike}
 \usepackage{amsmath}
 \usepackage{multirow}
 \usepackage{graphicx}
@@ -19,7 +18,7 @@
 
 \title{The role of synergy in the memory and resilience of random discrete gene regulatory networks}
 \author{Dylan Goldsborough}
-\date{12\textsuperscript{th} of March 2017}
+\date{12\textsuperscript{th} of March 2018}
 
 % Citations
 \bibliographystyle{plain}
@@ -55,10 +54,11 @@
 \end{itemize}
 \item Both absence and excess of complexity make systems more vulnerable to change \cite{kondoh2003foraging, macarthur1955fluctuations} \dots{}
 \begin{itemize}
-\item Less importance of a single interaction
-\item Vulnerability of large systems to cascades
+\item Less importance of a single interaction?
+\item Vulnerability of very complex systems to cascades?
+\item No complete consensus
 \end{itemize}
-\item What is the relationship between complicatedness and resilience in biological complex systems? 
+\item What is the relationship between complexity and resilience in biological complex systems? 
 \end{itemize}
 \end{frame}
 
@@ -67,15 +67,15 @@
 \begin{frame}
 \frametitle{Introduction}
 \begin{itemize}
-\item It has been suggested that synergy increases the resilience of a system against perturbation in a single input variable \cite{quax2017quantifying}
+\item Suggested that synergy increases the resilience of a system against perturbations \cite{quax2017quantifying}
 \item Natural systems require two things to operate \dots{}
 \begin{itemize}
 \item Resilience against single-variable perturbations
 \item Retention of information over time ("memory")
 \end{itemize}
-\item Extreme memory brings low resilience, and vice versa
-\item To function well, systems should optimize a combination of memory and resilience
-\item \textbf{Idea}: what if synergy plays a role in optimizing this balance?
+\item Extreme memory brings low resilience
+\item To function well, systems should optimize a combination of memory and resilience\\
+\item \textbf{What if synergy plays a role in optimizing this balance?}
 \end{itemize}
 \end{frame}
 
@@ -87,26 +87,25 @@
 \item Mutual information between random variables
 \item Correlations between gene expression
 \end{itemize}
-\item Synergy is a polyadic relationship
-\item Allows us to investigate properties that emerge at the polyadic level
-\item Maybe this is a piece of the puzzle of the relationship between complexity, resilience and memory
+\item Synergy is a polyadic interaction
+\item Allows us to investigate properties that emerge at the polyadic level\\
+\item \textbf{Maybe this is a piece of the puzzle of the relationship between complexity, resilience and memory?}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Introduction}
-Partial information decomposition shows these higher level interactions.
-Let us consider a system with random variables $X$ and $Y$ predicting $Z$.
+\frametitle{Introduction: Partial information decomposition}
+Let us consider a system with random variables $X$ and $Y$ predicting $Z$ \dots{}
 \begin{itemize}
-\item Unique information, contained only in $X$ or $Y$
-\item Redundant information contained in both $X$ and $Y$
-\item Synergetic information contained in neither $X$ and $Y$, but derived from a combination of the two
+\item Unique information, predicts $Z$ contained only in $X$ or $Y$
+\item Redundant information, predicts $Z$ contained in both $X$ and $Y$
+\item Synergistic information, predicts $Z$ contained in neither $X$ and $Y$, but derived from a combination of the two
 \end{itemize}
 \end{frame}
 
 
 \begin{frame}
-\frametitle{Partial information-diagram showing a PID of a 3-variable system}
+\frametitle{Introduction: partial information decomposition}
 %% PICTURE %%
 \def\firstcircle{(0:-0.9cm) circle (2cm)}
 \def\secondcircle{(0:0cm) circle (3cm)}
@@ -150,38 +149,12 @@ Let us consider a system with random variables $X$ and $Y$ predicting $Z$.
 \end{figure}
 \end{frame}
 
-% STORY: give an intuitive example of resilience and 
-\begin{frame}
-\frametitle{Introduction}
-\begin{itemize}
-\item An example of synergy is an XOR-gate
-\item Quantifying synergy is an open problem \cite{griffith2011quantifying, olbrich2015information} \dots{}
-\end{itemize}
-\begin{table}[ht]
-\begin{center}
-\begin{tabular}{|c|c||c|}
-\hline
-$X$ & $Y$ & $Z$ \\
-\hline
-\hline
-1 & 1 & 0 \\
-1 & 0 & 1 \\
-0 & 1 & 1 \\
-0 & 0 & 0 \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Truth table of an X-OR gate}
-\label{XOR}
-\end{table}
-\end{frame}
-
 % To set the expectations, kind of like the abstract
 % Mention that the last two are double, we test it for both but found no difference
 \begin{frame}
 \frametitle{Research question}
+\center{\textbf{Is there a form of synergistic control on memory and resilience in gene regulatory networks?}}\\
 \begin{itemize}
-\item Is there a form of synergistic control on memory and resilience in gene regulatory networks?
 \item Comparison of BRM and URM
 \item Hypotheses \dots{}
 \begin{itemize}
@@ -202,10 +175,16 @@ $X$ & $Y$ & $Z$ \\
 \frametitle{A model for GRNs}
 \begin{itemize}
 \item We model GRN motifs as discrete networks
+\begin{itemize}
 \item A total of $n$ genes
-\item Gene can be in state $m \in \{0, 1, ..., l\}$
-\item Time is discrete
-\item Deterministic model
+\item Gene can be in state $m \in \{0, 1, ..., l - 1 \}$
+\item Time is discrete and deterministic
+\end{itemize}
+%\begin{itemize}
+%\item Only accurate locally in time, as we omit the rest of the network
+%\end{itemize}
+\item Joint PMF describes distribution over all system states
+\item Initial distribution defined in a correlation matrix
 \item Two representations in Python-implementation
 \begin{itemize}
 \item Graph form
@@ -218,6 +197,7 @@ $X$ & $Y$ & $Z$ \\
 \frametitle{Graph form}
 \begin{itemize}
 \item Graph form mimics real GRN motifs
+\item Nodes and directed edges
 \item Genes can have four types of relations
 \begin{itemize}
 \item Stimulation (+)
@@ -232,7 +212,27 @@ $X$ & $Y$ & $Z$ \\
 
 \begin{frame}
 \frametitle{Graph form}
-PLAATJE NETWERK
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+  thick,main node/.style={circle,draw,font=\sffamily\Large\bfseries}]
+
+  \node[main node] (1) at (2,0) {c};
+  \node[main node] (2) at (0,3) {a};
+  \node[main node] (3) at (4,3) {b};
+
+  %\path[every node/.style={font=\sffamily\small}]
+  %  (3) edge node [right] {} (2)
+  %  (3) edge[bend right=33] node [left] {} (1)
+  %  (2) edge[bend left=33] node [right] {} (1);
+  \draw[black,thick,->,shorten >=1pt] (3) to [out=180,in=0] (2);
+  \draw[red,thick,-|,shorten >=1pt] (3) to [out=225,in=90] (1);
+  \draw[red,thick,-|,shorten >=1pt] (3) to [out=225,in=90] (1);
+  \draw[red,thick,-|,shorten >=1pt] (2) to [out=-45,in=90] (1);
+  \draw[black,thick,->] (1.-90) arc (180:180+264:4mm);
+\end{tikzpicture}
+\end{center}
+\end{figure}
 \end{frame}
 
 \begin{frame}
@@ -240,12 +240,8 @@ PLAATJE NETWERK
 \begin{itemize}
 \item We can convert a graph form to a transition table
 \item The transition table defines the state of the system at $t + \delta t$ for each possible system state at $t$
-\item Total of $l^n$ states
+%\item Total of $l^n$ states
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Transition table form}
 \begin{table}[ht]
 \begin{center}
 \begin{tabular}{|c|c|c||c|c|c|}
@@ -271,7 +267,7 @@ $A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \
 \begin{frame}
 \frametitle{Generating BRMs}
 \begin{itemize}
-\item We sample biological random motifs (BRMs) using the Erdős–Rényi algorithm \cite{margolin2006aracne}
+\item We sample biological random motifs (BRMs) using the Erdos-Renyi algorithm \cite{margolin2006aracne}
 \item We run the algorithm twice; for 1-to-1 edges, and for 2-to-1 edges
 \item We allow self-referring edges
 \item A random eligible function is attached to an edge
@@ -287,25 +283,17 @@ $A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \
 \item Each expression level in the future state is randomly determined
 \item We draw from a uniform distribution between $0$ and $l-1$
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Generating URMs}
 \begin{table}[ht]
 \begin{center}
-\begin{tabular}{|c|c|c||c|c|c|}
+\begin{tabular}{|c|c||c|c|}
 \hline
-$A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \\
+$A_t$ & $B_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ \\
 \hline
 \hline
-1 & 1 & 1 & ? & ? & ? \\
-1 & 1 & 0 & ? & ? & ? \\
-1 & 0 & 1 & ? & ? & ? \\
-1 & 0 & 0 & ? & ? & ? \\
-0 & 1 & 1 & ? & ? & ? \\
-0 & 1 & 0 & ? & ? & ? \\
-0 & 0 & 1 & ? & ? & ? \\
-0 & 0 & 0 & ? & ? & ? \\
+1 & 1 & ? & ? \\
+1 & 1 & ? & ? \\
+1 & 0 & ? & ? \\
+1 & 0 & ? & ? \\
 \hline
 \end{tabular}
 \end{center}
@@ -314,43 +302,32 @@ $A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \
 \end{frame}
 
 \begin{frame}
-\frametitle{Measurement methods: synergy}
-\begin{itemize}
-\item Most synergy measures are too expensive to compute
-\item We use the mean of an upper- and lower bound
-\item Upper: $\mathrm{I}\left( \mathbf{X}_{t=0}; \mathbf{X}_{t=\Delta t} \right) - \max_i [\mathrm{I}\left( X_{t=0,i};\mathbf{X}_{t=\Delta t}\right)]$
-\item Lower: $\mathrm{WMS} \left( X;Y \right) = \mathrm{I} \left( X;Y \right) - \sum_i [\mathrm{I} \left( X_i;Y \right)]$
-\item We normalize this to fall between 0 and 1 by dividing by $\mathrm{I}\left( \mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Measurement methods: memory}
-\begin{itemize}
-\item We define the memory as the MI between the state at $t$ and $t + \delta t$
-\item Expression: $\mathrm{I}\left(\mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$
-\item We normalize by dividing by the entropy $\mathrm{H}\left(\mathbf{X}_{t + \Delta t}\right)$
-\end{itemize}
-\end{frame}
-
-\begin{frame}
 \frametitle{Measurement methods}
 \begin{itemize}
-\item We perform a local nudge on between 1 and $n$ genes
-\item Joint PDF of the variables that are not nudged remains unaltered
-\item Nudge size $0 \le \epsilon \le 1$, represents the fraction of the total probability tl be moved as part of the nudge
-\item We define the resilience as the difference between the nudged and unnudged state at $t + \delta t$
-\item Difference is defined using the Hellinger distance
+\item We define the memory as the mutual information between the distribution of states at $t$ and $t + \delta t$
+\item We use the mean synergy of a cheap upper- and lower bound
+\begin{itemize}
+\item Better measures require expensive numerical optimization
+\item We use the WMS-synergy and the $\mathrm{I}_\mathrm{max}$ synergy
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Complexity profile}
-%
-\begin{equation}
-C_\mathrm{mult}(k) = \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [\mathbf{X}]^k} [\mathrm{I}\left( X_i;Y \right)]}{\mathrm{I}\left( \mathbf{X};Y\right)}
-\end{equation}
-VOORBEELD COMPLEXITY PROFILE
+\item Resilience we define using the Hellinger distance
+\begin{itemize}
+\item We nudge the state distribution at time $t$
+\item We compare the state distributions at time $t + \delta t$
+\end{itemize}
+\item We normalize the memory and synergy
+%\item Expression: $\mathrm{I}\left(\mathbf{X}_t ; \mathbf{X}_{t + \Delta t}\right)$
+%\item We normalize by dividing by the entropy $\mathrm{H}\left(\mathbf{X}_{t + \Delta t}\right)$
+%\item Most synergy measures are too expensive to compute
+%\item Upper: $\mathrm{I}_\mathrm{max}\left( X;Y \right) = \mathrm{I}\left( X; Y \right) - \max_i [\mathrm{I}\left( X_{i};Y \right)]$
+%\item Lower: $\mathrm{I}_\mathrm{WMS} \left( X;Y \right) = \mathrm{I} \left( X;Y \right) - \sum_i [\mathrm{I} \left( X_i;Y \right) ]$
+%\item We normalize this to fall between 0 and 1 by dividing by $\mathrm{I}\left( \mathbf{X}_t ; \mathbf{X}_{t + \Delta t} \right)$
+%\item We perform a local nudge on between 1 and $n$ genes
+%\item Joint PMF of the variables that are not nudged remains unaltered
+%\item Nudge size $0 \le \epsilon \le 1$, represents the fraction of the total probability to be moved as part of the nudge
+%\item We define the resilience as the difference between the state at $t + \delta t$ when the state $t$ is nudged vs. when state $t$ remains unnudged 
+%\item Difference is measured using the Hellinger distance
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -371,9 +348,9 @@ VOORBEELD COMPLEXITY PROFILE
 \begin{frame}
 \frametitle{Parameters}
 \begin{itemize}
-\item We do a parameter sweep
 \item Average indegree of 4 \cite{lahdesmaki2003learning}
 \item 75\% of edges are 1-to-1 
+\item We do a parameter sweep for remaining parameters
 \end{itemize}
 \begin{table}[H]
 \begin{tabular}{| l | c | c | c |}
@@ -401,11 +378,11 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{../../result/k=2_l=2/tsne2D.pdf}
-        \caption{t-SNE for $k=2$ and $l=4$ ($n=300$)}
+        \caption{t-SNE for $n=2$ and $l=4$ ($n=300$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{../../result/k=5_l=4/tsne2D.pdf}
-        \caption{t-SNE for $k=5$ and $l=4$ ($n=300$)}
+        \caption{t-SNE for $n=5$ and $l=4$ ($n=300$)}
     \end{subfigure}
     \caption{t-SNE plots for varying experiments}
     \label{fig:TSNE}
@@ -418,11 +395,11 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{../../result/k=3_l=2_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
-        \caption{Distribution for $k=3$ and $l=2$ ($n=300$)}
+        \caption{Distribution for $n=3$ and $l=2$ ($n=300$)}
     \end{subfigure}
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{../../result/k=5_l=4_e=0.250000/scatter3D_memory_synergy_resilience.pdf}
-        \caption{Distribution for $k=5$ and $l=4$ ($n=300$)}
+        \caption{Distribution for $n=5$ and $l=4$ ($n=300$)}
     \end{subfigure}
     \caption{Scatterplots of synergy, memory and nudge impact (varying $l$ and $k$, $\epsilon = 0.25$)}
     \label{fig:3dscatter}
@@ -436,7 +413,7 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 \item In all experiments URMs have a higher memory
 \item In all experiments BRMs are more resilient
 \item Significance increase with larger $n$ and $l$
-\item Exeriments have $N = 100$
+\item Experiments have $N = 100$
 \end{itemize}
 \end{frame}
 
@@ -473,7 +450,7 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
         \includegraphics[width=\textwidth]{../../result/k=4_l=4/MIprofile_GRN.pdf}
         \caption{Profile ensemble of BRMs}
     \end{subfigure}
-    \caption{MI-profiles with $k=4$ and $l=4$ ($n=900$)}
+    \caption{MI-profiles with $n=4$ and $l=4$ ($n=900$)}
     \label{fig:profilel4}
 \end{figure}
 \end{frame}
@@ -483,29 +460,91 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 
 \begin{frame}
 \frametitle{Conclusion}
-About what this means
-Summary slide, discuss for a long time
-Discuss Rick his hypothesis, and how I claim against this
+\begin{itemize}
+\item There appears to be no synergistic control on memory and resilience in gene regulatory networks
+\begin{itemize}
+\item Memory and synergy appear negatively correlated
+\item Synergy and resilience appear uncorrelated
+\end{itemize}
+\item BRMs are very different from URMs
+\begin{itemize}
+\item Unexpectedly URMs have more memory and synergy
+\item Chance that many states lead to the same state is small in URMs, resulting in a very high memory.
+\item Synergistic relations might be difficult to build using our graph form
+\end{itemize}
+\item URMs were found to be well-balanced between synergy and redundancy at all emergence levels, BRMs were not
+\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Conclusion}
-Conclusion plaatje over mijn idee over Rick zijn ding.
-No difference between URM BRM
-No difference detected single multiple nudge
+% Now we can draw the sets:
+\def\firstcircle{(0:-0.9cm) circle (2cm)}
+\def\thirdcircle{(0:0.9cm) circle (2cm)}
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+    \draw \firstcircle;
+    \draw \thirdcircle;
+    
+    \begin{scope}[fill opacity=0.5]
+        \clip \firstcircle;
+        \fill[orange] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.5]
+        \clip \thirdcircle (-4,-2) rectangle (2,2);
+        \fill[yellow] \firstcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.0]
+        \clip \firstcircle (-2,-2) rectangle (2,2);
+        \fill[red] \thirdcircle;
+    \end{scope}
+    
+    \begin{scope}[even odd rule, fill opacity=0.3]
+        \clip \firstcircle (-2,-2) rectangle (2,2);
+        \clip \thirdcircle (-2,-2) rectangle (2,2);
+    \end{scope}
+    
+    \node (x) at (-2,0)  {$\rho > 0 $};
+    \node (y) at (2,0)   {$\rho \approx 0$};
+    \node (r) at (0,0)   {$\rho > 0$};
+    \node (s) at (-3,2.3) {$\rho(\mathrm{memory}, \mathrm{resilience})$};
+    \node (w) at (3,2.3) {$\rho(\mathrm{synergy}, \mathrm{resilience})$};
+    
+\end{tikzpicture}
+\end{center}
+\caption{Suggested correlations between memory and resilience, and synergy and resilience}
+\label{venn_results}
+\end{figure}
 \end{frame}
 
 \section{Discussion}
 \setcounter{subsection}{1}
 
 \begin{frame}
-\frametitle{Limitations in experimental design}
-* Een goed voorbeeld van het niveau waarop emergence/synergy gaat werken is flocking behavior; 4 vogels zullen zich nog niet als een flock gedragen, 100 wel. In het geval van genen is 5 genen niet genoeg, maar 10 motieven misschien wel.
+\frametitle{Discussion: experimental design}
+\begin{itemize}
+\item Motifs with more than 5 genes too computationally expensive
+\begin{itemize}
+\item No higher order interactions than five genes
+\item Emergence might happen at a higher level (example: flocking behavior)
+\end{itemize}
+\item Computational power limited our choice of a synergy measure and nudge method
+\item Missing empirical value for ratio 2-to-1 : 1-to-1 edges
+\end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Limitations in the model}
-* Stochastic in twee opzichten een verbetering: introduceer rest netwerk elke tijdstap, en stochastisch decay
+\frametitle{Discussion: model}
+\begin{itemize}
+\item Continuous model was too difficult to sample BRMs randomly
+\item Design choice in translation step from graph to table has alternatives
+\item Correlation matrix only supports linear systems
+\item Timesteps are not constant in size for different values of $l$
+\item Barabasi-Albert network might be better
+\end{itemize}
 \end{frame}
 
 \section{Future research}
@@ -513,7 +552,14 @@ No difference detected single multiple nudge
 
 \begin{frame}
 \frametitle{Future research}
-Resources: repository
+\begin{itemize}
+\item Verify the model against real, empirically
+obtained gene regulatory motifs
+\item Supporting non-transitive correlation matrices
+\item Use a model that considers the rest of the network in the time steps, to not ignore the rest of the network and do more timesteps
+\item Using a better synergy measure and nudge method
+\item Introducing stochastic decay to normalize the duration of one timestep
+\end{itemize}
 \end{frame}
 
 \begin{frame}[allowframebreaks]
@@ -526,6 +572,32 @@ Resources: repository
 
 \section{Backup} 
 \setcounter{subsection}{1}
+
+% STORY: give an intuitive example of resilience and 
+\begin{frame}
+\frametitle{Introduction: Information Theory}
+\begin{itemize}
+\item An example of synergy is an XOR-gate
+\item Quantifying synergy is an open problem \cite{griffith2011quantifying, olbrich2015information} \dots{}
+\end{itemize}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c||c|}
+\hline
+$X$ & $Y$ & $Z$ \\
+\hline
+\hline
+1 & 1 & 0 \\
+1 & 0 & 1 \\
+0 & 1 & 1 \\
+0 & 0 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Truth table of an X-OR gate}
+\label{XOR}
+\end{table}
+\end{frame}
 
 % STORY: give an intuitive example of resilience and 
 \begin{frame}
@@ -542,6 +614,14 @@ Resources: repository
 \item Resilience is higher when we roll several dice, adjust one, and reroll the others
 \end{itemize}
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Complexity profile}
+%
+\begin{equation}
+C_\mathrm{mult}(k) = \frac{1}{\binom{n}{k}}\frac{\sum_{X_i \in [\mathbf{X}]^k} [\mathrm{I}\left( X_i;Y \right)]}{\mathrm{I}\left( \mathbf{X};Y\right)}
+\end{equation}
 \end{frame}
 
 \end{document}
