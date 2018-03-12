@@ -49,14 +49,14 @@
 \item Many natural systems are complex
 \begin{itemize}
 \item Consist of many units
-\item Many interactions between units
-\item Emergent properties at a higher level
+\item Local interactions between units
+\item Emergent properties at a larger scale
 \end{itemize}
-\item Both absence and excess of complexity make systems more vulnerable to change \cite{kondoh2003foraging, macarthur1955fluctuations} \dots{}
+\item Both absence and excess of complexity can reduce system resilience \cite{kondoh2003foraging, macarthur1955fluctuations} \dots{}
 \begin{itemize}
+\item No complete consensus on the underlying mechanism
 \item Less importance of a single interaction?
 \item Vulnerability of very complex systems to cascades?
-\item No complete consensus
 \end{itemize}
 \item What is the relationship between complexity and resilience in biological complex systems? 
 \end{itemize}
@@ -268,8 +268,10 @@ $A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \
 \frametitle{Generating BRMs}
 \begin{itemize}
 \item We sample biological random motifs (BRMs) using the Erdos-Renyi algorithm \cite{margolin2006aracne}
+\begin{itemize}
 \item We run the algorithm twice; for 1-to-1 edges, and for 2-to-1 edges
 \item We allow self-referring edges
+\end{itemize}
 \item A random eligible function is attached to an edge
 \item We then convert to a transition table to perform time evolution
 \end{itemize}
@@ -278,8 +280,8 @@ $A_t$ & $B_t$ & $C_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ & $C_{t+\delta t}$ \
 \begin{frame}
 \frametitle{Generating URMs}
 \begin{itemize}
-\item We sample uniform random motifs (URMs) using a randomized design
 \item We generate a transition table, skipping the graph form
+\item We sample uniform random motifs (URMs) using a randomized design
 \item Each expression level in the future state is randomly determined
 \item We draw from a uniform distribution between $0$ and $l-1$
 \end{itemize}
@@ -308,7 +310,7 @@ $A_t$ & $B_t$ & $A_{t+\delta t}$ & $B_{t+\delta t}$ \\
 \item We use the mean synergy of a cheap upper- and lower bound
 \begin{itemize}
 \item Better measures require expensive numerical optimization
-\item We use the WMS-synergy and the $\mathrm{I}_\mathrm{max}$ synergy
+\item We use the WMS-synergy and the $\mathrm{I}_\mathrm{max}$-synergy
 \end{itemize}
 \item Resilience we define using the Hellinger distance
 \begin{itemize}
@@ -469,7 +471,7 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 \item BRMs are very different from URMs
 \begin{itemize}
 \item Unexpectedly URMs have more memory and synergy
-\item Chance that many states lead to the same state is small in URMs, resulting in a very high memory.
+\item Chance that many states lead to the same state is small in URMs, resulting in a very high memory
 \item Synergistic relations might be difficult to build using our graph form
 \end{itemize}
 \item URMs were found to be well-balanced between synergy and redundancy at all emergence levels, BRMs were not
@@ -556,7 +558,7 @@ Nudge size (fraction of probability) & 0.1 & 0.4 & 0.15 \\
 \item Verify the model against real, empirically
 obtained gene regulatory motifs
 \item Supporting non-transitive correlation matrices
-\item Use a model that considers the rest of the network in the time steps, to not ignore the rest of the network and do more timesteps
+\item Use a model that considers the rest of the network in the time steps, and do more timesteps
 \item Using a better synergy measure and nudge method
 \item Introducing stochastic decay to normalize the duration of one timestep
 \end{itemize}
